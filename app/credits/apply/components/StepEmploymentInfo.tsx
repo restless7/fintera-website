@@ -47,13 +47,15 @@ export function StepEmploymentInfo({ data, onNext, onPrevious }: StepEmploymentI
     trigger(field);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+  const formatCurrency = (value?: number) => {
+  const amount = value ?? 0;
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+
 
   const handleAmountChange = (field: keyof EmploymentInfoForm, e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^\d]/g, "");
@@ -193,7 +195,10 @@ export function StepEmploymentInfo({ data, onNext, onPrevious }: StepEmploymentI
                     id="otherIncome"
                     type="text"
                     placeholder="Ej: 500,000"
-                    value={watch("otherIncome") ? formatCurrency(watch("otherIncome")) : ""}
+                    value={watch("otherIncome") !== undefined && watch("otherIncome") !== null 
+  ? formatCurrency(watch("otherIncome") || 0) 
+  : ""}
+
                     onChange={(e) => handleAmountChange("otherIncome", e)}
                     className="pl-8 mt-1"
                   />
