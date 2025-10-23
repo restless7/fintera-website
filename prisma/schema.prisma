@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CreditApplication {
+  id                        String   @id @default(cuid())
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  // Step 1: Credit Selection
+  creditType               String   // "vivienda" | "vehiculo" | "libranza" | "libre_destino" | "compra_de_cartera"
+  requestedAmount          Float
+  termMonths               Int
+
+  // Step 2: Personal Information
+  firstName                String
+  secondName               String?
+  firstLastName            String
+  secondLastName           String?
+  documentType             String   // "cc" | "ce" | "pasaporte"
+  documentNumber           String   @unique
+  documentIssueCity        String
+  documentIssueDate        DateTime
+  birthDate                DateTime
+  nationality              String
+  residenceCity            String
+  residenceAddress         String
+  email                    String
+  phoneNumber              String
+  preferredContactMethod   String   // "telefono" | "correo" | "whatsapp" | "sms"
+  gender                   String   // "masculino" | "femenino" | "no_binario" | "prefiero_no_decirlo"
+  ethnicGroup              String?
+
+  // Step 3: Employment/Economic Activity
+  occupation               String   // "asalariado" | "independiente" | "pensionado" | "otro"
+  mainActivityDescription  String?  // For independientes
+  ciiuCode                 String?  // Optional CIIU code
+  monthlyIncome            Float
+  monthlyExpenses          Float
+  otherIncome              Float?
+  totalAssets              Float
+  totalLiabilities         Float
+  taxDeclarationStatus     Boolean  // true = "si", false = "no"
+  foreignTaxResidency      Boolean  // true = "si", false = "no"
+  foreignCountry           String?  // If foreignTaxResidency = true
+  tinNumber                String?  // Tax Identification Number
+
+  // Step 4: References
+  personalReferenceName    String
+  personalReferencePhone   String
+  personalReferenceCity    String
+  familyReferenceName      String
+  familyReferencePhone     String
+  familyReferenceCity      String
+  commercialReferenceName  String?  // For independientes
+  commercialReferencePhone String?
+  commercialReferenceCity  String?
+
+  // Consent checkboxes
+  dataProcessingConsent    Boolean  @default(false)
+  informationVeracityConsent Boolean @default(false)
+
+  // Application status (for future workflow management)
+  status                   String   @default("submitted") // "submitted" | "under_review" | "approved" | "rejected"
+
+  @@map("credit_applications")
+}
