@@ -1,17 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup } from "pdf-lib";
-import * as fs from "fs";
-import * as path from "path";
+import { readFile } from "fs/promises";
+import { join } from "path";
 import { mapFormDataToPdfFields } from "@/app/lib/pdf/fieldMapping";
+
+// Force Node.js runtime (required for fs/promises and pdf-lib)
+export const runtime = 'nodejs';
+
+// Increase max duration for Vercel (if on Pro plan)
+export const maxDuration = 60; // 60 seconds
 
 export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const formData = await request.json();
     
-    // Read the PDF template
-    const templatePath = path.join(process.cwd(), "public", "forms", "SSF-vigente-marzo-2025.pdf");
-    const pdfBytes = fs.readFileSync(templatePath);
+    console.log("[PDF Generation] Starting PDF generation for:", {
+      firstName: formData.firstName,
+      documentNumber: formData.documentNumber
+    });
+    
+    // Read the PDF template using fs/promises (works in Node.js runtime)
+    const templatePath = join(process.cwd(), "public", "forms", "SSF-vigente-marzo-2025.pdf");
+    
+    console.log("[PDF Generation] Reading template from:", templatePath);
+    
+    const pdfBytes = await readFile(templatePath);
     
     // Load the PDF document
     const pdfDoc = await PDFDocument.load(pdfBytes);

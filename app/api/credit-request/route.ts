@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { creditRequestSchema } from "@/app/lib/validation/creditRequestSchema";
 
+// Force Node.js runtime for Prisma compatibility
+export const runtime = 'nodejs';
+export const maxDuration = 30; // 30 seconds timeout
+
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
