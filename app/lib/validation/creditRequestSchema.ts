@@ -26,18 +26,6 @@ export const creditRequestSchema = z.object({
   productDetail: z.string().optional(),
   requestedAmount: z.number().positive("El monto debe ser positivo").optional(),
   termMonths: z.number().int().positive("El plazo debe ser positivo").optional(),
-  portfolio: z.enum([
-    "masivo_paso_a_paso",
-    "masivo_impulsa",
-    "masivo_joven",
-    "preferente",
-    "preferente_vv",
-    "preferente_elite",
-    "premium",
-    "premium_ultra",
-    "transversal_basico",
-    "transversal_legado"
-  ]).optional(),
 
   // 2. Datos personales
   firstName: z.string().min(2, "El primer nombre es requerido"),

@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
         productDetail: validatedData.productDetail,
         requestedAmount: validatedData.requestedAmount,
         termMonths: validatedData.termMonths,
-        portfolio: validatedData.portfolio,
 
         // 2. Datos personales
         firstName: validatedData.firstName,

@@ -253,23 +253,28 @@ export default function CreditRequestPage() {
               />
             </div>
 
-            <SelectField
-              label="Portafolio"
-              options={[
-                { value: "masivo_paso_a_paso", label: "Masivo - Paso a Paso" },
-                { value: "masivo_impulsa", label: "Masivo - Impulsa" },
-                { value: "masivo_joven", label: "Masivo - Joven" },
-                { value: "preferente", label: "Preferente" },
-                { value: "preferente_vv", label: "Preferente VV" },
-                { value: "preferente_elite", label: "Preferente Élite" },
-                { value: "premium", label: "Premium" },
-                { value: "premium_ultra", label: "Premium Ultra" },
-                { value: "transversal_basico", label: "Transversal - Básico" },
-                { value: "transversal_legado", label: "Transversal - Legado" }
-              ]}
-              {...register("portfolio")}
-              error={errors.portfolio?.message}
-            />
+            {/* Portfolio Information - Display Only */}
+            <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Nuestros Portafolios</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-blue-700 mb-2">Masivo</h4>
+                  <p className="text-sm text-gray-700">Paso a paso, Impulsa, Joven</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-cyan-700 mb-2">Preferente</h4>
+                  <p className="text-sm text-gray-700">Preferente, Preferente VV, Preferente Élite</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-purple-700 mb-2">Premium</h4>
+                  <p className="text-sm text-gray-700">Premium, Premium Ultra</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">Transversal</h4>
+                  <p className="text-sm text-gray-700">Básico, Legado</p>
+                </div>
+              </div>
+            </div>
           </SectionCard>
 
           {/* Section 2: Datos Personales */}

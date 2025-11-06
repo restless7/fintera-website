@@ -86,7 +86,6 @@ model CreditRequest {
   productDetail            String?
   requestedAmount          Float?
   termMonths               Int?
-  portfolio                String?  // "masivo_paso_a_paso", "masivo_impulsa", "masivo_joven", "preferente", "preferente_vv", "preferente_elite", "premium", "premium_ultra", "transversal_basico", "transversal_legado"
 
   // 2. Datos personales
   firstName                String
