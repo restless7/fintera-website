@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import Link from "next/link";
 import { creditRequestSchema, type CreditRequestFormData } from "@/app/lib/validation/creditRequestSchema";
 import { SectionCard } from "@/app/components/form/SectionCard";
 import { InputField } from "@/app/components/form/InputField";
@@ -140,12 +141,12 @@ export default function CreditRequestPage() {
                 </li>
               </ul>
             </div>
-            <a
+            <Link
               href="/"
               className="inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-cyan-600 transition-all shadow-lg"
             >
               Volver al inicio
-            </a>
+            </Link>
           </div>
         </motion.div>
       </div>

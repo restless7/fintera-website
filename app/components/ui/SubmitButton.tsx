@@ -2,8 +2,9 @@
 
 import { ButtonHTMLAttributes } from "react";
 import { motion } from "framer-motion";
+import { HTMLMotionProps } from "framer-motion";
 
-interface SubmitButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface SubmitButtonProps extends Omit<HTMLMotionProps<"button">, "ref"> {
   isLoading?: boolean;
   loadingText?: string;
 }

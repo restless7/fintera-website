@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
           field.setText(String(fieldValue));
         } else if (field instanceof PDFCheckBox) {
           // Checkbox field
-          if (fieldValue === "Yes" || fieldValue === true) {
+          if (fieldValue === "Yes") {
             field.check();
           } else {
             field.uncheck();
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const fileName = generateFileName(formData);
     
     // Return the PDF as a downloadable file
-    return new NextResponse(filledPdfBytes, {
+    return new NextResponse(Buffer.from(filledPdfBytes), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
