@@ -1,0 +1,477 @@
+[
+  {
+    "index": 1,
+    "name": "Codigo de oficina",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 2,
+    "name": "Check Box11",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 3,
+    "name": "Referencia personal",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 4,
+    "name": "Referencia familiar",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 5,
+    "name": "Referencia comercial",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 6,
+    "name": "Texto60",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 7,
+    "name": "Texto61",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 8,
+    "name": "Texto62",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 9,
+    "name": "Texto64",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 10,
+    "name": "Texto65",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 11,
+    "name": "Texto66",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 12,
+    "name": "Declara Renta",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 13,
+    "name": "Rol",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 14,
+    "name": "1",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 15,
+    "name": "2",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 16,
+    "name": "Texto1",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 17,
+    "name": "Texto2",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 18,
+    "name": "Texto3",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 19,
+    "name": "Consumidor financiero",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 20,
+    "name": "Seguros",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 21,
+    "name": "Seguros2",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 22,
+    "name": "Texto33",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 23,
+    "name": "Mes",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 24,
+    "name": "Detalle producto 1",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 25,
+    "name": "Monto1",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 26,
+    "name": "Monto2",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 27,
+    "name": "Plazo1",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 28,
+    "name": "Plazo2",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 29,
+    "name": "Primer nombre",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 30,
+    "name": "Segundo nombre",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 31,
+    "name": "Primer apellido",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 32,
+    "name": "Segundo apellido",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 33,
+    "name": "Número de documento",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 34,
+    "name": "Lugar de expedición",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 35,
+    "name": "Mes exp",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 36,
+    "name": "Día exp",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 37,
+    "name": "Año exp",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 38,
+    "name": "Nacionalidad",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 39,
+    "name": "Ciudad, departamento y país de nacimiento",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 40,
+    "name": "Día nac",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 41,
+    "name": "Mes nac",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 42,
+    "name": "Año nac",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 43,
+    "name": "Ciudad, departamente y país de residencia",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 44,
+    "name": "Dirección de residencia",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 45,
+    "name": "Correo electrónico",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 46,
+    "name": "Número de celular",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 47,
+    "name": "Nombre familiar",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 48,
+    "name": "Actividad económica",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 49,
+    "name": "Código CIIU",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 50,
+    "name": "Ciudad referencia 1",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 51,
+    "name": "Ciudad referencia 2",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 52,
+    "name": "Ciudad referencia 3",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 53,
+    "name": "Teléfono 1",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 54,
+    "name": "Teléfono 2",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 55,
+    "name": "Teléfono 3",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 56,
+    "name": "Total gastos mensuales",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 57,
+    "name": "Total ingresos de otras fuentes",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 58,
+    "name": "Valor total de bienes",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 59,
+    "name": "Valor total de deudas",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 60,
+    "name": "País en que pagas impuestos",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 61,
+    "name": "TIN",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 62,
+    "name": "Nombre",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 63,
+    "name": "Número documento",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 64,
+    "name": "Firma_es_:signer:signature",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 65,
+    "name": "Cuenta de ahorros",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 66,
+    "name": "Cuenta corriente",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 67,
+    "name": "Crédito",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 68,
+    "name": "CDT",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 69,
+    "name": "Tarjeta de crédito",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 70,
+    "name": "Portafolio",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 71,
+    "name": "Leasing",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 72,
+    "name": "Llamada telefónica",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 73,
+    "name": "Correo electrónico2",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 74,
+    "name": "WhatsApp",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 75,
+    "name": "Mensaje de texto",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 76,
+    "name": "Cuál",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 77,
+    "name": "Dia",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 78,
+    "name": "Año",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 79,
+    "name": "Díabanco",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 80,
+    "name": "MesBanco",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 81,
+    "name": "AñoBanco",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 82,
+    "name": "Total ingresos mensuales",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 83,
+    "name": "Genero",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 84,
+    "name": "Grupo étnico",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 85,
+    "name": "PEP",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 86,
+    "name": "Familiar",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 87,
+    "name": "Ocupación",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 88,
+    "name": "Impuestos otro país",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 89,
+    "name": "Apoderado",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 90,
+    "name": "Detalle producto 2",
+    "type": "PDFTextField"
+  },
+  {
+    "index": 91,
+    "name": "Tipo de documento",
+    "type": "PDFRadioGroup"
+  },
+  {
+    "index": 92,
+    "name": "Check Box2",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 93,
+    "name": "Check Box3",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 94,
+    "name": "Check Box4",
+    "type": "PDFCheckBox"
+  },
+  {
+    "index": 95,
+    "name": "Check Box5",
+    "type": "PDFCheckBox"
+  }
+]

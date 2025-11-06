@@ -73,3 +73,82 @@ model CreditApplication {
 
   @@map("credit_applications")
 }
+
+model CreditRequest {
+  id                        String   @id @default(cuid())
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  // 1. Solicitud de producto
+  requestDate              DateTime @default(now())
+  officeCode               String?
+  productsRequested        String[] // Array: "cuenta_ahorros", "cuenta_corriente", "credito", "cdt", "tarjeta_credito", "portafolio", "leasing", "fondo_inversion"
+  productDetail            String?
+  requestedAmount          Float?
+  termMonths               Int?
+  portfolio                String?  // "masivo_paso_a_paso", "masivo_impulsa", "masivo_joven", "preferente", "preferente_vv", "preferente_elite", "premium", "premium_ultra", "transversal_basico", "transversal_legado"
+
+  // 2. Datos personales
+  firstName                String
+  secondName               String?
+  firstLastName            String
+  secondLastName           String?
+  documentType             String   // "CC", "RC", "CE", "TI", "PAS"
+  documentNumber           String   @unique
+  documentIssuePlace       String
+  documentIssueDate        DateTime
+  nationality              String
+  birthCity                String
+  birthDepartment          String
+  birthCountry             String   @default("Colombia")
+  birthDate                DateTime
+  residenceCity            String
+  residenceDepartment      String
+  residenceCountry         String   @default("Colombia")
+  residenceAddress         String
+  email                    String
+  mobileNumber             String
+  preferredContactMethods  String[] // "llamada", "correo", "whatsapp", "sms"
+  gender                   String   // "femenino", "masculino", "transexual", "no_binario"
+  ethnicGroup              String?  // "ninguno", "gitano_rrom", "afrocolombiano", "indigena", "raizal", "palenquero", "sin_informacion"
+  isPEP                    Boolean  @default(false)
+  hasFamilyInBank          Boolean  @default(false)
+  familyNameInBank         String?
+
+  // 3. Datos laborales
+  occupation               String   // "asalariado", "independiente", "pensionado", "otro"
+  companyName              String?  // For asalariado/pensionado
+  otherOccupationDetail    String?  // For "otro" occupation
+  mainEconomicActivity     String?  // For independientes
+  ciiuCode                 String?
+
+  // 4. Referencias
+  personalReferenceName    String
+  personalReferenceCity    String
+  personalReferenceDept    String
+  personalReferencePhone   String
+  familyReferenceName      String
+  familyReferenceCity      String
+  familyReferenceDept      String
+  familyReferencePhone     String
+  commercialReferenceName  String?  // Only if independiente
+  commercialReferenceCity  String?
+  commercialReferenceDept  String?
+  commercialReferencePhone String?
+
+  // 5. Información financiera
+  declaresTaxes            Boolean  @default(false)
+  monthlyIncome            Float
+  monthlyExpenses          Float
+  otherIncome              Float?
+  totalAssets              Float
+  totalLiabilities         Float
+  paysTaxesAbroad          Boolean  @default(false)
+  foreignTaxCountry        String?
+  tin                      String?  // Tax Identification Number
+
+  // Application status
+  status                   String   @default("submitted") // "submitted", "under_review", "approved", "rejected"
+
+  @@map("credit_requests")
+}
