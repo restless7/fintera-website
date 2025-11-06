@@ -33,7 +33,7 @@ export default function CreditRequestPage() {
   } = useForm<CreditRequestFormData>({
     resolver: zodResolver(creditRequestSchema),
     defaultValues: {
-      productsRequested: [],
+      creditTypes: [],
       preferredContactMethods: [],
       isPEP: false,
       hasFamilyInBank: false,
@@ -199,10 +199,10 @@ export default function CreditRequestPage() {
         </motion.div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Section 1: Solicitud de Producto */}
+          {/* Section 1: Solicitud de Crédito */}
           <SectionCard
-            title="1. Solicitud de Producto"
-            description="Seleccione los productos y servicios que desea solicitar"
+            title="1. Solicitud de Crédito"
+            description="Seleccione el tipo de crédito que desea solicitar"
           >
             <InputField
               label="Código de oficina"
@@ -212,28 +212,18 @@ export default function CreditRequestPage() {
             />
 
             <CheckboxGroup
-              label="Productos solicitados"
+              label="Tipo de Crédito"
               options={[
-                { value: "cuenta_ahorros", label: "Cuenta de Ahorros" },
-                { value: "cuenta_corriente", label: "Cuenta Corriente" },
-                { value: "credito", label: "Crédito" },
-                { value: "cdt", label: "CDT" },
-                { value: "tarjeta_credito", label: "Tarjeta de Crédito" },
-                { value: "portafolio", label: "Portafolio" },
-                { value: "leasing", label: "Leasing" },
-                { value: "fondo_inversion", label: "Fondo de Inversión" }
+                { value: "vivienda", label: "Crédito de Vivienda - Compra o construcción de vivienda" },
+                { value: "vehiculo", label: "Crédito de Vehículo - Compra de vehículo nuevo o usado" },
+                { value: "libranza", label: "Crédito de Libranza - Descuento directo de nómina" },
+                { value: "libre_destino", label: "Crédito de Libre Destino - Sin destinación específica" },
+                { value: "compra_cartera", label: "Compra de Cartera - Unificación de deudas" }
               ]}
-              name="productsRequested"
+              name="creditTypes"
               register={register}
-              error={errors.productsRequested?.message}
+              error={errors.creditTypes?.message}
               required
-            />
-
-            <InputField
-              label="Detalle del producto"
-              {...register("productDetail")}
-              error={errors.productDetail?.message}
-              placeholder="Especifique detalles adicionales"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

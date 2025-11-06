@@ -16,17 +16,11 @@ export function mapFormDataToPdfFields(data: CreditRequestFormData) {
     // Código de oficina
     "Codigo de oficina": data.officeCode || "",
     
-    // Productos solicitados (checkboxes)
-    "Cuenta de ahorros": data.productsRequested?.includes("cuenta_ahorros") ? "Yes" : "Off",
-    "Cuenta corriente": data.productsRequested?.includes("cuenta_corriente") ? "Yes" : "Off",
-    "Crédito": data.productsRequested?.includes("credito") ? "Yes" : "Off",
-    "CDT": data.productsRequested?.includes("cdt") ? "Yes" : "Off",
-    "Tarjeta de crédito": data.productsRequested?.includes("tarjeta_credito") ? "Yes" : "Off",
-    "Portafolio": data.productsRequested?.includes("portafolio") ? "Yes" : "Off",
-    "Leasing": data.productsRequested?.includes("leasing") ? "Yes" : "Off",
+    // Producto solicitado: Siempre Crédito
+    "Crédito": "Yes",
     
-    // Detalle del producto
-    "Detalle producto 1": data.productDetail || "",
+    // Tipos de crédito (en el campo detalle del producto)
+    "Detalle producto 1": mapCreditTypes(data.creditTypes),
     
     // Monto y plazo
     "Monto1": data.requestedAmount ? data.requestedAmount.toString() : "",
@@ -181,4 +175,17 @@ function mapOccupation(occupation: string): string {
     "otro": "Opción2"
   };
   return mapping[occupation] || "Opción21";
+}
+
+function mapCreditTypes(types: string[]): string {
+  // Map credit type codes to readable names
+  const mapping: Record<string, string> = {
+    "vivienda": "Crédito de Vivienda - Compra o construcción de vivienda",
+    "vehiculo": "Crédito de Vehículo - Compra de vehículo nuevo o usado",
+    "libranza": "Crédito de Libranza - Descuento directo de nómina",
+    "libre_destino": "Crédito de Libre Destino - Sin destinación específica",
+    "compra_cartera": "Compra de Cartera - Unificación de deudas"
+  };
+  
+  return types.map(type => mapping[type] || type).join(", ");
 }

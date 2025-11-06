@@ -14,11 +14,10 @@ export async function POST(request: NextRequest) {
     // Create the credit request in the database
     const creditRequest = await prisma.creditRequest.create({
       data: {
-        // 1. Solicitud de producto
+        // 1. Solicitud de crédito
         requestDate: validatedData.requestDate || new Date(),
         officeCode: validatedData.officeCode,
-        productsRequested: validatedData.productsRequested,
-        productDetail: validatedData.productDetail,
+        creditTypes: validatedData.creditTypes,
         requestedAmount: validatedData.requestedAmount,
         termMonths: validatedData.termMonths,
 

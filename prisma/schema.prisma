@@ -79,11 +79,10 @@ model CreditRequest {
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
-  // 1. Solicitud de producto
+  // 1. Solicitud de crédito
   requestDate              DateTime @default(now())
   officeCode               String?
-  productsRequested        String[] // Array: "cuenta_ahorros", "cuenta_corriente", "credito", "cdt", "tarjeta_credito", "portafolio", "leasing", "fondo_inversion"
-  productDetail            String?
+  creditTypes              String[] // Array: "vivienda", "vehiculo", "libranza", "libre_destino", "compra_cartera"
   requestedAmount          Float?
   termMonths               Int?
 

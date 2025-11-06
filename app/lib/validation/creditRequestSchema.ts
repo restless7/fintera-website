@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const creditRequestSchema = z.object({
-  // 1. Solicitud de producto
+  // 1. Solicitud de crédito
   requestDate: z.preprocess(
     (val) => {
       if (val instanceof Date) return val;
@@ -11,19 +11,15 @@ export const creditRequestSchema = z.object({
     z.date()
   ),
   officeCode: z.string().optional(),
-  productsRequested: z.array(
+  creditTypes: z.array(
     z.enum([
-      "cuenta_ahorros",
-      "cuenta_corriente",
-      "credito",
-      "cdt",
-      "tarjeta_credito",
-      "portafolio",
-      "leasing",
-      "fondo_inversion"
+      "vivienda",
+      "vehiculo",
+      "libranza",
+      "libre_destino",
+      "compra_cartera"
     ])
-  ).min(1, "Seleccione al menos un producto"),
-  productDetail: z.string().optional(),
+  ).min(1, "Seleccione al menos un tipo de crédito"),
   requestedAmount: z.number().positive("El monto debe ser positivo").optional(),
   termMonths: z.number().int().positive("El plazo debe ser positivo").optional(),
 
