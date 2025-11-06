@@ -215,7 +215,6 @@ export default function CreditRequestPage() {
               label="Tipo de Crédito"
               options={[
                 { value: "vivienda", label: "Crédito de Vivienda - Compra o construcción de vivienda" },
-                { value: "vehiculo", label: "Crédito de Vehículo - Compra de vehículo nuevo o usado" },
                 { value: "libranza", label: "Crédito de Libranza - Descuento directo de nómina" },
                 { value: "libre_destino", label: "Crédito de Libre Destino - Sin destinación específica" },
                 { value: "compra_cartera", label: "Compra de Cartera - Unificación de deudas" }

@@ -82,7 +82,7 @@ model CreditRequest {
   // 1. Solicitud de crédito
   requestDate              DateTime @default(now())
   officeCode               String?
-  creditTypes              String[] // Array: "vivienda", "vehiculo", "libranza", "libre_destino", "compra_cartera"
+  creditTypes              String[] // Array: "vivienda", "libranza", "libre_destino", "compra_cartera"
   requestedAmount          Float?
   termMonths               Int?
 

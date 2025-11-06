@@ -181,7 +181,6 @@ function mapCreditTypes(types: string[]): string {
   // Map credit type codes to readable names
   const mapping: Record<string, string> = {
     "vivienda": "Crédito de Vivienda - Compra o construcción de vivienda",
-    "vehiculo": "Crédito de Vehículo - Compra de vehículo nuevo o usado",
     "libranza": "Crédito de Libranza - Descuento directo de nómina",
     "libre_destino": "Crédito de Libre Destino - Sin destinación específica",
     "compra_cartera": "Compra de Cartera - Unificación de deudas"

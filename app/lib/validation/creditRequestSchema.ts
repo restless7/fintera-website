@@ -14,7 +14,6 @@ export const creditRequestSchema = z.object({
   creditTypes: z.array(
     z.enum([
       "vivienda",
-      "vehiculo",
       "libranza",
       "libre_destino",
       "compra_cartera"
