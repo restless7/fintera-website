@@ -10,10 +10,16 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("[Credit Request] Starting request processing");
+    
     const body = await request.json();
+    
+    console.log("[Credit Request] Body received, validating...");
 
     // Validate the request body
     const validatedData = creditRequestSchema.parse(body);
+    
+    console.log("[Credit Request] Validation passed, saving to database...");
 
     // Create the credit request in the database
     const creditRequest = await prisma.creditRequest.create({
@@ -97,10 +103,16 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error("Error creating credit request:", error);
+    console.error("[Credit Request] Error:", {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n')
+    });
 
     // Handle Zod validation errors
     if (error.name === "ZodError") {
+      console.log("[Credit Request] Validation error");
       return NextResponse.json(
         {
           success: false,
@@ -113,6 +125,7 @@ export async function POST(request: NextRequest) {
 
     // Handle Prisma unique constraint violations (duplicate document number)
     if (error.code === "P2002") {
+      console.log("[Credit Request] Duplicate document number");
       return NextResponse.json(
         {
           success: false,
@@ -121,12 +134,39 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
+    
+    // Handle Prisma connection errors
+    if (error.code === "P1001" || error.message?.includes("Can't reach database")) {
+      console.error("[Credit Request] Database connection error");
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Error de conexión a la base de datos. Por favor, contacte al soporte.",
+          debug: process.env.NODE_ENV === 'development' ? error.message : undefined
+        },
+        { status: 503 }
+      );
+    }
+    
+    // Handle other Prisma errors
+    if (error.code?.startsWith('P')) {
+      console.error("[Credit Request] Prisma error:", error.code);
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Error en la base de datos. Por favor, inténtelo de nuevo.",
+          debug: process.env.NODE_ENV === 'development' ? { code: error.code, message: error.message } : undefined
+        },
+        { status: 500 }
+      );
+    }
 
     // Generic error handler
     return NextResponse.json(
       {
         success: false,
-        message: "Error al procesar la solicitud. Por favor, inténtelo de nuevo."
+        message: "Error al procesar la solicitud. Por favor, inténtelo de nuevo.",
+        debug: process.env.NODE_ENV === 'development' ? error.message : undefined
       },
       { status: 500 }
     );
