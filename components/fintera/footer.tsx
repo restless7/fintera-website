@@ -3,23 +3,33 @@
 import { motion } from "framer-motion";
 
 const footerLinks = {
-  product: [
-    { name: "Features", href: "#features" },
-    { name: "Security", href: "#security" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "API", href: "#api" },
+  creditos: [
+    { name: "Crédito de Libre Inversión", href: "/creditos#libre-inversion" },
+    { name: "Crédito de Vivienda", href: "/creditos#vivienda" },
+    { name: "Crédito de Vehículo", href: "/creditos#vehiculo" },
+    { name: "Libranza", href: "/creditos#libranza" },
   ],
-  company: [
-    { name: "About", href: "#about" },
-    { name: "Careers", href: "#careers" },
-    { name: "Press", href: "#press" },
-    { name: "Contact", href: "#contact" },
+  portafolio: [
+    { name: "Servicios Financieros", href: "/portafolio#servicios" },
+    { name: "Procesos y Documentación", href: "/portafolio#procesos" },
+    { name: "Productos Futuros", href: "/portafolio#futuros" },
+  ],
+  nosotros: [
+    { name: "Cómo Trabajamos", href: "/nosotros#como-trabajamos" },
+    { name: "Nuestro Modelo", href: "/nosotros#modelo" },
+    { name: "Oportunidades Laborales", href: "/nosotros#carreras" },
+    { name: "Prensa", href: "/nosotros#prensa" },
+  ],
+  contacto: [
+    { name: "Formulario de Contacto", href: "/contacto#formulario" },
+    { name: "WhatsApp", href: "https://wa.me/573001234567" },
+    { name: "Correo Corporativo", href: "mailto:info@fintera.com.co" },
   ],
   legal: [
-    { name: "Privacy Policy", href: "#privacy" },
-    { name: "Terms of Service", href: "#terms" },
-    { name: "Security", href: "#security-policy" },
-    { name: "Compliance", href: "#compliance" },
+    { name: "Política de Privacidad", href: "/legal/privacidad" },
+    { name: "Términos del Servicio", href: "/legal/terminos" },
+    { name: "Seguridad", href: "/legal/seguridad" },
+    { name: "Cumplimiento", href: "/legal/cumplimiento" },
   ],
 };
 
@@ -32,14 +42,14 @@ export default function Footer() {
         {/* Main Footer */}
         <div className="py-16">
           <motion.div
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid md:grid-cols-2 lg:grid-cols-6 gap-8"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             {/* Brand Column */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-2">
               <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -50,30 +60,30 @@ export default function Footer() {
                   FINTERA
                 </h3>
                 <p className="text-slate-400 leading-relaxed mb-6">
-                  Empowering your financial future with AI-powered insights and 
-                  expert guidance. Transform the way you manage and grow your wealth.
+                  Tu aliado comercial de confianza para acceder a los mejores créditos en Colombia. 
+                  Transparencia, agilidad y precisión en cada proceso.
                 </p>
                 <div className="flex items-center space-x-2 text-sm text-slate-500">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Data secured with bank-grade encryption</span>
+                  <span>Aliado oficial Banco de Bogotá</span>
                 </div>
               </motion.div>
             </div>
 
-            {/* Product Links */}
+            {/* Créditos Links */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h4 className="font-semibold text-white mb-4">Product</h4>
+              <h4 className="font-semibold text-white mb-4">Créditos</h4>
               <ul className="space-y-2">
-                {footerLinks.product.map((link) => (
+                {footerLinks.creditos.map((link) => (
                   <li key={link.name}>
                     <a 
                       href={link.href} 
-                      className="text-slate-400 hover:text-fintera-400 transition-colors duration-200"
+                      className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                     >
                       {link.name}
                     </a>
@@ -82,20 +92,20 @@ export default function Footer() {
               </ul>
             </motion.div>
 
-            {/* Company Links */}
+            {/* Portafolio Links */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <h4 className="font-semibold text-white mb-4">Company</h4>
+              <h4 className="font-semibold text-white mb-4">Portafolio</h4>
               <ul className="space-y-2">
-                {footerLinks.company.map((link) => (
+                {footerLinks.portafolio.map((link) => (
                   <li key={link.name}>
                     <a 
                       href={link.href} 
-                      className="text-slate-400 hover:text-fintera-400 transition-colors duration-200"
+                      className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                     >
                       {link.name}
                     </a>
@@ -104,26 +114,69 @@ export default function Footer() {
               </ul>
             </motion.div>
 
-            {/* Legal Links */}
+            {/* Nosotros Links */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <h4 className="font-semibold text-white mb-4">Legal</h4>
+              <h4 className="font-semibold text-white mb-4">Nosotros</h4>
               <ul className="space-y-2">
-                {footerLinks.legal.map((link) => (
+                {footerLinks.nosotros.map((link) => (
                   <li key={link.name}>
                     <a 
                       href={link.href} 
-                      className="text-slate-400 hover:text-fintera-400 transition-colors duration-200"
+                      className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                     >
                       {link.name}
                     </a>
                   </li>
                 ))}
               </ul>
+            </motion.div>
+
+            {/* Contact & Legal Column */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="space-y-6"
+            >
+              <div>
+                <h4 className="font-semibold text-white mb-4">Contacto</h4>
+                <ul className="space-y-2">
+                  {footerLinks.contacto.map((link) => (
+                    <li key={link.name}>
+                      <a 
+                        href={link.href} 
+                        className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
+                        target={link.href.startsWith('http') ? '_blank' : undefined}
+                        rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      >
+                        {link.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-white mb-4">Legal</h4>
+                <ul className="space-y-2">
+                  {footerLinks.legal.map((link) => (
+                    <li key={link.name}>
+                      <a 
+                        href={link.href} 
+                        className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
+                      >
+                        {link.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </motion.div>
           </motion.div>
         </div>

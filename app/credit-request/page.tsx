@@ -15,6 +15,8 @@ import { SubmitButton } from "@/app/components/ui/SubmitButton";
 import { DownloadPrompt } from "@/app/components/ui/DownloadPrompt";
 import { InstructionsModal } from "@/app/components/ui/InstructionsModal";
 import { fetchAndDownloadPDF } from "@/app/lib/pdf/downloadHelper";
+import { Navbar } from "@/app/components/ui/Navbar";
+import Footer from "@/components/fintera/footer";
 
 export default function CreditRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,12 +107,46 @@ export default function CreditRequestPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12 px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-2xl mx-auto text-center"
-        >
+      <>
+        <Navbar />
+        <div className="relative min-h-screen bg-gradient-to-br from-white via-blue-50/50 to-cyan-50/50 pt-32 pb-12 px-4 overflow-hidden">
+          {/* Background Effects - Same as Hero Section */}
+          <div className="absolute inset-0 pointer-events-none">
+            {/* Subtle grid pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e950_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e950_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+            
+            {/* Floating orbs */}
+            <motion.div
+              className="absolute top-1/4 right-1/3 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-cyan-500/20 rounded-full blur-xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <motion.div
+              className="absolute bottom-1/3 left-1/4 w-24 h-24 bg-gradient-to-r from-blue-500/20 to-cyan-400/20 rounded-full blur-xl"
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.4, 0.2, 0.4],
+              }}
+              transition={{
+                duration: 5,
+                repeat: Infinity,
+                delay: 1,
+                ease: "easeInOut"
+              }}
+            />
+          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-2xl mx-auto text-center relative z-10"
+          >
           <div className="bg-white rounded-2xl shadow-2xl p-12">
             <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,13 +185,50 @@ export default function CreditRequestPage() {
             </Link>
           </div>
         </motion.div>
-      </div>
+        </div>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <>
+      <Navbar />
+      <div className="relative min-h-screen bg-gradient-to-br from-white via-blue-50/50 to-cyan-50/50 pt-32 pb-12 px-4 overflow-hidden">
+        {/* Background Effects - Same as Hero Section */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e950_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e950_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+          
+          {/* Floating orbs */}
+          <motion.div
+            className="absolute top-1/4 right-1/3 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-cyan-500/20 rounded-full blur-xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div
+            className="absolute bottom-1/3 left-1/4 w-24 h-24 bg-gradient-to-r from-blue-500/20 to-cyan-400/20 rounded-full blur-xl"
+            animate={{
+              scale: [1.2, 1, 1.2],
+              opacity: [0.4, 0.2, 0.4],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              delay: 1,
+              ease: "easeInOut"
+            }}
+          />
+        </div>
+        
+        <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -243,27 +316,115 @@ export default function CreditRequestPage() {
             </div>
 
             {/* Portfolio Information - Display Only */}
-            <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Nuestros Portafolios</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-blue-700 mb-2">Masivo</h4>
-                  <p className="text-sm text-gray-700">Paso a paso, Impulsa, Joven</p>
+            <motion.div 
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/30 p-8 border border-blue-100/50 shadow-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-3xl -z-0" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-200/20 to-blue-200/20 rounded-full blur-3xl -z-0" />
+              
+              <div className="relative z-10">
+                <div className="text-center mb-8">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500">
+                        Nuestros Portafolios
+                      </span>
+                    </h3>
+                    <p className="text-gray-600 text-sm">Soluciones financieras diseñadas para cada necesidad</p>
+                  </motion.div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-cyan-700 mb-2">Preferente</h4>
-                  <p className="text-sm text-gray-700">Preferente, Preferente VV, Preferente Élite</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-purple-700 mb-2">Premium</h4>
-                  <p className="text-sm text-gray-700">Premium, Premium Ultra</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">Transversal</h4>
-                  <p className="text-sm text-gray-700">Básico, Legado</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Masivo */}
+                  <motion.div
+                    className="group relative bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-blue-200/50 hover:border-blue-400/50 transition-all duration-300 hover:shadow-lg"
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-3xl" />
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-blue-700 mb-2 group-hover:text-blue-600 transition-colors">Masivo</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">Paso a paso, Impulsa, Joven</p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Preferente */}
+                  <motion.div
+                    className="group relative bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-cyan-200/50 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg"
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-bl-3xl" />
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-cyan-700 mb-2 group-hover:text-cyan-600 transition-colors">Preferente</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">Preferente, Preferente VV, Preferente Élite</p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Premium */}
+                  <motion.div
+                    className="group relative bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-purple-200/50 hover:border-purple-400/50 transition-all duration-300 hover:shadow-lg"
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-3xl" />
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-purple-700 mb-2 group-hover:text-purple-600 transition-colors">Premium</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">Premium, Premium Ultra</p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Transversal */}
+                  <motion.div
+                    className="group relative bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 hover:border-gray-400/50 transition-all duration-300 hover:shadow-lg"
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-gray-500/10 to-transparent rounded-bl-3xl" />
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-gray-700 mb-2 group-hover:text-gray-600 transition-colors">Transversal</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">Básico, Legado</p>
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </SectionCard>
 
           {/* Section 2: Datos Personales */}
@@ -781,6 +942,8 @@ export default function CreditRequestPage() {
           }}
         />
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }

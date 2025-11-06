@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Navbar } from "@/app/components/ui/Navbar";
 import HeroSection from "@/components/fintera/hero-section";
 import FeaturesSection from "@/components/fintera/features-section";
 import PrequalificationSection from "@/components/fintera/prequalification-section";
@@ -22,9 +23,11 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
-      {/* Hero Section */}
-      <HeroSection />
+    <>
+      <Navbar />
+      <main className="min-h-screen">
+        {/* Hero Section */}
+        <HeroSection />
       
       {/* Features Section */}
       <FeaturesSection />
@@ -46,6 +49,7 @@ export default function HomePage() {
       
       {/* Footer */}
       <Footer />
-    </main>
+      </main>
+    </>
   );
 }
