@@ -6,19 +6,19 @@ import { creditRequestSchema } from "@/app/lib/validation/creditRequestSchema";
 export const runtime = 'nodejs';
 export const maxDuration = 30; // 30 seconds timeout
 
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
     console.log("[Credit Request] Starting request processing");
-    
+
     const body = await request.json();
-    
+
     console.log("[Credit Request] Body received, validating...");
 
     // Validate the request body
     const validatedData = creditRequestSchema.parse(body);
-    
+
     console.log("[Credit Request] Validation passed, saving to database...");
 
     // Create the credit request in the database
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       data: {
         // 1. Solicitud de crédito
         requestDate: validatedData.requestDate || new Date(),
-        officeCode: validatedData.officeCode,
+
         creditTypes: validatedData.creditTypes,
         requestedAmount: validatedData.requestedAmount,
         termMonths: validatedData.termMonths,
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
-    
+
     // Handle Prisma connection errors
     if (error.code === "P1001" || error.message?.includes("Can't reach database")) {
       console.error("[Credit Request] Database connection error");
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         { status: 503 }
       );
     }
-    
+
     // Handle other Prisma errors
     if (error.code?.startsWith('P')) {
       console.error("[Credit Request] Prisma error:", error.code);

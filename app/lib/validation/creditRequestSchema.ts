@@ -10,7 +10,7 @@ export const creditRequestSchema = z.object({
     },
     z.date()
   ),
-  officeCode: z.string().optional(),
+
   creditTypes: z.array(
     z.enum([
       "vivienda",
@@ -20,7 +20,7 @@ export const creditRequestSchema = z.object({
     ])
   ).min(1, "Seleccione al menos un tipo de crédito"),
   requestedAmount: z.number().positive("El monto debe ser positivo").optional(),
-  termMonths: z.number().int().positive("El plazo debe ser positivo").optional(),
+  termMonths: z.coerce.number().int().positive("El plazo debe ser positivo").optional(),
 
   // 2. Datos personales
   firstName: z.string().min(2, "El primer nombre es requerido"),
@@ -91,12 +91,12 @@ export const creditRequestSchema = z.object({
   personalReferenceCity: z.string().min(2, "Ciudad de referencia personal es requerida"),
   personalReferenceDept: z.string().min(2, "Departamento de referencia personal es requerido"),
   personalReferencePhone: z.string().min(10, "Teléfono de referencia personal debe tener al menos 10 dígitos"),
-  
+
   familyReferenceName: z.string().min(2, "Nombre de referencia familiar es requerido"),
   familyReferenceCity: z.string().min(2, "Ciudad de referencia familiar es requerida"),
   familyReferenceDept: z.string().min(2, "Departamento de referencia familiar es requerido"),
   familyReferencePhone: z.string().min(10, "Teléfono de referencia familiar debe tener al menos 10 dígitos"),
-  
+
   commercialReferenceName: z.string().optional(),
   commercialReferenceCity: z.string().optional(),
   commercialReferenceDept: z.string().optional(),

@@ -8,115 +8,115 @@ import { CreditRequestFormData } from "@/app/lib/validation/creditRequestSchema"
  */
 export function mapFormDataToPdfFields(data: Partial<CreditRequestFormData>) {
   const today = new Date();
-  
+
   return {
     // Fecha de diligenciamiento (today's date)
     "Dia": today.getDate().toString(),
     "Mes": (today.getMonth() + 1).toString(),
     "Año": today.getFullYear().toString(),
-    
+
     // Código de oficina
-    "Codigo de oficina": data.officeCode || "",
-    
+
+
     // Producto solicitado: Siempre Crédito
     "Crédito": "Yes",
-    
+
     // Tipos de crédito (en el campo detalle del producto)
     "Detalle producto 1": mapCreditTypes(data.creditTypes),
-    
+
     // Monto y plazo
     "Monto1": data.requestedAmount ? data.requestedAmount.toString() : "",
     "Plazo1": data.termMonths ? data.termMonths.toString() : "",
-    
+
     // Portafolio (esto va en un campo de radio group que necesitaríamos mapear según los valores del PDF)
     // "Rol": data.portfolio || "",
-    
+
     // Datos personales
     "Primer nombre": data.firstName || "",
     "Segundo nombre": data.secondName || "",
     "Primer apellido": data.firstLastName || "",
     "Segundo apellido": data.secondLastName || "",
-    
+
     // Tipo y número de documento
     "Tipo de documento": data.documentType ? mapDocumentType(data.documentType) : "",
     "Número de documento": data.documentNumber || "",
-    
+
     // Fecha de expedición
     "Lugar de expedición": data.documentIssuePlace || "",
     "Día exp": data.documentIssueDate ? new Date(data.documentIssueDate).getDate().toString() : "",
     "Mes exp": data.documentIssueDate ? (new Date(data.documentIssueDate).getMonth() + 1).toString() : "",
     "Año exp": data.documentIssueDate ? new Date(data.documentIssueDate).getFullYear().toString() : "",
-    
+
     // Nacionalidad y lugar de nacimiento
     "Nacionalidad": data.nationality || "",
-    "Ciudad, departamento y país de nacimiento": data.birthCity && data.birthDepartment && data.birthCountry 
-      ? `${data.birthCity}, ${data.birthDepartment}, ${data.birthCountry}` 
+    "Ciudad, departamento y país de nacimiento": data.birthCity && data.birthDepartment && data.birthCountry
+      ? `${data.birthCity}, ${data.birthDepartment}, ${data.birthCountry}`
       : "",
-    
+
     // Fecha de nacimiento
     "Día nac": data.birthDate ? new Date(data.birthDate).getDate().toString() : "",
     "Mes nac": data.birthDate ? (new Date(data.birthDate).getMonth() + 1).toString() : "",
     "Año nac": data.birthDate ? new Date(data.birthDate).getFullYear().toString() : "",
-    
+
     // Residencia
     "Ciudad, departamente y país de residencia": data.residenceCity && data.residenceDepartment && data.residenceCountry
       ? `${data.residenceCity}, ${data.residenceDepartment}, ${data.residenceCountry}`
       : "",
     "Dirección de residencia": data.residenceAddress || "",
-    
+
     // Contacto
     "Correo electrónico": data.email || "",
     "Número de celular": data.mobileNumber || "",
-    
+
     // Medios de contacto preferidos (checkboxes)
     "Llamada telefónica": data.preferredContactMethods?.includes("llamada") ? "Yes" : "Off",
     "Correo electrónico2": data.preferredContactMethods?.includes("correo") ? "Yes" : "Off",
     "WhatsApp": data.preferredContactMethods?.includes("whatsapp") ? "Yes" : "Off",
     "Mensaje de texto": data.preferredContactMethods?.includes("sms") ? "Yes" : "Off",
-    
+
     // Género (radio button)
     "Genero": data.gender ? mapGender(data.gender) : "",
-    
+
     // Grupo étnico (radio button)
     "Grupo étnico": mapEthnicGroup(data.ethnicGroup),
-    
+
     // PEP (radio button): Opción19=Sí, Opción2=No
     "PEP": data.isPEP ? "Opción19" : "Opción2",
-    
+
     // Familiar en banco: Opción18=Sí, Opción1=No
     "Familiar": data.hasFamilyInBank ? "Opción18" : "Opción1",
     "Nombre familiar": data.familyNameInBank || "",
-    
+
     // Ocupación (radio button)
     "Ocupación": data.occupation ? mapOccupation(data.occupation) : "",
-    
+
     // Nombre de la empresa (para asalariado/pensionado)
     "Texto33": data.companyName || "",
-    
+
     // Actividad económica (para independiente)
     "Actividad económica": data.mainEconomicActivity || "",
     "Código CIIU": data.ciiuCode || "",
-    
+
     // Especifique otro (para ocupación "otro")
     "Cuál": data.otherOccupationDetail || "",
-    
+
     // Referencias
     "Referencia personal": data.personalReferenceName || "",
     "Ciudad referencia 1": data.personalReferenceCity && data.personalReferenceDept
       ? `${data.personalReferenceCity}, ${data.personalReferenceDept}`
       : "",
     "Teléfono 1": data.personalReferencePhone || "",
-    
+
     "Referencia familiar": data.familyReferenceName || "",
     "Ciudad referencia 2": data.familyReferenceCity && data.familyReferenceDept
       ? `${data.familyReferenceCity}, ${data.familyReferenceDept}`
       : "",
     "Teléfono 2": data.familyReferencePhone || "",
-    
+
     "Referencia comercial": data.commercialReferenceName || "",
     "Ciudad referencia 3": data.commercialReferenceCity ? `${data.commercialReferenceCity}, ${data.commercialReferenceDept}` : "",
     "Teléfono 3": data.commercialReferencePhone || "",
-    
+
     // Información financiera: Opción26=Sí, Opción1=No
     "Declara Renta": data.declaresTaxes ? "Opción26" : "Opción1",
     "Total ingresos mensuales": data.monthlyIncome ? data.monthlyIncome.toString() : "0",
@@ -124,7 +124,7 @@ export function mapFormDataToPdfFields(data: Partial<CreditRequestFormData>) {
     "Total ingresos de otras fuentes": data.otherIncome ? data.otherIncome.toString() : "0",
     "Valor total de bienes": data.totalAssets ? data.totalAssets.toString() : "0",
     "Valor total de deudas": data.totalLiabilities ? data.totalLiabilities.toString() : "0",
-    
+
     // Impuestos en el extranjero: Opción27=Sí, Opción28=No
     "Impuestos otro país": data.paysTaxesAbroad ? "Opción27" : "Opción28",
     "País en que pagas impuestos": data.foreignTaxCountry || "",
@@ -161,7 +161,7 @@ function mapGender(gender: string): string {
 
 function mapEthnicGroup(group?: string): string {
   if (!group) return "Opción10";
-  
+
   // Grupo étnico: Opción10=Ninguno, Opción11=Gitano, Opción12=Afro, Opción13=Indígena, 
   // Opción14=Raizal, Opción15=Palenquero, Opción1=Sin información
   const mapping: Record<string, string> = {
@@ -192,7 +192,7 @@ function mapCreditTypes(types?: string[]): string {
   if (!types || !Array.isArray(types) || types.length === 0) {
     return "";
   }
-  
+
   // Map credit type codes to readable names
   const mapping: Record<string, string> = {
     "vivienda": "Crédito de Vivienda - Compra o construcción de vivienda",
@@ -200,6 +200,6 @@ function mapCreditTypes(types?: string[]): string {
     "libre_destino": "Crédito de Libre Destino - Sin destinación específica",
     "compra_cartera": "Compra de Cartera - Unificación de deudas"
   };
-  
+
   return types.map(type => mapping[type] || type).join(", ");
 }
