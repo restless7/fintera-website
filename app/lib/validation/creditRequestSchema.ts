@@ -11,14 +11,8 @@ export const creditRequestSchema = z.object({
     z.date()
   ),
 
-  creditTypes: z.array(
-    z.enum([
-      "vivienda",
-      "libranza",
-      "libre_destino",
-      "compra_cartera"
-    ])
-  ).min(1, "Seleccione al menos un tipo de crédito"),
+  creditTypes: z.array(z.string().min(1))
+    .min(1, "Seleccione al menos un tipo de crédito"),
   requestedAmount: z.number().positive("El monto debe ser positivo").optional(),
   termMonths: z.coerce.number().int().positive("El plazo debe ser positivo").optional(),
 

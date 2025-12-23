@@ -12,7 +12,7 @@ export default function HeroSection() {
       <div className="absolute inset-0">
         {/* Subtle grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e950_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e950_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
-        
+
         {/* Floating orbs */}
         <motion.div
           className="absolute top-1/4 right-1/3 w-32 h-32 bg-gradient-to-r from-fintera-400/20 to-gradient-via/20 rounded-full blur-xl"
@@ -40,13 +40,13 @@ export default function HeroSection() {
           }}
         />
       </div>
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          
+
           {/* Left Column - Content */}
-          <motion.div 
+          <motion.div
             className="space-y-8 text-center lg:text-left"
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -64,7 +64,7 @@ export default function HeroSection() {
             </motion.div>
 
             {/* Main Title */}
-            <motion.h1 
+            <motion.h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -75,9 +75,9 @@ export default function HeroSection() {
                 Necesitas Hoy
               </span>
             </motion.h1>
-            
+
             {/* Subtitle */}
-            <motion.p 
+            <motion.p
               className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-2xl"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -86,7 +86,7 @@ export default function HeroSection() {
               Créditos de vivienda, libre inversión y empresarial en{" "}
               <span className="text-fintera-600 font-semibold">Colombia. Proceso rápido y garantizado.</span>
             </motion.p>
-            
+
             {/* Trust indicators */}
             <motion.div
               className="flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start text-sm text-slate-600"
@@ -107,25 +107,26 @@ export default function HeroSection() {
                 <span>Aprobación Rápida</span>
               </div>
             </motion.div>
-            
+
             {/* CTAs */}
-            <motion.div 
+            <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <Button 
+              <Button
                 variant="gradient"
-                size="lg" 
+                size="lg"
                 className="px-8 py-4 rounded-xl shadow-lg shadow-fintera-500/25 transition-all duration-300 transform hover:scale-105"
+                onClick={() => document.getElementById('prequalification')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Precalíficate Ahora
                 <ArrowRightIcon className="ml-2 h-5 w-5" />
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="lg"
                 className="px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105"
               >
@@ -133,9 +134,9 @@ export default function HeroSection() {
               </Button>
             </motion.div>
           </motion.div>
-          
+
           {/* Right Column - Financial Dashboard Mockup */}
-          <motion.div 
+          <motion.div
             className="relative flex justify-center items-center"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -144,7 +145,7 @@ export default function HeroSection() {
             {/* Main Dashboard Container */}
             <div className="relative">
               {/* Dashboard Frame */}
-              <motion.div 
+              <motion.div
                 className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-fintera-200/50"
                 style={{
                   transform: "perspective(1000px) rotateX(10deg) rotateY(-10deg)",
@@ -170,7 +171,7 @@ export default function HeroSection() {
                     <div className="text-fintera-600 text-sm font-medium">Panel de Créditos</div>
                   </div>
                 </div>
-                
+
                 {/* Credit Overview */}
                 <div className="bg-gradient-to-r from-fintera-50 to-gradient-from/10 rounded-2xl p-4 mb-4">
                   <div className="flex justify-between items-center mb-2">
@@ -178,14 +179,14 @@ export default function HeroSection() {
                     <span className="text-xs text-green-600">Aprobado</span>
                   </div>
                   <div className="text-2xl font-bold text-slate-900 mb-2">$120.500.000</div>
-                  
+
                   {/* Mini chart */}
                   <div className="h-12 flex items-end space-x-1">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <motion.div
                         key={i}
                         className="flex-1 bg-gradient-to-t from-fintera-500 to-fintera-300 rounded-t"
-                        style={{ 
+                        style={{
                           height: `${30 + Math.sin(i * 0.5) * 20}%`,
                           minHeight: '8px'
                         }}
@@ -202,40 +203,40 @@ export default function HeroSection() {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3">
-                    <motion.div 
-                      className="bg-white/60 border border-fintera-100 rounded-xl p-3"
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <div className="text-xs text-slate-600 mb-1">Tasa de Interés</div>
-                      <div className="text-lg font-semibold text-slate-900">1.2% EA</div>
-                      <div className="text-xs text-green-600">↓ Más Baja</div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="bg-white/60 border border-fintera-100 rounded-xl p-3"
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <div className="text-xs text-slate-600 mb-1">Estado Aprobación</div>
-                      <div className="text-lg font-semibold text-slate-900">92%</div>
-                      <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
-                        <motion.div 
-                          className="bg-gradient-to-r from-fintera-500 to-gradient-via h-1.5 rounded-full"
-                          initial={{ width: "0%" }}
-                          animate={{ width: "92%" }}
-                          transition={{ duration: 2, delay: 1 }}
-                        />
-                      </div>
-                    </motion.div>
+                  <motion.div
+                    className="bg-white/60 border border-fintera-100 rounded-xl p-3"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="text-xs text-slate-600 mb-1">Tasa de Interés</div>
+                    <div className="text-lg font-semibold text-slate-900">1.2% EA</div>
+                    <div className="text-xs text-green-600">↓ Más Baja</div>
+                  </motion.div>
+
+                  <motion.div
+                    className="bg-white/60 border border-fintera-100 rounded-xl p-3"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="text-xs text-slate-600 mb-1">Estado Aprobación</div>
+                    <div className="text-lg font-semibold text-slate-900">92%</div>
+                    <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
+                      <motion.div
+                        className="bg-gradient-to-r from-fintera-500 to-gradient-via h-1.5 rounded-full"
+                        initial={{ width: "0%" }}
+                        animate={{ width: "92%" }}
+                        transition={{ duration: 2, delay: 1 }}
+                      />
+                    </div>
+                  </motion.div>
                 </div>
               </motion.div>
-              
+
               {/* Floating Elements */}
-              <motion.div 
+              <motion.div
                 className="absolute -top-8 -right-8 bg-gradient-to-r from-fintera-500 to-gradient-via text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg"
-                animate={{ 
+                animate={{
                   y: [-10, 10, -10],
                   rotate: [-2, 2, -2],
                 }}
@@ -243,10 +244,10 @@ export default function HeroSection() {
               >
                 Sin Papeleos
               </motion.div>
-              
-              <motion.div 
+
+              <motion.div
                 className="absolute -bottom-6 -left-8 bg-gradient-to-r from-gradient-from to-gradient-via text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg"
-                animate={{ 
+                animate={{
                   y: [10, -10, 10],
                   rotate: [2, -2, 2],
                 }}
@@ -258,15 +259,15 @@ export default function HeroSection() {
           </motion.div>
         </div>
       </div>
-      
+
       {/* Scroll Indicator */}
-      <motion.div 
+      <motion.div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
       >
         <div className="w-6 h-10 border-2 border-fintera-400/60 rounded-full flex justify-center">
-          <motion.div 
+          <motion.div
             className="w-1 h-3 bg-fintera-400 rounded-full mt-2"
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 2, repeat: Infinity }}

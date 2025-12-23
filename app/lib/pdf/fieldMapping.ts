@@ -80,11 +80,11 @@ export function mapFormDataToPdfFields(data: Partial<CreditRequestFormData>) {
     // Grupo étnico (radio button)
     "Grupo étnico": mapEthnicGroup(data.ethnicGroup),
 
-    // PEP (radio button): Opción19=Sí, Opción2=No
-    "PEP": data.isPEP ? "Opción19" : "Opción2",
+    // PEP (radio button): OpciÃ³n19=Sí, OpciÃ³n2=No
+    "PEP": data.isPEP ? "OpciÃ³n19" : "OpciÃ³n2",
 
-    // Familiar en banco: Opción18=Sí, Opción1=No
-    "Familiar": data.hasFamilyInBank ? "Opción18" : "Opción1",
+    // Familiar en banco: OpciÃ³n18=Sí, OpciÃ³n1=No
+    "Familiar": data.hasFamilyInBank ? "OpciÃ³n18" : "OpciÃ³n1",
     "Nombre familiar": data.familyNameInBank || "",
 
     // Ocupación (radio button)
@@ -125,8 +125,8 @@ export function mapFormDataToPdfFields(data: Partial<CreditRequestFormData>) {
     "Valor total de bienes": data.totalAssets ? data.totalAssets.toString() : "0",
     "Valor total de deudas": data.totalLiabilities ? data.totalLiabilities.toString() : "0",
 
-    // Impuestos en el extranjero: Opción27=Sí, Opción28=No
-    "Impuestos otro país": data.paysTaxesAbroad ? "Opción27" : "Opción28",
+    // Impuestos en el extranjero: OpciÃ³n27=Sí, OpciÃ³n28=No
+    "Impuestos otro país": data.paysTaxesAbroad ? "OpciÃ³n27" : "OpciÃ³n28",
     "País en que pagas impuestos": data.foreignTaxCountry || "",
     "TIN": data.tin || "",
   };
@@ -139,13 +139,13 @@ export function mapFormDataToPdfFields(data: Partial<CreditRequestFormData>) {
 function mapDocumentType(type: string): string {
   // Tipo de documento: OpciÃ³n1=CC, OpciÃ³n2=RC, OpciÃ³n3=CE, OpciÃ³n4=TI, OpciÃ³n5=PAS
   const mapping: Record<string, string> = {
-    "CC": "Opción1",
-    "RC": "Opción2",
-    "CE": "Opción3",
-    "TI": "Opción4",
-    "PAS": "Opción5"
+    "CC": "OpciÃ³n1",
+    "RC": "OpciÃ³n2",
+    "CE": "OpciÃ³n3",
+    "TI": "OpciÃ³n4",
+    "PAS": "OpciÃ³n5"
   };
-  return mapping[type] || "Opción1";
+  return mapping[type] || "OpciÃ³n1";
 }
 
 function mapGender(gender: string): string {
@@ -160,31 +160,31 @@ function mapGender(gender: string): string {
 }
 
 function mapEthnicGroup(group?: string): string {
-  if (!group) return "Opción10";
+  if (!group) return "OpciÃ³n10";
 
-  // Grupo étnico: Opción10=Ninguno, Opción11=Gitano, Opción12=Afro, Opción13=Indígena, 
-  // Opción14=Raizal, Opción15=Palenquero, Opción1=Sin información
+  // Grupo étnico: OpciÃ³n10=Ninguno, OpciÃ³n11=Gitano, OpciÃ³n12=Afro, OpciÃ³n13=Indígena, 
+  // OpciÃ³n14=Raizal, OpciÃ³n15=Palenquero, OpciÃ³n1=Sin información
   const mapping: Record<string, string> = {
-    "ninguno": "Opción10",
-    "gitano_rrom": "Opción11",
-    "afrocolombiano": "Opción12",
-    "indigena": "Opción13",
-    "raizal": "Opción14",
-    "palenquero": "Opción15",
-    "sin_informacion": "Opción1"
+    "ninguno": "OpciÃ³n10",
+    "gitano_rrom": "OpciÃ³n11",
+    "afrocolombiano": "OpciÃ³n12",
+    "indigena": "OpciÃ³n13",
+    "raizal": "OpciÃ³n14",
+    "palenquero": "OpciÃ³n15",
+    "sin_informacion": "OpciÃ³n1"
   };
-  return mapping[group] || "Opción10";
+  return mapping[group] || "OpciÃ³n10";
 }
 
 function mapOccupation(occupation: string): string {
-  // Ocupación: Opción21=Asalariado, Opción22=Independiente, Opción23=Pensionado, Opción2=Otro
+  // Ocupación: OpciÃ³n21=Asalariado, OpciÃ³n22=Independiente, OpciÃ³n23=Pensionado, OpciÃ³n2=Otro
   const mapping: Record<string, string> = {
-    "asalariado": "Opción21",
-    "independiente": "Opción22",
-    "pensionado": "Opción23",
-    "otro": "Opción2"
+    "asalariado": "OpciÃ³n21",
+    "independiente": "OpciÃ³n22",
+    "pensionado": "OpciÃ³n23",
+    "otro": "OpciÃ³n2"
   };
-  return mapping[occupation] || "Opción21";
+  return mapping[occupation] || "OpciÃ³n21";
 }
 
 function mapCreditTypes(types?: string[]): string {
@@ -197,7 +197,7 @@ function mapCreditTypes(types?: string[]): string {
   const mapping: Record<string, string> = {
     "vivienda": "Crédito de Vivienda - Compra o construcción de vivienda",
     "libranza": "Crédito de Libranza - Descuento directo de nómina",
-    "libre_destino": "Crédito de Libre Destino - Sin destinación específica",
+    "libre_destino": "Crédito de Libre Destino",
     "compra_cartera": "Compra de Cartera - Unificación de deudas"
   };
 

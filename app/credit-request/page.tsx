@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,6 +20,31 @@ import { fetchAndDownloadPDF } from "@/app/lib/pdf/downloadHelper";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
 import { useFormPersistence } from "@/app/hooks/useFormPersistence";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
+
+const productOptions = {
+  "Vivienda": [
+    "Leasing Hab Nuevo",
+    "Leasing Hab Usado",
+    "Hipotecario Nuevo",
+    "Hipotecario Usado",
+    "Compra de cartera",
+    "Remodelación"
+  ],
+  "Libre destino": [
+    "Nuevo",
+    "Compra de cartera"
+  ],
+  "Libranza": [
+    "Nueva",
+    "Retanqueo",
+    "Compra de cartera"
+  ],
+  "Vehículo": [
+    "Nuevo",
+    "Usado"
+  ]
+};
 
 export default function CreditRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,6 +53,9 @@ export default function CreditRequestPage() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [submittedData, setSubmittedData] = useState<CreditRequestFormData | null>(null);
+
+  // Custom state for product tree selection
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   const [showRestoredBanner, setShowRestoredBanner] = useState(false);
 
@@ -78,6 +106,21 @@ export default function CreditRequestPage() {
   const residenceCountry = watch("residenceCountry");
 
   const residenceDepartment = watch("residenceDepartment");
+
+  // Watch credit types to sync category selection
+  const creditTypes = watch("creditTypes");
+
+  useEffect(() => {
+    if (creditTypes && creditTypes.length > 0 && !selectedCategory) {
+      const firstType = creditTypes[0];
+      if (typeof firstType === 'string' && firstType.includes(" - ")) {
+        const [category] = firstType.split(" - ");
+        if (Object.keys(productOptions).includes(category)) {
+          setSelectedCategory(category);
+        }
+      }
+    }
+  }, [creditTypes, selectedCategory]);
 
   // Watch reference departments
   const personalReferenceDept = watch("personalReferenceDept");
@@ -364,19 +407,76 @@ export default function CreditRequestPage() {
             >
 
 
-              <CheckboxGroup
-                label="Tipo de Crédito"
-                options={[
-                  { value: "vivienda", label: "Crédito de Vivienda - Compra o construcción de vivienda" },
-                  { value: "libranza", label: "Crédito de Libranza - Descuento directo de nómina" },
-                  { value: "libre_destino", label: "Crédito de Libre Destino - Sin destinación específica" },
-                  { value: "compra_cartera", label: "Compra de Cartera - Unificación de deudas" }
-                ]}
-                name="creditTypes"
-                register={register}
-                error={errors.creditTypes?.message}
-                required
-              />
+              <div className="space-y-6 mb-8">
+                <label className="block text-sm font-medium text-gray-700">
+                  Tipo de Crédito <span className="text-red-500">*</span>
+                </label>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {Object.keys(productOptions).map((category) => (
+                    <div
+                      key={category}
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        // Clear selection when changing category to force sub-product selection
+                        setValue("creditTypes", []);
+                      }}
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 text-center flex items-center justify-center min-h-[80px] ${selectedCategory === category
+                        ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                        : 'border-slate-200 hover:border-blue-300 text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                      <span className="font-medium">{category}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <AnimatePresence>
+                  {selectedCategory && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4 overflow-hidden"
+                    >
+                      <h4 className="text-sm font-medium text-slate-700 border-l-4 border-blue-500 pl-3">
+                        Selecciona una opción para <span className="text-blue-600 font-bold">{selectedCategory}</span>:
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {productOptions[selectedCategory as keyof typeof productOptions].map((option) => {
+                          const fullValue = `${selectedCategory} - ${option}`;
+                          const currentTypes = watch("creditTypes") || [];
+                          const isSelected = currentTypes.includes(fullValue);
+
+                          return (
+                            <div
+                              key={option}
+                              onClick={() => {
+                                // Enforce single selection logic for the tree
+                                setValue("creditTypes", [fullValue], { shouldValidate: true });
+                              }}
+                              className={`relative p-3 border rounded-lg cursor-pointer text-sm transition-all flex items-center justify-between ${isSelected
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                                }`}
+                            >
+                              <span className="font-medium">{option}</span>
+                              {isSelected && <CheckCircleIcon className="h-5 w-5 text-white" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {errors.creditTypes && (
+                  <p className="text-sm text-red-500 mt-1">{errors.creditTypes.message}</p>
+                )}
+
+                {/* Hidden input to register the field for hook form if needed, handled by setValue manually though */}
+                <input type="hidden" {...register("creditTypes")} />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <SliderField
