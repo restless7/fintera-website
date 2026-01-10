@@ -170,23 +170,26 @@ export default function CreditRequestPage() {
     }
   };
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = async (formType: 'credit' | 'authorization') => {
     if (!submittedData) return;
 
-    toast.loading("Generando PDF...");
+    const label = formType === 'credit' ? "Solicitud" : "Autorización";
+    toast.loading(`Generando ${label}...`);
 
-    const result = await fetchAndDownloadPDF(submittedData);
+    const result = await fetchAndDownloadPDF(submittedData, formType);
 
     toast.dismiss();
 
     if (result.success) {
-      toast.success("¡PDF descargado exitosamente!");
-      // Close download modal and mark as submitted
-      setShowDownloadModal(false);
-      setIsSubmitted(true);
+      toast.success(`¡${label} descargada exitosamente!`);
     } else {
-      toast.error(result.error || "Error al generar el PDF");
+      toast.error(result.error || `Error al generar el PDF de ${label}`);
     }
+  };
+
+  const handleFinishProcess = () => {
+    setIsSubmitted(true);
+    setShowDownloadModal(false);
   };
 
   const handleViewInstructions = () => {
@@ -1182,8 +1185,9 @@ export default function CreditRequestPage() {
           <DownloadPrompt
             isOpen={showDownloadModal}
             onClose={() => setShowDownloadModal(false)}
-            onDownload={handleDownloadPDF}
-            onViewInstructions={handleViewInstructions}
+            onDownloadCredit={() => handleDownloadPDF('credit')}
+            onDownloadAuthorization={() => handleDownloadPDF('authorization')}
+            onFinish={handleFinishProcess}
             userName={submittedData?.firstName || "Usuario"}
           />
 

@@ -3,6 +3,7 @@ import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup } from "pdf-lib";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { mapFormDataToPdfFields } from "@/app/lib/pdf/fieldMapping";
+import { mapFormDataToAuthorizationFields } from "@/app/lib/pdf/authorizationMapping";
 
 // Force Node.js runtime (required for fs/promises and pdf-lib)
 export const runtime = 'nodejs';
@@ -13,34 +14,43 @@ export const maxDuration = 60; // 60 seconds
 export async function POST(request: NextRequest) {
   try {
     // Parse request body
-    const formData = await request.json();
-    
+    const body = await request.json();
+    const { formType = 'credit', ...formData } = body;
+
     console.log("[PDF Generation] Starting PDF generation for:", {
+      formType,
       firstName: formData.firstName,
       documentNumber: formData.documentNumber
     });
-    
+
+    let templateName = "SSF-vigente-marzo-2025.pdf";
+    let fieldMapping: Record<string, string> = {};
+
+    if (formType === 'authorization') {
+      templateName = "Autorización Well.pdf";
+      fieldMapping = mapFormDataToAuthorizationFields(formData);
+    } else {
+      fieldMapping = mapFormDataToPdfFields(formData);
+    }
+
     // Read the PDF template using fs/promises (works in Node.js runtime)
-    const templatePath = join(process.cwd(), "public", "forms", "SSF-vigente-marzo-2025.pdf");
-    
+    const templatePath = join(process.cwd(), "public", "forms", templateName);
+
     console.log("[PDF Generation] Reading template from:", templatePath);
-    
+
     const pdfBytes = await readFile(templatePath);
-    
+
     // Load the PDF document
     const pdfDoc = await PDFDocument.load(pdfBytes);
-    
+
     // Get the form
     const form = pdfDoc.getForm();
-    
-    // Map form data to PDF fields
-    const fieldMapping = mapFormDataToPdfFields(formData);
-    
+
     // Fill the PDF fields
     Object.entries(fieldMapping).forEach(([fieldName, fieldValue]) => {
       try {
         const field = form.getField(fieldName);
-        
+
         if (field instanceof PDFTextField) {
           // Text field
           field.setText(String(fieldValue));
@@ -65,16 +75,16 @@ export async function POST(request: NextRequest) {
         console.warn(`Could not set field "${fieldName}":`, error);
       }
     });
-    
+
     // Flatten the form (make it non-editable)
     form.flatten();
-    
+
     // Save the filled PDF
     const filledPdfBytes = await pdfDoc.save();
-    
+
     // Generate filename
-    const fileName = generateFileName(formData);
-    
+    const fileName = generateFileName(formData, formType);
+
     // Return the PDF as a downloadable file
     return new NextResponse(Buffer.from(filledPdfBytes), {
       status: 200,
@@ -100,16 +110,18 @@ export async function POST(request: NextRequest) {
 /**
  * Generate a filename for the PDF based on user data
  */
-function generateFileName(data: any): string {
+function generateFileName(data: any, formType: string): string {
   const firstName = data.firstName || "Usuario";
   const lastName = data.firstLastName || "";
   const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-  
+
   // Sanitize name (remove special characters)
   const sanitizedName = `${firstName}_${lastName}`
     .replace(/[^a-zA-Z0-9_-]/g, "_")
     .replace(/_+/g, "_")
     .substring(0, 50); // Limit length
-  
-  return `Solicitud_Fintera_${sanitizedName}_${date}.pdf`;
+
+  const prefix = formType === 'authorization' ? 'Autorizacion_Well' : 'Solicitud_Fintera';
+
+  return `${prefix}_${sanitizedName}_${date}.pdf`;
 }
