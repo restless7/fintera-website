@@ -82,16 +82,19 @@ export const creditRequestSchema = z.object({
 
   // 4. Referencias
   personalReferenceName: z.string().min(2, "Nombre de referencia personal es requerido"),
+  personalReferenceAddress: z.string().min(5, "Dirección de referencia personal es requerida"),
   personalReferenceCity: z.string().min(2, "Ciudad de referencia personal es requerida"),
   personalReferenceDept: z.string().min(2, "Departamento de referencia personal es requerido"),
   personalReferencePhone: z.string().min(10, "Teléfono de referencia personal debe tener al menos 10 dígitos"),
 
   familyReferenceName: z.string().min(2, "Nombre de referencia familiar es requerido"),
+  familyReferenceAddress: z.string().min(5, "Dirección de referencia familiar es requerida"),
   familyReferenceCity: z.string().min(2, "Ciudad de referencia familiar es requerida"),
   familyReferenceDept: z.string().min(2, "Departamento de referencia familiar es requerido"),
   familyReferencePhone: z.string().min(10, "Teléfono de referencia familiar debe tener al menos 10 dígitos"),
 
   commercialReferenceName: z.string().optional(),
+  commercialReferenceAddress: z.string().optional(),
   commercialReferenceCity: z.string().optional(),
   commercialReferenceDept: z.string().optional(),
   commercialReferencePhone: z.string().optional(),
@@ -129,6 +132,7 @@ export const creditRequestSchema = z.object({
   if (data.occupation === "independiente") {
     return (
       data.commercialReferenceName &&
+      data.commercialReferenceAddress &&
       data.commercialReferenceCity &&
       data.commercialReferenceDept &&
       data.commercialReferencePhone

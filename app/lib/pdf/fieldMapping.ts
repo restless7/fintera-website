@@ -100,20 +100,26 @@ export function mapFormDataToPdfFields(data: Partial<CreditRequestFormData>) {
     // Especifique otro (para ocupación "otro")
     "Cuál": data.otherOccupationDetail || "",
 
-    // Referencias
-    "Referencia personal": data.personalReferenceName || "",
+    // Referencias - Name includes address after "/"
+    "Referencia personal": data.personalReferenceName
+      ? `${data.personalReferenceName}${data.personalReferenceAddress ? ` / ${data.personalReferenceAddress}` : ""}`
+      : "",
     "Ciudad referencia 1": data.personalReferenceCity && data.personalReferenceDept
       ? `${data.personalReferenceCity}, ${data.personalReferenceDept}`
       : "",
     "Teléfono 1": data.personalReferencePhone || "",
 
-    "Referencia familiar": data.familyReferenceName || "",
+    "Referencia familiar": data.familyReferenceName
+      ? `${data.familyReferenceName}${data.familyReferenceAddress ? ` / ${data.familyReferenceAddress}` : ""}`
+      : "",
     "Ciudad referencia 2": data.familyReferenceCity && data.familyReferenceDept
       ? `${data.familyReferenceCity}, ${data.familyReferenceDept}`
       : "",
     "Teléfono 2": data.familyReferencePhone || "",
 
-    "Referencia comercial": data.commercialReferenceName || "",
+    "Referencia comercial": data.commercialReferenceName
+      ? `${data.commercialReferenceName}${data.commercialReferenceAddress ? ` / ${data.commercialReferenceAddress}` : ""}`
+      : "",
     "Ciudad referencia 3": data.commercialReferenceCity ? `${data.commercialReferenceCity}, ${data.commercialReferenceDept}` : "",
     "Teléfono 3": data.commercialReferencePhone || "",
 

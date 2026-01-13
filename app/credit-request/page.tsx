@@ -997,6 +997,13 @@ export default function CreditRequestPage() {
                     error={errors.personalReferenceName?.message}
                     required
                   />
+                  <InputField
+                    label="Dirección"
+                    {...register("personalReferenceAddress")}
+                    error={errors.personalReferenceAddress?.message}
+                    placeholder="Ej: Calle 123 #45-67, Barrio Centro"
+                    required
+                  />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <SelectField
                       label="Departamento"
@@ -1030,6 +1037,13 @@ export default function CreditRequestPage() {
                     label="Nombre Completo"
                     {...register("familyReferenceName")}
                     error={errors.familyReferenceName?.message}
+                    required
+                  />
+                  <InputField
+                    label="Dirección"
+                    {...register("familyReferenceAddress")}
+                    error={errors.familyReferenceAddress?.message}
+                    placeholder="Ej: Calle 123 #45-67, Barrio Centro"
                     required
                   />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1066,6 +1080,13 @@ export default function CreditRequestPage() {
                       label="Nombre Completo"
                       {...register("commercialReferenceName")}
                       error={errors.commercialReferenceName?.message}
+                      required
+                    />
+                    <InputField
+                      label="Dirección"
+                      {...register("commercialReferenceAddress")}
+                      error={errors.commercialReferenceAddress?.message}
+                      placeholder="Ej: Calle 123 #45-67, Barrio Centro"
                       required
                     />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
