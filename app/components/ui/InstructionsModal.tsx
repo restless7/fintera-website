@@ -42,7 +42,7 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                 >
                   <X className="w-5 h-5" />
                 </button>
-                
+
                 <h2 className="text-2xl font-bold">Cómo enviar tu documento</h2>
                 <p className="text-blue-100 text-sm mt-1">
                   Canales oficiales para continuar con tu solicitud
@@ -61,11 +61,13 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                     </div>
                     <div>
                       <h3 className="font-semibold text-amber-900 mb-1">
-                        Importante: Firma física requerida
+                        Importante: Firma física y huella requeridas
                       </h3>
-                      <p className="text-sm text-amber-700">
-                        El documento debe ser firmado de manera física. No se aceptan firmas digitales para este proceso.
-                      </p>
+                      <ul className="text-sm text-amber-700 list-disc pl-4 space-y-1">
+                        <li>Ambos documentos deben ser firmados de manera física.</li>
+                        <li><strong>En la "Autorización Well"</strong>, incluye tu <strong>huella dactilar</strong>.</li>
+                        <li>No se aceptan firmas digitales para este proceso.</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -105,18 +107,18 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                         <MessageCircle className="w-6 h-6 text-green-600" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">WhatsApp</h4>
+                        <h4 className="font-semibold text-gray-900 mb-1">WhatsApp (Recomendado)</h4>
                         <p className="text-sm text-gray-600 mb-2">
-                          Envía tu documento directamente por WhatsApp:
+                          Envía ambos documentos firmados directamente por WhatsApp:
                         </p>
                         <a
-                          href="https://wa.me/573001234567"
+                          href="https://wa.me/573244444430?text=Hola%2C%20adjunto%20mis%20documentos%20firmados%20para%20la%20solicitud%20de%20cr%C3%A9dito."
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
                         >
                           <MessageCircle className="w-4 h-4" />
-                          +57 300 123 4567
+                          +57 324 444 4430
                         </a>
                       </div>
                     </div>

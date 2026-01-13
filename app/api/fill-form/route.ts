@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup } from "pdf-lib";
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { mapFormDataToPdfFields } from "@/app/lib/pdf/fieldMapping";
 import { mapFormDataToAuthorizationFields } from "@/app/lib/pdf/authorizationMapping";
 
-// Force Node.js runtime (required for fs/promises and pdf-lib)
+// Force Node.js runtime (required for pdf-lib)
 export const runtime = 'nodejs';
 
 // Increase max duration for Vercel (if on Pro plan)
@@ -33,12 +31,24 @@ export async function POST(request: NextRequest) {
       fieldMapping = mapFormDataToPdfFields(formData);
     }
 
-    // Read the PDF template using fs/promises (works in Node.js runtime)
-    const templatePath = join(process.cwd(), "public", "forms", templateName);
+    // Get the base URL from request headers or environment
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || 'localhost:3004';
+    const baseUrl = `${protocol}://${host}`;
 
-    console.log("[PDF Generation] Reading template from:", templatePath);
+    // Construct the full URL to the PDF template
+    const templateUrl = `${baseUrl}/forms/${encodeURIComponent(templateName)}`;
 
-    const pdfBytes = await readFile(templatePath);
+    console.log("[PDF Generation] Fetching template from:", templateUrl);
+
+    // Fetch the PDF template via HTTP (works on both local and Vercel)
+    const pdfResponse = await fetch(templateUrl);
+
+    if (!pdfResponse.ok) {
+      throw new Error(`Failed to fetch PDF template: ${pdfResponse.status} ${pdfResponse.statusText}`);
+    }
+
+    const pdfBytes = await pdfResponse.arrayBuffer();
 
     // Load the PDF document
     const pdfDoc = await PDFDocument.load(pdfBytes);
