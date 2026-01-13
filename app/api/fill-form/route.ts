@@ -62,8 +62,11 @@ export async function POST(request: NextRequest) {
         const field = form.getField(fieldName);
 
         if (field instanceof PDFTextField) {
-          // Text field
-          field.setText(String(fieldValue));
+          // Text field - clear first then set new value to remove placeholder text
+          field.setText(''); // Clear any existing/placeholder text
+          if (fieldValue) {
+            field.setText(String(fieldValue));
+          }
         } else if (field instanceof PDFCheckBox) {
           // Checkbox field
           if (fieldValue === "Yes") {
