@@ -8,11 +8,13 @@ interface SectionCardProps {
   description?: string;
   children: ReactNode;
   className?: string;
+  id?: string;
 }
 
-export function SectionCard({ title, description, children, className = "" }: SectionCardProps) {
+export function SectionCard({ title, description, children, className = "", id }: SectionCardProps) {
   return (
     <motion.div
+      id={id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}

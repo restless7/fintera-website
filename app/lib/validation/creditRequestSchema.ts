@@ -160,6 +160,17 @@ export const creditRequestSchema = z.object({
 }, {
   message: "Nombre del familiar es requerido",
   path: ["familyNameInBank"]
+}).refine((data) => {
+  // Check term limit based on product category
+  const isVivienda = data.creditTypes?.some(type => type.startsWith("Vivienda"));
+  const maxLimit = isVivienda ? 240 : 72;
+  if (data.termMonths && data.termMonths > maxLimit) {
+    return false;
+  }
+  return true;
+}, {
+  message: "El plazo máximo para este tipo de crédito es excedido",
+  path: ["termMonths"]
 });
 
 export type CreditRequestFormData = z.infer<typeof creditRequestSchema>;
