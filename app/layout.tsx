@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     "préstamos personales",
     "servicios financieros",
   ],
+  icons: {
+    icon: "/images/logo.ico",
+  },
   authors: [{ name: "FINTERA" }],
   creator: "FINTERA",
   publisher: "FINTERA",

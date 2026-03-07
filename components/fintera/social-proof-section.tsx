@@ -34,12 +34,10 @@ const testimonials = [
 ];
 
 const partners = [
-  { name: "Bancolombia", logo: "🏦" },
-  { name: "Banco de Bogotá", logo: "🏛️" },
-  { name: "Davivienda", logo: "💼" },
-  { name: "BBVA Colombia", logo: "📈" },
-  { name: "Banco Popular", logo: "💎" },
-  { name: "Scotiabank", logo: "🎯" },
+  { name: "Bancos Tradicionales", logo: "🏦" },
+  { name: "Fondos de Empleados", logo: "👥" },
+  { name: "Cajas de Compensación", logo: "🤝" },
+  { name: "Compañías de Financiamiento", logo: "📈" },
 ];
 
 const stats = [
@@ -218,14 +216,14 @@ export default function SocialProofSection() {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <h3 className="text-lg font-semibold text-slate-700 mb-2">
-              Respaldados por las mejores entidades financieras
+              4 entidades aliadas estratégicas
             </h3>
             <p className="text-slate-500">
-              Trabajamos con los bancos líderes de Colombia para ofrecerte las mejores opciones
+              Trabajamos con aliados estratégicos regulados para ofrecerte las opciones más competitivas
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 items-center justify-items-center max-w-4xl mx-auto">
             {partners.map((partner, index) => (
               <motion.div
                 key={partner.name}
