@@ -32,8 +32,8 @@ export function Navbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-          ? "bg-white/70 backdrop-blur-xl shadow-lg border-b border-white/20"
-          : "bg-transparent"
+        ? "bg-white/70 backdrop-blur-xl shadow-lg border-b border-white/20"
+        : "bg-transparent"
         }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,9 +47,9 @@ export function Navbar() {
               <Image
                 src="/images/logo.png"
                 alt="Fintera Logo"
-                width={140}
-                height={40}
-                className="h-8 md:h-10 w-auto object-contain"
+                width={840}
+                height={240}
+                className="h-32 md:h-40 w-auto object-contain"
                 priority
               />
             </motion.div>

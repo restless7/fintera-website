@@ -12,6 +12,7 @@ import {
   GiftIcon
 } from "@heroicons/react/24/outline";
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 const benefits = [
   { icon: ShieldCheckIcon, text: "100% seguro y confiable" },
@@ -23,6 +24,15 @@ export default function CTASection() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim() || email.trim()) {
+      localStorage.setItem('fintera_cta_lead', JSON.stringify({ name, email }));
+    }
+    router.push('/credit-request');
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -152,7 +162,7 @@ export default function CTASection() {
                   </p>
                 </motion.div>
 
-                <form className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}

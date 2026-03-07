@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const footerLinks = {
   creditos: [
@@ -37,7 +38,7 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900 text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-fintera-900/20 via-transparent to-gradient-via/20" />
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Main Footer */}
         <div className="py-16">
@@ -56,11 +57,17 @@ export default function Footer() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fintera-400 to-gradient-via mb-4">
-                  FINTERA
-                </h3>
+                <div className="bg-white rounded-xl p-3 inline-block mb-4">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Fintera Logo"
+                    width={200}
+                    height={60}
+                    className="h-12 w-auto object-contain"
+                  />
+                </div>
                 <p className="text-slate-400 leading-relaxed mb-6">
-                  Tu aliado comercial de confianza para acceder a los mejores créditos en Colombia. 
+                  Tu aliado comercial de confianza para acceder a los mejores créditos en Colombia.
                   Transparencia, agilidad y precisión en cada proceso.
                 </p>
                 <div className="flex items-center space-x-2 text-sm text-slate-500">
@@ -81,8 +88,8 @@ export default function Footer() {
               <ul className="space-y-2">
                 {footerLinks.creditos.map((link) => (
                   <li key={link.name}>
-                    <a 
-                      href={link.href} 
+                    <a
+                      href={link.href}
                       className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                     >
                       {link.name}
@@ -103,8 +110,8 @@ export default function Footer() {
               <ul className="space-y-2">
                 {footerLinks.portafolio.map((link) => (
                   <li key={link.name}>
-                    <a 
-                      href={link.href} 
+                    <a
+                      href={link.href}
                       className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                     >
                       {link.name}
@@ -125,8 +132,8 @@ export default function Footer() {
               <ul className="space-y-2">
                 {footerLinks.nosotros.map((link) => (
                   <li key={link.name}>
-                    <a 
-                      href={link.href} 
+                    <a
+                      href={link.href}
                       className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                     >
                       {link.name}
@@ -149,8 +156,8 @@ export default function Footer() {
                 <ul className="space-y-2">
                   {footerLinks.contacto.map((link) => (
                     <li key={link.name}>
-                      <a 
-                        href={link.href} 
+                      <a
+                        href={link.href}
                         className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                         target={link.href.startsWith('http') ? '_blank' : undefined}
                         rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
@@ -161,14 +168,14 @@ export default function Footer() {
                   ))}
                 </ul>
               </div>
-              
+
               <div>
                 <h4 className="font-semibold text-white mb-4">Legal</h4>
                 <ul className="space-y-2">
                   {footerLinks.legal.map((link) => (
                     <li key={link.name}>
-                      <a 
-                        href={link.href} 
+                      <a
+                        href={link.href}
                         className="text-slate-400 hover:text-fintera-400 transition-colors duration-200 text-sm"
                       >
                         {link.name}
@@ -190,7 +197,7 @@ export default function Footer() {
           transition={{ duration: 0.6, delay: 0.5 }}
         >
           <div className="text-slate-400 text-sm mb-4 md:mb-0">
-            © 2024 Fintera. All rights reserved.
+            © 2024 Todos los derechos reservados.
           </div>
           <div className="flex items-center space-x-6 text-sm text-slate-400">
             <div className="flex items-center space-x-2">

@@ -204,6 +204,7 @@ export default function HowItWorksSection() {
                 variant="gradient"
                 size="lg"
                 className="px-8 py-4 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300"
+                onClick={() => document.getElementById('prequalification')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Precalíficarme Ahora
                 <ArrowRightIcon className="ml-2 h-5 w-5" />
