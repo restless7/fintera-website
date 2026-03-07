@@ -67,14 +67,17 @@ export async function POST(request: NextRequest) {
 
         // 4. Referencias
         personalReferenceName: validatedData.personalReferenceName,
+        personalReferenceAddress: validatedData.personalReferenceAddress,
         personalReferenceCity: validatedData.personalReferenceCity,
         personalReferenceDept: validatedData.personalReferenceDept,
         personalReferencePhone: validatedData.personalReferencePhone,
         familyReferenceName: validatedData.familyReferenceName,
+        familyReferenceAddress: validatedData.familyReferenceAddress,
         familyReferenceCity: validatedData.familyReferenceCity,
         familyReferenceDept: validatedData.familyReferenceDept,
         familyReferencePhone: validatedData.familyReferencePhone,
         commercialReferenceName: validatedData.commercialReferenceName,
+        commercialReferenceAddress: validatedData.commercialReferenceAddress,
         commercialReferenceCity: validatedData.commercialReferenceCity,
         commercialReferenceDept: validatedData.commercialReferenceDept,
         commercialReferencePhone: validatedData.commercialReferencePhone,
@@ -98,7 +101,8 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "Solicitud de crédito recibida exitosamente",
-        id: creditRequest.id
+        id: creditRequest.id,
+        requestNumber: creditRequest.requestNumber
       },
       { status: 201 }
     );

@@ -2,14 +2,15 @@
 
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
+import {
   HomeIcon,
-  BanknotesIcon, 
-  BuildingOfficeIcon, 
+  BanknotesIcon,
+  BuildingOfficeIcon,
   ShieldCheckIcon,
   LightBulbIcon,
   ArrowTrendingUpIcon
 } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 const features = [
   {
@@ -18,6 +19,7 @@ const features = [
     description: "Financia la compra de tu casa propia con las tasas más competitivas del mercado. Hasta $500M con plazos de hasta 20 años.",
     gradient: "from-fintera-500 to-gradient-via",
     delay: 0.1,
+    image: "/images/credito-vivienda.jpg",
   },
   {
     icon: BanknotesIcon,
@@ -25,6 +27,7 @@ const features = [
     description: "Dinero disponible para lo que necesites: educación, vehículo, vacaciones o cualquier proyecto personal. Hasta $150M.",
     gradient: "from-gradient-via to-gradient-to",
     delay: 0.2,
+    image: "/images/credito-libre-inversion.jpg",
   },
   {
     icon: BuildingOfficeIcon,
@@ -32,6 +35,7 @@ const features = [
     description: "Impulsa tu negocio con capital de trabajo, maquinaria o expansión. Financiamiento especializado para empresas.",
     gradient: "from-gradient-from to-fintera-500",
     delay: 0.3,
+    image: "/images/credito-empresarial.jpg",
   },
   {
     icon: ShieldCheckIcon,
@@ -39,6 +43,7 @@ const features = [
     description: "Precalificación en línea, documentos digitales y respuesta en menos de 24 horas. Tu información está protegida.",
     gradient: "from-fintera-600 to-gradient-from",
     delay: 0.4,
+    image: "/images/proceso-rapido.jpg",
   },
 ];
 
@@ -52,14 +57,17 @@ export default function FeaturesSection() {
   return (
     <section className="py-20 bg-white relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-fintera-50/50 to-white" />
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-fixed opacity-20"
+          style={{ backgroundImage: "url('/images/features-bg.jpg')" }}
+        />
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-fintera-200 to-transparent" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -76,8 +84,8 @@ export default function FeaturesSection() {
               Nuestros Productos
             </span>
           </motion.div>
-          
-          <motion.h2 
+
+          <motion.h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mt-4 mb-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -89,15 +97,15 @@ export default function FeaturesSection() {
               Especializados
             </span>
           </motion.h2>
-          
-          <motion.p 
+
+          <motion.p
             className="text-xl text-slate-600 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            Ofrecemos las mejores opciones de financiamiento en Colombia, con tasas preferenciales 
+            Ofrecemos las mejores opciones de financiamiento en Colombia, con tasas preferenciales
             y aprobación rápida para hacer realidad tus proyectos.
           </motion.p>
         </motion.div>
@@ -112,21 +120,26 @@ export default function FeaturesSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: feature.delay }}
             >
-              <Card className="group h-full hover:shadow-xl transition-all duration-300 border-fintera-100/50 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <motion.div 
-                    className={`w-12 h-12 rounded-2xl bg-gradient-to-r ${feature.gradient} p-0.5 mb-4 group-hover:scale-110 transition-transform duration-300`}
+              <Card className="group h-full hover:shadow-xl transition-all duration-300 border-fintera-100/50 bg-white/80 backdrop-blur-sm overflow-hidden flex flex-col">
+                <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                  {/* The user will drop their images in public/images folder, so if missing it falls back gracefully layout-wise */}
+                  <Image src={feature.image} alt={feature.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-80" />
+                  <motion.div
+                    className={`absolute bottom-4 left-4 w-12 h-12 rounded-2xl bg-gradient-to-r ${feature.gradient} p-0.5 group-hover:scale-110 transition-transform duration-300 z-10 shadow-lg`}
                     whileHover={{ rotate: 5 }}
                   >
                     <div className="w-full h-full bg-white rounded-2xl flex items-center justify-center">
                       <feature.icon className={`h-6 w-6 bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`} />
                     </div>
                   </motion.div>
+                </div>
+                <CardHeader className="pb-2 pt-6">
                   <CardTitle className="text-xl font-semibold text-slate-900 group-hover:text-fintera-600 transition-colors">
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                   <p className="text-slate-600 leading-relaxed">
                     {feature.description}
                   </p>
@@ -137,7 +150,7 @@ export default function FeaturesSection() {
         </div>
 
         {/* Stats Section */}
-        <motion.div 
+        <motion.div
           className="border-t border-fintera-100 pt-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -156,7 +169,7 @@ export default function FeaturesSection() {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="flex flex-col items-center space-y-3">
-                  <motion.div 
+                  <motion.div
                     className="w-16 h-16 rounded-full bg-gradient-to-r from-fintera-500 to-gradient-via p-0.5 group-hover:from-gradient-via group-hover:to-gradient-to transition-all duration-300"
                     whileHover={{ rotate: 10 }}
                   >
@@ -165,7 +178,7 @@ export default function FeaturesSection() {
                     </div>
                   </motion.div>
                   <div>
-                    <motion.div 
+                    <motion.div
                       className="text-4xl md:text-5xl font-bold text-slate-900 mb-2"
                       initial={{ opacity: 0 }}
                       whileInView={{ opacity: 1 }}

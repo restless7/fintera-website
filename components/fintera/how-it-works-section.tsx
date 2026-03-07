@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { 
-  UserPlusIcon, 
-  LinkIcon, 
+import {
+  UserPlusIcon,
+  LinkIcon,
   LightBulbIcon,
   ArrowRightIcon,
   CheckCircleIcon
@@ -20,7 +20,7 @@ const steps = [
     color: "from-fintera-500 to-gradient-via",
   },
   {
-    step: "02", 
+    step: "02",
     icon: LinkIcon,
     title: "Revisamos tu Perfil",
     description: "Analizamos tu información y te conectamos con la entidad financiera ideal para ti.",
@@ -29,7 +29,7 @@ const steps = [
   },
   {
     step: "03",
-    icon: LightBulbIcon, 
+    icon: LightBulbIcon,
     title: "Obtienes tu Crédito",
     description: "Recibe la aprobación y desembolso en tiempo récord con las mejores condiciones del mercado.",
     details: ["Aprobación rápida", "Mejores tasas", "Desembolso inmediato"],
@@ -41,14 +41,17 @@ export default function HowItWorksSection() {
   return (
     <section className="py-20 bg-white relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-fixed opacity-20"
+          style={{ backgroundImage: "url('/images/how-it-works-bg.jpg')" }}
+        />
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-fintera-200 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-fintera-50/30 via-white to-fintera-50/20" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -65,8 +68,8 @@ export default function HowItWorksSection() {
               ¿Cómo Funciona?
             </span>
           </motion.div>
-          
-          <motion.h2 
+
+          <motion.h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mt-4 mb-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -79,15 +82,15 @@ export default function HowItWorksSection() {
             </span>{" "}
             que nunca
           </motion.h2>
-          
-          <motion.p 
+
+          <motion.p
             className="text-xl text-slate-600 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            Nuestro proceso simplificado te permite acceder al crédito que necesitas 
+            Nuestro proceso simplificado te permite acceder al crédito que necesitas
             en solo 3 pasos, sin complicaciones ni pérdida de tiempo.
           </motion.p>
         </motion.div>
@@ -96,7 +99,7 @@ export default function HowItWorksSection() {
         <div className="relative">
           {/* Desktop Timeline Line */}
           <div className="hidden md:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-fintera-200 via-fintera-300 to-fintera-200"></div>
-          
+
           <div className="grid md:grid-cols-3 gap-12 relative">
             {steps.map((step, index) => (
               <motion.div
@@ -113,7 +116,7 @@ export default function HowItWorksSection() {
                 )}
 
                 {/* Step Circle */}
-                <motion.div 
+                <motion.div
                   className="relative mb-8"
                   whileHover={{ scale: 1.05 }}
                 >
@@ -122,9 +125,9 @@ export default function HowItWorksSection() {
                       <step.icon className="h-10 w-10 text-fintera-600" />
                     </div>
                   </div>
-                  
+
                   {/* Step Number */}
-                  <motion.div 
+                  <motion.div
                     className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-fintera-600 to-gradient-via rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
                     initial={{ scale: 0 }}
                     whileInView={{ scale: 1 }}
@@ -136,7 +139,7 @@ export default function HowItWorksSection() {
                 </motion.div>
 
                 {/* Content */}
-                <motion.div 
+                <motion.div
                   className="text-center space-y-4"
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -147,7 +150,7 @@ export default function HowItWorksSection() {
                   <p className="text-slate-600 leading-relaxed mb-6">
                     {step.description}
                   </p>
-                  
+
                   {/* Step Details */}
                   <div className="space-y-2">
                     {step.details.map((detail, detailIndex) => (
@@ -157,9 +160,9 @@ export default function HowItWorksSection() {
                         initial={{ opacity: 0, x: -20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        transition={{ 
-                          duration: 0.4, 
-                          delay: 0.5 + index * 0.2 + detailIndex * 0.1 
+                        transition={{
+                          duration: 0.4,
+                          delay: 0.5 + index * 0.2 + detailIndex * 0.1
                         }}
                       >
                         <CheckCircleIcon className="h-4 w-4 text-fintera-500" />
@@ -174,7 +177,7 @@ export default function HowItWorksSection() {
         </div>
 
         {/* Bottom CTA */}
-        <motion.div 
+        <motion.div
           className="text-center mt-16 pt-12 border-t border-fintera-100"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -192,20 +195,20 @@ export default function HowItWorksSection() {
               ¿Listo para obtener tu crédito ideal?
             </h3>
             <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
-              Únete a miles de colombianos que ya han obtenido el financiamiento 
+              Únete a miles de colombianos que ya han obtenido el financiamiento
               que necesitaban con las mejores condiciones del mercado.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
+              <Button
                 variant="gradient"
-                size="lg" 
+                size="lg"
                 className="px-8 py-4 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300"
               >
                 Precalíficarme Ahora
                 <ArrowRightIcon className="ml-2 h-5 w-5" />
               </Button>
-              
+
               <div className="flex items-center space-x-2 text-sm text-slate-500">
                 <CheckCircleIcon className="h-4 w-4 text-green-500" />
                 <span>Sin compromisos ni costos ocultos</span>

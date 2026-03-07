@@ -49,6 +49,7 @@ const productOptions = {
 export default function CreditRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [requestNumber, setRequestNumber] = useState<number | null>(null);
   const [currentSection, setCurrentSection] = useState(1);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
@@ -90,7 +91,7 @@ export default function CreditRequestPage() {
       setShowRestoredBanner(true);
       const remaining = getTimeRemaining();
       toast.success(
-        `Datos recuperados. Expiran en ${remaining} minuto${remaining !== 1 ? 's' : ''}.`,
+        `Datos recuperados de tu precalificación. Expiran en ${remaining} minuto${remaining !== 1 ? 's' : ''}.`,
         { duration: 5000 }
       );
       // Auto-hide banner after 8 seconds
@@ -221,6 +222,7 @@ export default function CreditRequestPage() {
 
         // Save form data for PDF generation
         setSubmittedData(data);
+        setRequestNumber(result.requestNumber);
 
         // Show download modal
         setShowDownloadModal(true);
@@ -314,6 +316,12 @@ export default function CreditRequestPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 ¡Gracias por diligenciar tu solicitud de crédito!
               </h1>
+              {requestNumber && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 inline-block">
+                  <p className="text-gray-700 font-medium">Nº de Solicitud:</p>
+                  <p className="text-3xl font-bold text-blue-700">#{requestNumber + 500}</p>
+                </div>
+              )}
               <p className="text-gray-600 mb-8">
                 Hemos recibido tu información y nuestro equipo la revisará en las próximas 24-48 horas.
                 Te contactaremos a través de los medios que indicaste.

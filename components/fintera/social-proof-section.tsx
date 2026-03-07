@@ -18,7 +18,7 @@ const testimonials = [
   {
     name: "María Fernanda García",
     title: "Profesional Independiente",
-    company: "Medellín", 
+    company: "Medellín",
     content: "Necesitaba un crédito de libre inversión para expandir mi negocio. En Fintera encontré exactamente lo que buscaba: rapidez, claridad y excelentes tasas.",
     rating: 5,
     image: "https://images.unsplash.com/photo-1494790108755-2616b612b194?w=150&h=150&fit=crop&crop=face",
@@ -53,14 +53,18 @@ export default function SocialProofSection() {
   return (
     <section className="py-20 bg-gradient-to-br from-slate-50 to-fintera-50/50 relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-fixed opacity-20"
+          style={{ backgroundImage: "url('/images/social-proof-bg.jpg')" }}
+        />
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-fintera-200 to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.05),transparent_50%)]" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -77,8 +81,8 @@ export default function SocialProofSection() {
               Testimonios Reales
             </span>
           </motion.div>
-          
-          <motion.h2 
+
+          <motion.h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mt-4 mb-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -91,21 +95,21 @@ export default function SocialProofSection() {
             </span>{" "}
             confían en nosotros
           </motion.h2>
-          
-          <motion.p 
+
+          <motion.p
             className="text-xl text-slate-600 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            Conoce las experiencias de quienes ya obtuvieron el crédito que necesitaban 
+            Conoce las experiencias de quienes ya obtuvieron el crédito que necesitaban
             con las mejores condiciones y el proceso más rápido del mercado.
           </motion.p>
         </motion.div>
 
         {/* Statistics */}
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -121,7 +125,7 @@ export default function SocialProofSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
             >
-              <motion.div 
+              <motion.div
                 className="text-4xl md:text-5xl font-bold text-slate-900 mb-2"
                 whileHover={{ scale: 1.1 }}
               >
@@ -150,7 +154,7 @@ export default function SocialProofSection() {
                   >
                     <ChatBubbleLeftRightIcon className="h-8 w-8 text-fintera-400 mb-4 group-hover:text-fintera-600 transition-colors" />
                   </motion.div>
-                  
+
                   {/* Stars */}
                   <div className="flex space-x-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
@@ -165,13 +169,13 @@ export default function SocialProofSection() {
                       </motion.div>
                     ))}
                   </div>
-                  
+
                   <p className="text-slate-600 leading-relaxed mb-6 italic">
                     &ldquo;{testimonial.content}&rdquo;
                   </p>
-                  
+
                   <div className="flex items-center space-x-3">
-                    <motion.div 
+                    <motion.div
                       className="w-12 h-12 rounded-full bg-gradient-to-r from-fintera-400 to-gradient-via overflow-hidden"
                       whileHover={{ scale: 1.1 }}
                     >
@@ -220,7 +224,7 @@ export default function SocialProofSection() {
               Trabajamos con los bancos líderes de Colombia para ofrecerte las mejores opciones
             </p>
           </motion.div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
             {partners.map((partner, index) => (
               <motion.div

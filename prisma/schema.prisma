@@ -12,6 +12,7 @@ datasource db {
 
 model CreditApplication {
   id                        String   @id @default(cuid())
+  requestNumber            Int      @default(autoincrement())
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
@@ -26,7 +27,7 @@ model CreditApplication {
   firstLastName            String
   secondLastName           String?
   documentType             String   // "cc" | "ce" | "pasaporte"
-  documentNumber           String   @unique
+  documentNumber           String   
   documentIssueCity        String
   documentIssueDate        DateTime
   birthDate                DateTime
@@ -76,6 +77,7 @@ model CreditApplication {
 
 model CreditRequest {
   id                        String   @id @default(cuid())
+  requestNumber            Int      @default(autoincrement())
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
@@ -92,7 +94,7 @@ model CreditRequest {
   firstLastName            String
   secondLastName           String?
   documentType             String   // "CC", "RC", "CE", "TI", "PAS"
-  documentNumber           String   @unique
+  documentNumber           String   
   documentIssuePlace       String
   documentIssueDate        DateTime
   nationality              String
@@ -122,14 +124,17 @@ model CreditRequest {
 
   // 4. Referencias
   personalReferenceName    String
+  personalReferenceAddress String?
   personalReferenceCity    String
   personalReferenceDept    String
   personalReferencePhone   String
   familyReferenceName      String
+  familyReferenceAddress   String?
   familyReferenceCity      String
   familyReferenceDept      String
   familyReferencePhone     String
   commercialReferenceName  String?  // Only if independiente
+  commercialReferenceAddress String?
   commercialReferenceCity  String?
   commercialReferenceDept  String?
   commercialReferencePhone String?

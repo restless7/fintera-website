@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
+import {
   ArrowRightIcon,
   CheckCircleIcon,
   ShieldCheckIcon,
@@ -41,10 +41,14 @@ export default function CTASection() {
   return (
     <section className="py-20 bg-gradient-to-br from-fintera-600 via-gradient-via to-gradient-to relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-overlay"
+          style={{ backgroundImage: "url('/images/cta-bg.jpg')" }}
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_70%)]" />
-        
+
         {/* Animated particles */}
         {isClient && particles.map((particle) => (
           <motion.div
@@ -67,7 +71,7 @@ export default function CTASection() {
         ))}
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto">
           <motion.div
             className="text-center mb-12"
@@ -76,7 +80,7 @@ export default function CTASection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <motion.h2 
+            <motion.h2
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -88,20 +92,20 @@ export default function CTASection() {
                 te está esperando
               </span>
             </motion.h2>
-            
-            <motion.p 
+
+            <motion.p
               className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Únete a miles de colombianos que ya confiaron en Fintera para obtener 
+              Únete a miles de colombianos que ya confiaron en Fintera para obtener
               el financiamiento que necesitaban. Sin papeleos ni demoras.
             </motion.p>
-            
+
             {/* Benefits */}
-            <motion.div 
+            <motion.div
               className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-12"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -164,7 +168,7 @@ export default function CTASection() {
                         className="bg-white/90 border-white/30 focus:border-white focus:bg-white h-12 text-slate-900 placeholder:text-slate-500"
                       />
                     </motion.div>
-                    
+
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
                       whileInView={{ opacity: 1, x: 0 }}
@@ -188,7 +192,7 @@ export default function CTASection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.8 }}
                   >
-                    <Button 
+                    <Button
                       type="submit"
                       size="lg"
                       className="bg-white text-fintera-600 hover:bg-blue-50 px-12 py-4 text-lg font-semibold rounded-xl shadow-xl hover:scale-105 transition-all duration-300 border-0"
@@ -196,7 +200,7 @@ export default function CTASection() {
                       Solicitar Mi Crédito Ahora
                       <ArrowRightIcon className="ml-2 h-5 w-5" />
                     </Button>
-                    
+
                     <p className="mt-4 text-sm text-blue-200">
                       Al continuar, aceptas que nos comuniquemos contigo para ofrecerte{" "}
                       <a href="#" className="underline hover:text-white transition-colors">
@@ -208,7 +212,7 @@ export default function CTASection() {
                 </form>
 
                 {/* Additional Trust Indicators */}
-                <motion.div 
+                <motion.div
                   className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-8 pt-6 border-t border-white/20"
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -233,7 +237,7 @@ export default function CTASection() {
           </motion.div>
 
           {/* Bottom Stats */}
-          <motion.div 
+          <motion.div
             className="text-center mt-12"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

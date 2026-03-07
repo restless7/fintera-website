@@ -9,7 +9,13 @@ export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-fintera-50 to-gradient-from/10 overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+        />
+
         {/* Subtle grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e950_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e950_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
 
