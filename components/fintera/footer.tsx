@@ -196,8 +196,17 @@ export default function Footer() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <div className="text-slate-400 text-sm mb-4 md:mb-0">
-            © 2024 Todos los derechos reservados.
+          <div className="text-slate-400 text-sm mb-4 md:mb-0 flex flex-col items-start gap-2">
+            <span>© 2024 Todos los derechos reservados.</span>
+            <a
+              href="https://www.apexaisolutions.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors duration-300"
+            >
+              <img src="/images/apex-logo.png" alt="Apex AI Solutions" className="w-4 h-4 object-contain opacity-75" />
+              Powered by Apex AI Solutions
+            </a>
           </div>
           <div className="flex items-center space-x-6 text-sm text-slate-400">
             <div className="flex items-center space-x-2">
