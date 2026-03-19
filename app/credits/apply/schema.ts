@@ -22,10 +22,10 @@ export const ContactMethodEnum = z.enum([
 
 // Gender enum
 export const GenderEnum = z.enum([
+  "femenino",
   "masculino",
-  "femenino", 
-  "no_binario",
-  "prefiero_no_decirlo"
+  "transexual",
+  "no_binario"
 ]);
 
 // Occupation enum
@@ -38,15 +38,13 @@ export const OccupationEnum = z.enum([
 
 // Ethnic groups (optional)
 export const EthnicGroupEnum = z.enum([
+  "ninguno",
+  "gitano_rrom",
+  "afrocolombiano",
   "indigena",
-  "rom_gitano",
   "raizal",
   "palenquero",
-  "negro_mulato_afrocolombiano",
-  "mestizo",
-  "blanco",
-  "otro",
-  "no_informa"
+  "sin_informacion"
 ]).optional();
 
 // Step 1: Credit Details Schema

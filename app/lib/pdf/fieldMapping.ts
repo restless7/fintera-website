@@ -155,14 +155,16 @@ function mapDocumentType(type: string): string {
 }
 
 function mapGender(gender: string): string {
-  // Genero: Opción6=Femenino, Opción7=Masculino, Opción9=Transexual, Opción6=No binario (hay duplicado)
+  // Genero: Opción6=Femenino, Opción7=Masculino, Opción9=Transexual, Opción6=No binario (hay duplicado en PDF)
+  // WARNING: PDF uses duplicate Opción6 for both Femenino and No binario. They cannot be independently selected.
   const mapping: Record<string, string> = {
     "femenino": "Opción6",
     "masculino": "Opción7",
     "transexual": "Opción9",
     "no_binario": "Opción6" // Note: PDF has duplicate Opción6
   };
-  return mapping[gender] || "Opción7";
+  // If value is unknown (e.g., "prefiero_no_decirlo"), return empty string so it doesn't default incorrectly
+  return mapping[gender] || "";
 }
 
 function mapEthnicGroup(group?: string): string {

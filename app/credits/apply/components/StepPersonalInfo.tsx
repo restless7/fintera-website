@@ -348,10 +348,10 @@ export function StepPersonalInfo({ data, onNext, onPrevious }: StepPersonalInfoP
                     <SelectValue placeholder="Seleccione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="masculino">Masculino</SelectItem>
                     <SelectItem value="femenino">Femenino</SelectItem>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="transexual">Transexual</SelectItem>
                     <SelectItem value="no_binario">No Binario</SelectItem>
-                    <SelectItem value="prefiero_no_decirlo">Prefiero no decirlo</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.gender && (
@@ -362,23 +362,20 @@ export function StepPersonalInfo({ data, onNext, onPrevious }: StepPersonalInfoP
               <div>
                 <Label>Grupo Étnico (Opcional)</Label>
                 <Select
-                  value={watch("ethnicGroup") || "no_especifica"}
-                  onValueChange={(value) => handleSelectChange("ethnicGroup", value === "no_especifica" ? "" : value)}
+                  value={watch("ethnicGroup") || "sin_informacion"}
+                  onValueChange={(value) => handleSelectChange("ethnicGroup", value === "sin_informacion" ? "" : value)}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Seleccione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="no_especifica">Prefiero no especificar</SelectItem>
+                    <SelectItem value="ninguno">Ninguno</SelectItem>
+                    <SelectItem value="gitano_rrom">Gitano o Rrom</SelectItem>
+                    <SelectItem value="afrocolombiano">Afrocolombiano</SelectItem>
                     <SelectItem value="indigena">Indígena</SelectItem>
-                    <SelectItem value="rom_gitano">Rom (Gitano)</SelectItem>
                     <SelectItem value="raizal">Raizal</SelectItem>
                     <SelectItem value="palenquero">Palenquero</SelectItem>
-                    <SelectItem value="negro_mulato_afrocolombiano">Negro, Mulato, Afrocolombiano</SelectItem>
-                    <SelectItem value="mestizo">Mestizo</SelectItem>
-                    <SelectItem value="blanco">Blanco</SelectItem>
-                    <SelectItem value="otro">Otro</SelectItem>
-                    <SelectItem value="no_informa">No informa</SelectItem>
+                    <SelectItem value="sin_informacion">Sin información</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.ethnicGroup && (
