@@ -89,6 +89,22 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // FIX: The "Declaración de Residencia Fiscal" checkboxes (Check Box2 to Check Box5) 
+    // are unmapped and cause large white boxes when flattened by pdf-lib due to default appearances.
+    // Removing them before flattening keeps the original PDF graphics intact and avoids the white boxes,
+    // while perfectly satisfying the requirement that the document cannot be edited.
+    if (formType !== 'authorization') {
+      const problematicFields = ['Check Box2', 'Check Box3', 'Check Box4', 'Check Box5'];
+      problematicFields.forEach(name => {
+        try {
+          const field = form.getField(name);
+          form.removeField(field);
+        } catch (e) {
+          console.warn(`Could not remove troublesome field "${name}":`, e);
+        }
+      });
+    }
+
     // Flatten the form (make it non-editable)
     form.flatten();
 
