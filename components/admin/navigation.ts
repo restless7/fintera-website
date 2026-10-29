@@ -1,6 +1,6 @@
 import type { Permission, UserRole } from "@/lib/auth/types";
 
-export interface AdminNavItem { label: string; href: string; icon: "overview" | "applications" | "assigned" | "follow-up" | "analytics"; }
+export interface AdminNavItem { label: string; href: string; icon: "overview" | "applications" | "assigned" | "follow-up" | "analytics" | "users"; }
 export interface AdminNavGroup { label: string; items: AdminNavItem[]; }
 
 export function getAdminNavigation(role: UserRole, permissions: Permission[]): AdminNavGroup[] {
@@ -15,6 +15,7 @@ export function getAdminNavigation(role: UserRole, permissions: Permission[]): A
     ] });
   }
   if (permissions.includes("crm:report:read")) groups.push({ label: "Inteligencia", items: [{ label: "Analítica comercial", href: "/admin/crm/bi", icon: "analytics" }] });
+  if (role === "SUPER_ADMIN") groups.push({ label: "Administración", items: [{ label: "Usuarios y accesos", href: "/admin/crm/users", icon: "users" }] });
   return groups;
 }
 

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/auth/admin-session";
 
+import { getAdminLanding } from "@/lib/auth/admin-landing";
+
 export default async function AdminPage() {
-  await requireAdminSession();
-  redirect("/admin/crm");
+  const context = await requireAdminSession();
+  redirect(getAdminLanding(context) || "/admin-access");
 }

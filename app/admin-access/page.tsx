@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
+import { getAdminLanding } from "@/lib/auth/admin-landing";
 import { getAdminAccess } from "@/lib/auth/admin-session";
 
 export const dynamic = "force-dynamic";
@@ -12,11 +13,18 @@ export const metadata = {
 export default async function AdminAccessPage() {
   const access = await getAdminAccess();
   if (access.status === "SIGNED_OUT") redirect("/sign-in");
-  if (access.status === "AUTHORIZED") redirect("/admin/crm");
+  if (access.status === "AUTHORIZED") {
+    const landing = getAdminLanding(access.context);
+    if (landing) redirect(landing);
+  }
 
   const unavailable = access.status === "UNAVAILABLE";
   const title = unavailable
     ? "El panel no está disponible en este momento"
+    : access.status === "AUTHORIZED"
+      ? "No tienes módulos internos habilitados"
+    : access.status === "CLIENT"
+      ? "Tu cuenta es de cliente"
     : access.status === "INACTIVE"
       ? "El acceso interno de esta cuenta no está habilitado"
       : "Tu cuenta está creada; falta el acceso al equipo";
@@ -35,7 +43,7 @@ export default async function AdminAccessPage() {
             <p>No podemos verificar el acceso interno ahora. Intenta de nuevo más tarde. No necesitas crear otra cuenta.</p>
           ) : (
             <>
-              <p>Ya tienes una sesión iniciada. Registrarse no concede acceso al área de empleados.</p>
+              <p>{access.status === "AUTHORIZED" ? "Tu identidad está vinculada al equipo, pero los permisos actuales no habilitan un módulo de inicio." : access.status === "CLIENT" ? "Tu cuenta no tiene acceso al área interna de empleados. Los accesos de cliente se verifican por sus propios vínculos." : "Ya tienes una sesión iniciada. Registrarse no concede acceso al área de empleados."}</p>
               <p>Solicita al responsable del equipo que revise y habilite el acceso de esta cuenta.</p>
             </>
           )}

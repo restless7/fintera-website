@@ -115,6 +115,7 @@ model AppUser {
   firstName             String
   lastName              String
   role                  UserRole            @default(COMMERCIAL_ADVISOR)
+  accessRevision        Int                 @default(0)
   isActive              Boolean             @default(true)
   teamMemberships       TeamMembership[]
   assignedApplications  CrmCreditApplication[] @relation("AssignedAdvisor")
@@ -137,6 +138,7 @@ model AppUser {
 }
 
 model Team {
+  revision      Int                 @default(0)
   id            String              @id @default(uuid())
   name          String              @unique
   description   String?
@@ -1213,3 +1215,13 @@ model BiAdvisorWorkloadMetric {
   @@map("bi_advisor_workload_metrics")
 }
 
+
+// Internal role permissions only; SUPER_ADMIN/CLIENT/AUDITOR retain fixed policies.
+model RolePermissionPolicy {
+  role        UserRole @id
+  permissions String[]
+  revision    Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@map("role_permission_policies")
+}

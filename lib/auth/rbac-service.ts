@@ -8,6 +8,7 @@
  */
 
 import prisma from "@/lib/prisma";
+import { ACCESS_PERMISSIONS, EDITABLE_POLICY_ROLES } from "./access-contracts";
 import {
   AuthContext,
   AuthorizationResult,
@@ -48,7 +49,15 @@ export class RbacService {
       if (!appUser.isActive) return { status: "INACTIVE" };
 
       const role = appUser.role as UserRole;
-      const permissions = ROLE_PERMISSIONS_MAP[role] || [];
+      if (!Object.prototype.hasOwnProperty.call(ROLE_PERMISSIONS_MAP, role)) return { status: "UNAVAILABLE" };
+      let permissions = ROLE_PERMISSIONS_MAP[role];
+      if ((EDITABLE_POLICY_ROLES as readonly string[]).includes(role)) {
+        const policy = await prisma.rolePermissionPolicy.findUnique({ where: { role } });
+        if (policy) {
+          if (policy.permissions.length > 17 || new Set(policy.permissions).size !== policy.permissions.length || !policy.permissions.every(value => ACCESS_PERMISSIONS.includes(value as Permission))) return { status: "UNAVAILABLE" };
+          permissions = policy.permissions as Permission[];
+        }
+      }
       const teamIds = appUser.teamMemberships.map((tm) => tm.teamId);
 
       const context: AuthContext = {

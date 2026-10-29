@@ -17,7 +17,7 @@ export const useAdminPermissions = () => useContext(AdminPermissionsContext);
 
 function subscribeSidebar(listener: () => void) { window.addEventListener("storage", listener); window.addEventListener("fintera-sidebar-change", listener); return () => { window.removeEventListener("storage", listener); window.removeEventListener("fintera-sidebar-change", listener); }; }
 
-const icons = { overview: House, applications: BriefcaseBusiness, assigned: UsersRound, "follow-up": Clock3, analytics: BarChart3 };
+const icons = { overview: House, applications: BriefcaseBusiness, assigned: UsersRound, "follow-up": Clock3, analytics: BarChart3, users: UsersRound };
 export interface AdminShellProps { children: ReactNode; navigation: AdminNavGroup[]; employeeName: string; roleLabel: string; accountControl?: ReactNode; permissions?: Permission[]; }
 
 export function AdminShell({ children, navigation, employeeName, roleLabel, accountControl, permissions = [] }: AdminShellProps) {
@@ -37,14 +37,16 @@ export function AdminShell({ children, navigation, employeeName, roleLabel, acco
   const setMobileOpen = (open: boolean) => setMobileRoute(open ? routeKey : null);
   const toggle = () => { const next = !collapsed; setFallbackCollapsed(next); try { localStorage.setItem("fintera.admin.sidebar", next ? "collapsed" : "expanded"); window.dispatchEvent(new Event("fintera-sidebar-change")); } catch {} };
   const isCase = /^\/admin\/crm\/applications\/[^/]+/.test(pathname);
-  const crumbs = [{ label: "Panel general", href: "/admin/crm" }];
+  const home = navigation.flatMap(group => group.items)[0] || { label: "Acceso al equipo", href: "/admin-access" };
+  const crumbs = [{ label: home.label, href: home.href }];
   if (pathname.includes("/applications")) crumbs.push({ label: "Solicitudes", href: "/admin/crm/applications" });
   if (isCase) crumbs.push({ label: caseReference || "Expediente", href: pathname.split("/").slice(0, 5).join("/") + (query.get("returnTo") ? `?returnTo=${encodeURIComponent(query.get("returnTo")!)}` : "") });
   if (pathname.endsWith("/documents")) crumbs.push({ label: "Documentos", href: pathname });
-  if (pathname.endsWith("/bi")) crumbs.push({ label: "Analítica comercial", href: pathname });
+  if (pathname.endsWith("/bi") && home.href !== pathname) crumbs.push({ label: "Analítica comercial", href: pathname });
+  if (pathname.endsWith("/users")) crumbs.push({ label: "Usuarios y accesos", href: pathname });
 
   const sidebar = (rail: boolean) => <>
-    <Link href="/admin/crm" className="admin-brand" aria-label="Fintera, panel general" title={rail ? "Fintera · Panel general" : undefined}>
+    <Link href={home.href} className="admin-brand" aria-label={`Fintera, ${home.label}`} title={rail ? `Fintera · ${home.label}` : undefined}>
       {/* Existing Fintera shield is the same mark used on the public website. */}
       <Image src="/images/shieldlogo.png" width={34} height={34} alt="" unoptimized />
       {!rail && <span><strong>FINTERA</strong><small>Operación hipotecaria</small></span>}
