@@ -3,16 +3,33 @@ import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { RbacService } from "./rbac-service";
-import type { Permission } from "./types";
+import type { AuthContext, Permission } from "./types";
 import { DashboardService } from "@/lib/crm/dashboard-service";
 
+type AdminAccess =
+  | { status: "AUTHORIZED"; context: AuthContext }
+  | { status: "SIGNED_OUT" | "NOT_PROVISIONED" | "INACTIVE" | "CLIENT" | "UNAVAILABLE" };
+
 /** Request-local identity resolution; never share employee context across requests. */
+export const getAdminAccess = cache(async (): Promise<AdminAccess> => {
+  let userId: string | null;
+  try {
+    userId = (await auth()).userId;
+  } catch {
+    return { status: "UNAVAILABLE" };
+  }
+  if (!userId) return { status: "SIGNED_OUT" };
+  const result = await RbacService.resolveAuthContextState(userId);
+  if (result.status !== "RESOLVED") return result;
+  if (result.context.role === "CLIENT") return { status: "CLIENT" };
+  return { status: "AUTHORIZED", context: result.context };
+});
+
 export const requireAdminSession = cache(async () => {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
-  const context = await RbacService.resolveAuthContext(userId);
-  if (!context || context.role === "CLIENT") notFound();
-  return context;
+  const access = await getAdminAccess();
+  if (access.status === "SIGNED_OUT") redirect("/sign-in");
+  if (access.status !== "AUTHORIZED") redirect("/admin-access");
+  return access.context;
 });
 
 export async function requireAdminPermission(permission: Permission) {

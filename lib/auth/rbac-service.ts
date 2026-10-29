@@ -17,13 +17,23 @@ import {
   UserRole,
 } from "./types";
 
+export type AuthContextState =
+  | { status: "RESOLVED"; context: AuthContext }
+  | { status: "NOT_PROVISIONED" | "INACTIVE" | "UNAVAILABLE" };
+
 export class RbacService {
   /**
    * Obtiene el contexto de autenticación y autorización del usuario actual desde PostgreSQL.
    */
   static async resolveAuthContext(clerkUserId: string): Promise<AuthContext | null> {
+    const result = await this.resolveAuthContextState(clerkUserId);
+    return result.status === "RESOLVED" ? result.context : null;
+  }
+
+  /** Distinguishes employee access from infrastructure failure without granting access. */
+  static async resolveAuthContextState(clerkUserId: string): Promise<AuthContextState> {
     if (!clerkUserId || clerkUserId.trim() === "") {
-      return null;
+      return { status: "NOT_PROVISIONED" };
     }
 
     try {
@@ -34,15 +44,14 @@ export class RbacService {
         },
       });
 
-      if (!appUser || !appUser.isActive) {
-        return null;
-      }
+      if (!appUser) return { status: "NOT_PROVISIONED" };
+      if (!appUser.isActive) return { status: "INACTIVE" };
 
       const role = appUser.role as UserRole;
       const permissions = ROLE_PERMISSIONS_MAP[role] || [];
       const teamIds = appUser.teamMemberships.map((tm) => tm.teamId);
 
-      return {
+      const context: AuthContext = {
         userId: appUser.id,
         clerkUserId: appUser.clerkUserId,
         email: appUser.email,
@@ -54,9 +63,10 @@ export class RbacService {
         isSuperAdmin: role === "SUPER_ADMIN",
         isDirector: role === "COMMERCIAL_DIRECTOR",
       };
+      return { status: "RESOLVED", context };
     } catch (error) {
       console.error("[RbacService.resolveAuthContext] Error consultando usuario:", error);
-      return null;
+      return { status: "UNAVAILABLE" };
     }
   }
 

@@ -8,7 +8,7 @@ export const metadata = {
 export default function SignInPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-12">
-      <SignIn routing="hash" />
+      <SignIn routing="hash" signUpUrl="/sign-up" fallbackRedirectUrl="/admin" />
     </div>
   );
 }
