@@ -11,7 +11,7 @@ import {
   ClockIcon,
   GiftIcon
 } from "@heroicons/react/24/outline";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 const benefits = [
@@ -23,7 +23,6 @@ const benefits = [
 export default function CTASection() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,10 +32,6 @@ export default function CTASection() {
     }
     router.push('/credit-request');
   };
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Deterministic particle positions to prevent hydration mismatch
   const particles = useMemo(() => {
@@ -60,7 +55,7 @@ export default function CTASection() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_70%)]" />
 
         {/* Animated particles */}
-        {isClient && particles.map((particle) => (
+        {particles.map((particle) => (
           <motion.div
             key={particle.id}
             className="absolute w-1 h-1 bg-white/20 rounded-full"

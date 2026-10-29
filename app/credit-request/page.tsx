@@ -87,14 +87,16 @@ export default function CreditRequestPage() {
   const { clearFormData, hasStoredData, getTimeRemaining } = useFormPersistence({
     watch,
     setValue,
-    onRestore: () => {
+    onRestore: (source) => {
       setShowRestoredBanner(true);
       const remaining = getTimeRemaining();
-      toast.success(
-        `Datos recuperados de tu precalificación. Expiran en ${remaining} minuto${remaining !== 1 ? 's' : ''}.`,
-        { duration: 5000 }
-      );
-      // Auto-hide banner after 8 seconds
+      const message =
+        source === "simulator"
+          ? "Condiciones financieras recuperadas del Simulador Multibanco Oficial."
+          : source === "reconciled"
+          ? "Borrador combinado con las condiciones del simulador."
+          : `Borrador recuperado. Expira en ${remaining || 10} minutos.`;
+      toast.success(message, { duration: 5000 });
       setTimeout(() => setShowRestoredBanner(false), 8000);
     },
   });
@@ -337,7 +339,7 @@ export default function CreditRequestPage() {
                     <h3 className="font-semibold text-amber-900 mb-1">Recuerda:</h3>
                     <ul className="text-sm text-amber-700 space-y-1">
                       <li>• <strong>Firma ambos documentos</strong> de manera física</li>
-                      <li>• En la <strong>"Autorización Well"</strong>, incluye tu <strong>huella dactilar</strong></li>
+                      <li>• En la <strong>&quot;Autorización Well&quot;</strong>, incluye tu <strong>huella dactilar</strong></li>
                     </ul>
                   </div>
                 </div>

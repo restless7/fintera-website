@@ -7,6 +7,7 @@ import Footer from "@/components/fintera/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import MultiBankSimulator from "@/components/fintera/bank-simulator/MultiBankSimulator";
 import {
   HomeIcon,
   TruckIcon,
@@ -191,10 +192,16 @@ export default function CreditosPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
               >
-                Como aliado comercial oficial de Banco de Bogotá, te ofrecemos las mejores opciones 
-                de financiamiento en Colombia con tasas competitivas y procesos transparentes.
+                Como aliado comercial oficial de Bancolombia, Banco de Bogotá, AV Villas, BBVA, 
+                Banco de Occidente, Banco Caja Social, Credifamilia y Banco Unión, te ofrecemos 
+                las mejores opciones de financiamiento en Colombia con tasas preferenciales y procesos transparentes.
               </motion.p>
             </motion.div>
+
+            {/* Embedded Multi-Bank Simulator */}
+            <div className="mb-20">
+              <MultiBankSimulator />
+            </div>
 
             {/* Credit Cards Grid */}
             <div className="space-y-12">

@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
     }]
   },
   
+  // Empty turbopack config for Next.js 16 default compatibility
+  turbopack: {},
+  
   // Webpack configuration for pdf-lib compatibility
   webpack: (config, { isServer }) => {
     // Fix for pdf-lib and other packages that use eval()

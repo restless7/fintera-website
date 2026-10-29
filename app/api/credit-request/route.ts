@@ -1,108 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { creditRequestSchema } from "@/app/lib/validation/creditRequestSchema";
+import { ApplicationService } from "@/lib/crm/application-service";
+import { IdempotencyConflictError } from "@/lib/crm/idempotency-service";
 
 // Force Node.js runtime for Prisma compatibility
 export const runtime = 'nodejs';
 export const maxDuration = 30; // 30 seconds timeout
 
-import prisma from "@/lib/prisma";
-
 export async function POST(request: NextRequest) {
   try {
-    console.log("[Credit Request] Starting request processing");
+    console.log("[Credit Request] Starting request processing via Canonical CRM Intake");
 
     const body = await request.json();
 
-    console.log("[Credit Request] Body received, validating...");
+    console.log("[Credit Request] Body received, validating schema...");
 
     // Validate the request body
     const validatedData = creditRequestSchema.parse(body);
 
-    console.log("[Credit Request] Validation passed, saving to database...");
+    console.log("[Credit Request] Validation passed, ingesting to Canonical CRM & Legacy Store...");
 
-    // Create the credit request in the database
-    const creditRequest = await prisma.creditRequest.create({
-      data: {
-        // 1. Solicitud de crédito
-        requestDate: validatedData.requestDate || new Date(),
+    // Clave de idempotencia explícita (Remediation A)
+    const idempotencyKey = request.headers.get("x-idempotency-key") || body.idempotencyKey || undefined;
 
-        creditTypes: validatedData.creditTypes,
-        requestedAmount: validatedData.requestedAmount,
-        termMonths: validatedData.termMonths,
+    // Obtener IP y User-Agent para trazabilidad legal Ley 1581
+    const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
+    const userAgent = request.headers.get("user-agent") || "Unknown Browser";
 
-        // 2. Datos personales
-        firstName: validatedData.firstName,
-        secondName: validatedData.secondName,
-        firstLastName: validatedData.firstLastName,
-        secondLastName: validatedData.secondLastName,
-        documentType: validatedData.documentType,
-        documentNumber: validatedData.documentNumber,
-        documentIssuePlace: validatedData.documentIssuePlace,
-        documentIssueDate: validatedData.documentIssueDate,
-        nationality: validatedData.nationality,
-        birthCity: validatedData.birthCity,
-        birthDepartment: validatedData.birthDepartment,
-        birthCountry: validatedData.birthCountry,
-        birthDate: validatedData.birthDate,
-        residenceCity: validatedData.residenceCity,
-        residenceDepartment: validatedData.residenceDepartment,
-        residenceCountry: validatedData.residenceCountry,
-        residenceAddress: validatedData.residenceAddress,
-        email: validatedData.email,
-        mobileNumber: validatedData.mobileNumber,
-        preferredContactMethods: validatedData.preferredContactMethods,
-        gender: validatedData.gender,
-        ethnicGroup: validatedData.ethnicGroup,
-        isPEP: validatedData.isPEP,
-        hasFamilyInBank: validatedData.hasFamilyInBank,
-        familyNameInBank: validatedData.familyNameInBank,
-
-        // 3. Datos laborales
-        occupation: validatedData.occupation,
-        companyName: validatedData.companyName,
-        otherOccupationDetail: validatedData.otherOccupationDetail,
-        mainEconomicActivity: validatedData.mainEconomicActivity,
-        ciiuCode: validatedData.ciiuCode,
-
-        // 4. Referencias
-        personalReferenceName: validatedData.personalReferenceName,
-        personalReferenceAddress: validatedData.personalReferenceAddress,
-        personalReferenceCity: validatedData.personalReferenceCity,
-        personalReferenceDept: validatedData.personalReferenceDept,
-        personalReferencePhone: validatedData.personalReferencePhone,
-        familyReferenceName: validatedData.familyReferenceName,
-        familyReferenceAddress: validatedData.familyReferenceAddress,
-        familyReferenceCity: validatedData.familyReferenceCity,
-        familyReferenceDept: validatedData.familyReferenceDept,
-        familyReferencePhone: validatedData.familyReferencePhone,
-        commercialReferenceName: validatedData.commercialReferenceName,
-        commercialReferenceAddress: validatedData.commercialReferenceAddress,
-        commercialReferenceCity: validatedData.commercialReferenceCity,
-        commercialReferenceDept: validatedData.commercialReferenceDept,
-        commercialReferencePhone: validatedData.commercialReferencePhone,
-
-        // 5. Información financiera
-        declaresTaxes: validatedData.declaresTaxes,
-        monthlyIncome: validatedData.monthlyIncome,
-        monthlyExpenses: validatedData.monthlyExpenses,
-        otherIncome: validatedData.otherIncome,
-        totalAssets: validatedData.totalAssets,
-        totalLiabilities: validatedData.totalLiabilities,
-        paysTaxesAbroad: validatedData.paysTaxesAbroad,
-        foreignTaxCountry: validatedData.foreignTaxCountry,
-        tin: validatedData.tin,
-
-        status: "submitted"
-      }
+    // Ingesta transaccional e idempotente en el CRM Canónico
+    const intakeResult = await ApplicationService.intakeCreditRequest({
+      idempotencyKey,
+      documentType: validatedData.documentType,
+      documentNumber: validatedData.documentNumber,
+      firstName: validatedData.firstName,
+      secondName: validatedData.secondName || undefined,
+      firstLastName: validatedData.firstLastName,
+      secondLastName: validatedData.secondLastName || undefined,
+      email: validatedData.email,
+      phone: validatedData.mobileNumber,
+      residenceCity: validatedData.residenceCity,
+      residenceDepartment: validatedData.residenceDepartment,
+      residenceAddress: validatedData.residenceAddress,
+      birthDate: validatedData.birthDate ? validatedData.birthDate.toISOString() : undefined,
+      monthlyIncome: validatedData.monthlyIncome,
+      monthlyExpenses: validatedData.monthlyExpenses,
+      existingFinancialObligations: 0,
+      occupation: validatedData.occupation,
+      companyName: validatedData.companyName,
+      requestedAmount: validatedData.requestedAmount || Number(body.requestedAmount || body.simulatedAmount || 0),
+      termMonths: validatedData.termMonths || (body.termYears ? Number(body.termYears) * 12 : (body.termMonths ? Number(body.termMonths) : 240)),
+      productCategory: validatedData.creditTypes?.[0] || "VIVIENDA_NO_VIS",
+      ipAddress,
+      userAgent,
+      consentHabeasData: true,
+      // Metadatos de simulación si se envían en el body
+      simulatedBankId: body.simulatedBankId,
+      simulatedProductType: body.simulatedProductType,
+      simulatedRateEA: body.simulatedRateEA,
+      simulatedRateMV: body.simulatedRateMV,
+      simulatedMonthlyPayment: body.simulatedMonthlyPayment,
+      simulatedLifeInsurance: body.simulatedLifeInsurance,
+      simulatedFireInsurance: body.simulatedFireInsurance,
+      simulatedDtiRatio: body.simulatedDtiRatio,
+      simulatedGlobalDtiRatio: body.simulatedGlobalDtiRatio,
+      propertyValue: body.propertyValue,
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: "Solicitud de crédito recibida exitosamente",
-        id: creditRequest.id,
-        requestNumber: creditRequest.requestNumber
+        message: intakeResult.message,
+        id: intakeResult.applicationId,
+        fileNumber: intakeResult.fileNumber,
+        requestNumber: intakeResult.fileNumber,
+        isExistingClient: intakeResult.isExistingClient,
+        isDuplicateRetry: intakeResult.isDuplicateRetry,
       },
       { status: 201 }
     );
@@ -114,26 +86,36 @@ export async function POST(request: NextRequest) {
       stack: error.stack?.split('\n').slice(0, 3).join('\n')
     });
 
-    // Handle Zod validation errors
-    if (error.name === "ZodError") {
-      console.log("[Credit Request] Validation error");
+    // Handle Idempotency Conflict (Remediation A)
+    if (error instanceof IdempotencyConflictError) {
       return NextResponse.json(
         {
           success: false,
-          message: "Error de validación",
+          error: "Idempotency Conflict",
+          message: error.message,
+        },
+        { status: 409 }
+      );
+    }
+
+    // Handle Zod validation errors
+    if (error.name === "ZodError") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Error de validación en formulario",
           errors: error.errors
         },
         { status: 400 }
       );
     }
 
-    // Handle Prisma unique constraint violations (duplicate document number)
+    // Handle Prisma unique constraint violations
     if (error.code === "P2002") {
-      console.log("[Credit Request] Duplicate document number");
       return NextResponse.json(
         {
           success: false,
-          message: "Ya existe una solicitud con este número de documento"
+          message: "Ya existe un registro activo con estos datos identificadores"
         },
         { status: 409 }
       );
@@ -141,27 +123,13 @@ export async function POST(request: NextRequest) {
 
     // Handle Prisma connection errors
     if (error.code === "P1001" || error.message?.includes("Can't reach database")) {
-      console.error("[Credit Request] Database connection error");
       return NextResponse.json(
         {
           success: false,
-          message: "Error de conexión a la base de datos. Por favor, contacte al soporte.",
+          message: "Error de conexión a la base de datos de persistencia.",
           debug: process.env.NODE_ENV === 'development' ? error.message : undefined
         },
         { status: 503 }
-      );
-    }
-
-    // Handle other Prisma errors
-    if (error.code?.startsWith('P')) {
-      console.error("[Credit Request] Prisma error:", error.code);
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Error en la base de datos. Por favor, inténtelo de nuevo.",
-          debug: process.env.NODE_ENV === 'development' ? { code: error.code, message: error.message } : undefined
-        },
-        { status: 500 }
       );
     }
 
@@ -169,7 +137,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: "Error al procesar la solicitud. Por favor, inténtelo de nuevo.",
+        message: "Error al procesar la solicitud en el CRM. Por favor, inténtelo de nuevo.",
         debug: process.env.NODE_ENV === 'development' ? error.message : undefined
       },
       { status: 500 }

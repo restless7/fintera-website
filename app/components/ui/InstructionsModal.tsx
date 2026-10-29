@@ -65,7 +65,7 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                       </h3>
                       <ul className="text-sm text-amber-700 list-disc pl-4 space-y-1">
                         <li>Ambos documentos deben ser firmados de manera física.</li>
-                        <li><strong>En la "Autorización Well"</strong>, incluye tu <strong>huella dactilar</strong>.</li>
+                        <li><strong>En la &quot;Autorización Well&quot;</strong>, incluye tu <strong>huella dactilar</strong>.</li>
                         <li>No se aceptan firmas digitales para este proceso.</li>
                       </ul>
                     </div>

@@ -95,7 +95,7 @@ export function DownloadPrompt({
                     <ul className="list-disc pl-5 space-y-1">
                       <li>Descarga <strong>ambos documentos</strong>.</li>
                       <li>Firma los dos documentos.</li>
-                      <li><strong>Importante:</strong> En la "Autorización Well", incluye tu <strong>huella</strong>.</li>
+                      <li><strong>Importante:</strong> En la &quot;Autorización Well&quot;, incluye tu <strong>huella</strong>.</li>
                       <li>
                         Envía ambos archivos firmados de vuelta a nuestro WhatsApp dedicado:{" "}
                         <a

@@ -43,3 +43,12 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# local storage & dumps
+/.storage/
+*.dump
+
+# Generated client and private local project material
+/prisma/generated/
+/backups/
+/__ BANCOS - BIBLIOTECA __*/

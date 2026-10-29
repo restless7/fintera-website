@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
@@ -10,14 +11,413 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model CreditApplication {
+// ============================================================================
+// FASE 6: ENUMS DE GOBERNANZA, ROLES, WORKFLOWS Y IDENTIDAD
+// ============================================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  COMMERCIAL_DIRECTOR
+  SUPERVISOR
+  COMMERCIAL_ADVISOR
+  DOCUMENT_ANALYST
+  OPERATIONS_OFFICER
+  AUDITOR
+  CLIENT
+}
+
+enum ApplicationStatus {
+  LEAD_CAPTURED
+  PROFILING
+  FINANCIALLY_PREQUALIFIED
+  DOCUMENTATION_IN_PROGRESS
+  FILE_COMPLETE
+  SUBMITTED_TO_BANKS
+  BANK_STUDY
+  PARTIALLY_APPROVED
+  LEGALLY_FORMALIZED
+  DISBURSED
+  REJECTED
+  CANCELLED_BY_CLIENT
+}
+
+enum BankStage {
+  STAGE_01_PRE_FILE
+  STAGE_02_INTERNAL_QA
+  STAGE_03_READY_FOR_BANK
+  STAGE_04_BANK_SUBMITTED
+  STAGE_05_RISK_EVALUATION
+  STAGE_06_CONDITIONAL_APPROVAL
+  STAGE_07_DEFINITIVE_APPROVAL
+  STAGE_08_APPRAISAL_LEGAL
+  STAGE_09_DISBURSED
+  STAGE_BANK_REJECTED
+  STAGE_BANK_SUSPENDED
+  STAGE_BANK_TRANSFERRED
+}
+
+enum ApplicantRole {
+  PRIMARY_HOLDER
+  CO_APPLICANT
+  GUARANTOR
+}
+
+enum ConsentType {
+  HABEAS_DATA_LEY_1581
+  CREDIT_BUREAU_CONSULTATION
+  COMMERCIAL_CONTACT
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  EMAIL
+  MEETING
+  STATUS_CHANGE
+  BANK_UPDATE
+  TASK
+}
+
+enum AccountLinkStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  FAILED_MAX_ATTEMPTS
+  CANCELLED
+}
+
+enum CustomerGrantRole {
+  PRIMARY_HOLDER
+  CO_APPLICANT
+  AUTHORIZED_REPRESENTATIVE
+}
+
+enum MessageSenderType {
+  CUSTOMER
+  ADVISOR
+}
+
+// ============================================================================
+// FASE 6: MODELOS CANÓNICOS DE IDENTIDAD, EQUIPOS Y CONTROL RBAC/ABAC
+// ============================================================================
+
+model AppUser {
+  id                    String              @id @default(uuid())
+  clerkUserId           String              @unique
+  email                 String              @unique
+  firstName             String
+  lastName              String
+  role                  UserRole            @default(COMMERCIAL_ADVISOR)
+  isActive              Boolean             @default(true)
+  teamMemberships       TeamMembership[]
+  assignedApplications  CrmCreditApplication[] @relation("AssignedAdvisor")
+  assignedBankApplications BankApplication[] @relation("AssignedBankOperator")
+  bankStageTransitions BankStageTransitionEvent[]
+  activities            CrmActivity[]
+  auditEvents           AccessAuditEvent[]
+  uploadedDocumentVersions DocumentVersion[] @relation("UploadedDocumentVersions")
+  reviewedDocumentBankReviews DocumentBankReview[] @relation("ReviewerDocumentBankReviews")
+  publishedEvents       CustomerPublishedEvent[]
+  sentCustomerMessages  CustomerMessage[]
+  requestedExceptions   AdministrativeExceptionRecord[] @relation("ExceptionRequester")
+  approvedExceptions    AdministrativeExceptionRecord[] @relation("ExceptionApprover")
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([role])
+  @@index([clerkUserId])
+  @@map("app_users")
+}
+
+model Team {
+  id            String              @id @default(uuid())
+  name          String              @unique
+  description   String?
+  memberships   TeamMembership[]
+  applications  CrmCreditApplication[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("teams")
+}
+
+model TeamMembership {
+  id        String    @id @default(uuid())
+  userId    String
+  teamId    String
+  user      AppUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  isLead    Boolean   @default(false)
+  joinedAt  DateTime  @default(now())
+
+  @@unique([userId, teamId])
+  @@map("team_memberships")
+}
+
+// ============================================================================
+// FASE 6: MODELOS CANÓNICOS DE CLIENTE Y CONSENTIMIENTOS LEY 1581
+// ============================================================================
+
+model Client {
+  id                      String                  @id @default(uuid())
+  documentType            String                  // "CC" | "CE" | "PAS" | "TI" | "RC"
+  documentNumber          String
+  firstName               String
+  secondName              String?
+  firstLastName           String
+  secondLastName          String?
+  email                   String
+  phone                   String
+  preferredContactMethods String[]
+  residenceCity           String
+  residenceDepartment     String
+  residenceAddress        String
+  isPEP                   Boolean                 @default(false)
+  clerkUserId             String?                 @unique // Vinculación verificada tras registro en portal
+  applications            CrmCreditApplication[]
+  consentRecords          ClientConsentRecord[]
+  accessGrants            CustomerAccessGrant[]
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  @@unique([documentType, documentNumber])
+  @@index([email])
+  @@index([clerkUserId])
+  @@map("clients")
+}
+
+model ClientConsentRecord {
+  id          String      @id @default(uuid())
+  clientId    String
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  consentType ConsentType
+  ipAddress   String
+  userAgent   String
+  version     String      // e.g. "2026.V1"
+  grantedAt   DateTime    @default(now())
+
+  @@index([clientId])
+  @@map("client_consent_records")
+}
+
+// ============================================================================
+// FASE 6: MODELO CANÓNICO DE EXPEDIENTE COMERCIAL (MORTGAGE BROKERAGE)
+// ============================================================================
+
+model CrmCreditApplication {
+  id                    String                @id @default(uuid())
+  fileNumber            String                @unique // FNT-2026-XXXX
+  clientId              String
+  client                Client                @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  assignedAdvisorId     String?
+  assignedAdvisor       AppUser?              @relation("AssignedAdvisor", fields: [assignedAdvisorId], references: [id], onDelete: SetNull)
+  teamId                String?
+  team                  Team?                 @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  status                ApplicationStatus     @default(LEAD_CAPTURED)
+  productCategory       String                // "VIVIENDA_VIS" | "VIVIENDA_NO_VIS" | "LEASING" | "CONSUMO_ACABADOS" | "COLEX"
+  requestedAmount       Float
+  termMonths            Int
+  leadSource            String?               @default("SIMULATOR_WEB")
+  nextActionDate        DateTime?
+  nextActionNote        String?
+  internalNotes         String?
+  customerVisibleNotes  String?
+  applicants            Applicant[]
+  bankApplications      BankApplication[]
+  simulationSnapshot    SimulationSnapshot?
+  activities            CrmActivity[]
+  auditEvents           AccessAuditEvent[]
+  documentAssets        DocumentAsset[]
+  documentUploadIntents DocumentUploadIntent[]
+  accessGrants          CustomerAccessGrant[]
+  customerMessages      CustomerMessage[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([status])
+  @@index([assignedAdvisorId])
+  @@index([teamId])
+  @@index([nextActionDate])
+  @@map("crm_credit_applications")
+}
+
+model Applicant {
+  id                    String                @id @default(uuid())
+  applicationId         String
+  application           CrmCreditApplication  @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  role                  ApplicantRole         @default(PRIMARY_HOLDER)
+  firstName             String
+  lastName              String
+  documentType          String
+  documentNumber        String
+  email                 String?
+  phone                 String?
+  monthlyIncome         Float
+  monthlyExpenses       Float
+  existingObligations   Float                 @default(0)
+  totalAssets           Float                 @default(0)
+  totalLiabilities      Float                 @default(0)
+  occupation            String                // "asalariado" | "independiente" | "pensionado" | "otro"
+  companyName           String?
+  documentAssets        DocumentAsset[]
+  bankDocumentRequirements BankDocumentRequirement[]
+  accessGrants          CustomerAccessGrant[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([applicationId])
+  @@map("applicants")
+}
+
+model BankApplication {
+  id                    String                @id @default(uuid())
+  applicationId         String
+  application           CrmCreditApplication  @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  bankId                String                // "bancolombia", "banco-de-bogota", etc.
+  productType           String
+  stage                 BankStage             @default(STAGE_01_PRE_FILE)
+  customerVisibleStage  String                @default("En integración de documentos")
+  customerVisible       Boolean               @default(true)
+  bankFilingNumber      String?
+  filingDate            DateTime?
+  bankOfficialName      String?
+  bankOfficialContact   String?
+  approvedAmount        Float?
+  approvedRateEA        Float?
+  approvedTermMonths    Int?
+  slaDeadline           DateTime?
+  slaBreached           Boolean               @default(false)
+  rejectionReason       String?
+  notes                 String?
+  version               Int                   @default(1)
+  workflowVersion       String                @default("v1.0")
+  assignedOperatorId    String?
+  assignedOperator      AppUser?              @relation("AssignedBankOperator", fields: [assignedOperatorId], references: [id], onDelete: SetNull)
+  slaStatus             String                @default("ON_TRACK") // "ON_TRACK" | "AT_RISK" | "BREACHED" | "PAUSED"
+  slaPausedAt           DateTime?
+  slaTotalPausedMs      BigInt                @default(0)
+  slaEffectiveDeadline  DateTime?
+  transitions           BankStageTransitionEvent[]
+  documentRequirements  BankDocumentRequirement[]
+  documentReviews       DocumentBankReview[]
+  publishedEvents       CustomerPublishedEvent[]
+  administrativeExceptions AdministrativeExceptionRecord[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@unique([applicationId, bankId, productType])
+  @@index([bankId, stage])
+  @@map("bank_applications")
+}
+
+model CrmActivity {
+  id                    String                @id @default(uuid())
+  applicationId         String
+  application           CrmCreditApplication  @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  authorId              String?
+  author                AppUser?              @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  type                  ActivityType          @default(NOTE)
+  title                 String
+  description           String
+  isInternalOnly        Boolean               @default(true)
+  nextActionDate        DateTime?
+  metadata              Json?
+  createdAt             DateTime              @default(now())
+
+  @@index([applicationId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("crm_activities")
+}
+
+model SimulationSnapshot {
+  id                          String                @id @default(uuid())
+  applicationId               String                @unique
+  application                 CrmCreditApplication  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  simulatedBankId             String
+  productType                 String
+  requestedAmount             Float
+  propertyValue               Float
+  termMonths                  Int
+  rateEA                      Float
+  rateMV                      Float
+  initialMonthlyBasePayment   Float
+  lifeInsuranceMonthly        Float
+  fireInsuranceMonthly        Float
+  initialMonthlyTotalPayment  Float
+  dtiRatio                    Float
+  globalDtiRatio              Float
+  existingObligations         Float
+  policyVersion               String
+  sourceDocument              String
+  effectiveDate               String
+  capturedAt                  DateTime              @default(now())
+
+  @@map("simulation_snapshots")
+}
+
+// ============================================================================
+// FASE 6: AUDITORÍA INMUTABLE, SEGURIDAD ABAC Y TRANSACTIONAL OUTBOX
+// ============================================================================
+
+model AccessAuditEvent {
+  id            String                @id @default(uuid())
+  userId        String?
+  user          AppUser?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clerkUserId   String?
+  action        String                // e.g. "VIEW_APPLICATION", "MODIFY_STATUS", "CHANGE_RATE"
+  resourceType  String                // "CrmCreditApplication", "BankPolicy", "Client"
+  resourceId    String?
+  applicationId String?
+  application   CrmCreditApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  ipAddress     String?
+  userAgent     String?
+  decision      String                // "GRANTED" | "DENIED"
+  reason        String?
+  metadata      Json?
+  timestamp     DateTime              @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@map("access_audit_events")
+}
+
+model OutboxEvent {
+  id            String        @id @default(uuid())
+  eventType     String        // "LEAD_CREATED", "STATUS_CHANGED", "STAGE_UPDATED"
+  aggregateId   String
+  payload       Json
+  status        OutboxStatus  @default(PENDING)
+  retryCount    Int           @default(0)
+  nextRetryAt   DateTime?
+  errorMessage  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@map("outbox_events")
+}
+
+// ============================================================================
+// MODELOS LEGACY PRESERVADOS SIN MODIFICACIÓN DESTRUCTIVA
+// ============================================================================
+
+model LegacyCreditApplication {
   id                        String   @id @default(cuid())
   requestNumber            Int      @default(autoincrement())
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
   // Step 1: Credit Selection
-  creditType               String   // "vivienda" | "vehiculo" | "libranza" | "libre_destino" | "compra_de_cartera"
+  creditType               String
   requestedAmount          Float
   termMonths               Int
 
@@ -26,7 +426,7 @@ model CreditApplication {
   secondName               String?
   firstLastName            String
   secondLastName           String?
-  documentType             String   // "cc" | "ce" | "pasaporte"
+  documentType             String
   documentNumber           String   
   documentIssueCity        String
   documentIssueDate        DateTime
@@ -36,23 +436,23 @@ model CreditApplication {
   residenceAddress         String
   email                    String
   phoneNumber              String
-  preferredContactMethod   String   // "telefono" | "correo" | "whatsapp" | "sms"
-  gender                   String   // "masculino" | "femenino" | "no_binario" | "prefiero_no_decirlo"
+  preferredContactMethod   String
+  gender                   String
   ethnicGroup              String?
 
   // Step 3: Employment/Economic Activity
-  occupation               String   // "asalariado" | "independiente" | "pensionado" | "otro"
-  mainActivityDescription  String?  // For independientes
-  ciiuCode                 String?  // Optional CIIU code
+  occupation               String
+  mainActivityDescription  String?
+  ciiuCode                 String?
   monthlyIncome            Float
   monthlyExpenses          Float
   otherIncome              Float?
   totalAssets              Float
   totalLiabilities         Float
-  taxDeclarationStatus     Boolean  // true = "si", false = "no"
-  foreignTaxResidency      Boolean  // true = "si", false = "no"
-  foreignCountry           String?  // If foreignTaxResidency = true
-  tinNumber                String?  // Tax Identification Number
+  taxDeclarationStatus     Boolean
+  foreignTaxResidency      Boolean
+  foreignCountry           String?
+  tinNumber                String?
 
   // Step 4: References
   personalReferenceName    String
@@ -61,7 +461,7 @@ model CreditApplication {
   familyReferenceName      String
   familyReferencePhone     String
   familyReferenceCity      String
-  commercialReferenceName  String?  // For independientes
+  commercialReferenceName  String?
   commercialReferencePhone String?
   commercialReferenceCity  String?
 
@@ -69,8 +469,8 @@ model CreditApplication {
   dataProcessingConsent    Boolean  @default(false)
   informationVeracityConsent Boolean @default(false)
 
-  // Application status (for future workflow management)
-  status                   String   @default("submitted") // "submitted" | "under_review" | "approved" | "rejected"
+  // Application status
+  status                   String   @default("submitted")
 
   @@map("credit_applications")
 }
@@ -84,7 +484,7 @@ model CreditRequest {
   // 1. Solicitud de crédito
   requestDate              DateTime @default(now())
   officeCode               String?
-  creditTypes              String[] // Array: "vivienda", "libranza", "libre_destino", "compra_cartera"
+  creditTypes              String[]
   requestedAmount          Float?
   termMonths               Int?
 
@@ -93,7 +493,7 @@ model CreditRequest {
   secondName               String?
   firstLastName            String
   secondLastName           String?
-  documentType             String   // "CC", "RC", "CE", "TI", "PAS"
+  documentType             String
   documentNumber           String   
   documentIssuePlace       String
   documentIssueDate        DateTime
@@ -108,18 +508,18 @@ model CreditRequest {
   residenceAddress         String
   email                    String
   mobileNumber             String
-  preferredContactMethods  String[] // "llamada", "correo", "whatsapp", "sms"
-  gender                   String   // "femenino", "masculino", "transexual", "no_binario"
-  ethnicGroup              String?  // "ninguno", "gitano_rrom", "afrocolombiano", "indigena", "raizal", "palenquero", "sin_informacion"
+  preferredContactMethods  String[]
+  gender                   String
+  ethnicGroup              String?
   isPEP                    Boolean  @default(false)
   hasFamilyInBank          Boolean  @default(false)
   familyNameInBank         String?
 
   // 3. Datos laborales
-  occupation               String   // "asalariado", "independiente", "pensionado", "otro"
-  companyName              String?  // For asalariado/pensionado
-  otherOccupationDetail    String?  // For "otro" occupation
-  mainEconomicActivity     String?  // For independientes
+  occupation               String
+  companyName              String?
+  otherOccupationDetail    String?
+  mainEconomicActivity     String?
   ciiuCode                 String?
 
   // 4. Referencias
@@ -133,7 +533,7 @@ model CreditRequest {
   familyReferenceCity      String
   familyReferenceDept      String
   familyReferencePhone     String
-  commercialReferenceName  String?  // Only if independiente
+  commercialReferenceName  String?
   commercialReferenceAddress String?
   commercialReferenceCity  String?
   commercialReferenceDept  String?
@@ -148,10 +548,668 @@ model CreditRequest {
   totalLiabilities         Float
   paysTaxesAbroad          Boolean  @default(false)
   foreignTaxCountry        String?
-  tin                      String?  // Tax Identification Number
+  tin                      String?
 
   // Application status
-  status                   String   @default("submitted") // "submitted", "under_review", "approved", "rejected"
+  status                   String   @default("submitted")
 
   @@map("credit_requests")
 }
+
+// ============================================================================
+// FASE 2: GESTIÓN DINÁMICA DE POLÍTICAS BANCARIAS, TARIFARIOS Y VERSIONADO
+// ============================================================================
+
+model BankPolicy {
+  id                        String   @id @default(cuid())
+  bankId                    String
+  productType               String
+  name                      String
+  
+  // Rango de Tasas Efectivas Anuales (E.A.)
+  minRateEA                 Float
+  maxRateEA                 Float
+  defaultRateEA             Float
+  
+  // Plazos y Montos
+  minTermMonths             Int
+  maxTermMonths             Int
+  minAmount                 Float
+  maxAmount                 Float
+  maxLtvPercent             Float
+  
+  // Seguros y Garantías
+  requiresMortgage          Boolean  @default(true)
+  fngCommissionPercent      Float?
+  lifeInsuranceRateMonthly  Float
+  fireInsuranceRateMonthly  Float
+  fireInsuranceBase         String
+  
+  // DTI y Cumplimiento Normativo
+  regulatoryDtiBasis        String
+  maxDtiPercent             Float
+  
+  // Trazabilidad Bancaria Oficial
+  sourceDocument            String
+  effectiveDate             String
+  version                   String
+  
+  // Estados de Aprobación Administrativa
+  status                    String   @default("active")
+  approvedBy                String?
+  approvedAt                DateTime?
+  
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  versions                  BankPolicyVersionHistory[]
+
+  @@unique([bankId, productType, version])
+  @@map("bank_policies")
+}
+
+model BankPolicyVersionHistory {
+  id                    String     @id @default(cuid())
+  policyId              String
+  policy                BankPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  version               String
+  snapshot              Json
+  changeReason          String
+  changedBy             String
+  isRollback            Boolean    @default(false)
+  rollbackFromVersion   String?
+  createdAt             DateTime   @default(now())
+
+  @@map("bank_policy_version_histories")
+}
+
+model PolicyAuditLog {
+  id                    String     @id @default(cuid())
+  entityType            String
+  entityId              String
+  action                String
+  performedBy           String
+  ipAddress             String?
+  details               Json
+  createdAt             DateTime   @default(now())
+
+  @@map("policy_audit_logs")
+}
+
+// ============================================================================
+// FASE 6.3: GATE D — MODELOS DE MOTOR DE WORKFLOWS Y TRAZABILIDAD TRANSACCIONAL
+// ============================================================================
+
+model BankStageTransitionEvent {
+  id                 String          @id @default(uuid())
+  bankApplicationId  String
+  bankApplication    BankApplication @relation(fields: [bankApplicationId], references: [id], onDelete: Restrict)
+  fromStage          BankStage
+  toStage            BankStage
+  workflowVersion    String
+  actorUserId        String?
+  actorUser          AppUser?        @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorRole          String
+  reason             String
+  evidenceType       String?
+  evidenceReference  String?
+  evidenceMetadata   Json?
+  transitionedAt     DateTime        @default(now())
+
+  @@index([bankApplicationId, transitionedAt])
+  @@map("bank_stage_transitions")
+}
+
+model CrmIdempotencyRecord {
+  id                 String          @id @default(uuid())
+  key                String          @unique
+  scope              String          @default("CREDIT_REQUEST_INTAKE")
+  fingerprint        String
+  status             String          @default("PENDING") // PENDING | COMPLETED | FAILED
+  responsePayload    Json?
+  applicationId      String?
+  expiresAt          DateTime
+  createdAt          DateTime        @default(now())
+
+  @@index([key, scope])
+  @@map("crm_idempotency_records")
+}
+
+model DomainOutboxEvent {
+  id                 String          @id @default(uuid())
+  aggregateType      String          // "BankApplication" | "CreditApplication"
+  aggregateId        String
+  eventType          String
+  payload            Json
+  published          Boolean         @default(false)
+  status             String          @default("PENDING") // PENDING | CLAIMED | PROCESSED | FAILED | DEAD_LETTER
+  retryCount         Int             @default(0)
+  nextRetryAt        DateTime?
+  errorMessage       String?
+  leaseOwner         String?
+  leaseExpiresAt     DateTime?
+  processedAt        DateTime?
+  correlationId      String?
+  causationId        String?
+  createdAt          DateTime        @default(now())
+
+  @@index([aggregateType, aggregateId])
+  @@index([published, createdAt])
+  @@index([status, nextRetryAt])
+  @@index([leaseOwner, leaseExpiresAt])
+  @@map("domain_outbox_events")
+}
+
+// ============================================================================
+// FASE 6.4: GATE E — ENTERPRISE DOCUMENT MANAGEMENT & MULTIBANK EVIDENCE SYSTEM
+// ============================================================================
+
+enum DocumentCategory {
+  IDENTIFICATION          // Cédula de ciudadanía, extranjería, pasaporte
+  LABOR_INCOME            // Certificado laboral, desprendibles de nómina
+  INDEPENDENT_INCOME      // Declaración de renta, extractos bancarios, RUT, estados financieros
+  PENSION_INCOME          // Resolución de pensión, últimos 3 desprendibles
+  PROPERTY_DOCS           // Certificado de tradición y libertad, promesa de compraventa, avalúo
+  COLEX_CONSULAR          // Certificación consular, poder especial, extractos del exterior
+  TAX_FINANCIAL           // Formulario 220 DIAN, soportes de pasivos y cartera
+  BANK_FORMS              // Formulario oficial firmado de la entidad bancaria
+}
+
+enum DocumentScanStatus {
+  PENDING_SCAN
+  SCANNING
+  CLEAN
+  QUARANTINED
+  INFECTED
+  SCAN_FAILED
+}
+
+enum DocumentReviewStatus {
+  NOT_SUBMITTED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum DocumentLifecycleStatus {
+  ACTIVE
+  ARCHIVED
+  DEPRECATED
+}
+
+enum RequirementApplicabilityStatus {
+  APPLICABLE
+  WAIVED_WITH_AUTHORIZATION
+  NOT_APPLICABLE
+}
+
+enum UploadIntentStatus {
+  INTENT_CREATED
+  AWAITING_UPLOAD
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+}
+
+enum RequirementClassification {
+  OFFICIAL_DOCUMENTED
+  FINTERA_INTERNAL_POLICY
+  PENDING_BANK_CONFIRMATION
+}
+
+/// Activo lógico documental perteneciente al expediente comercial
+model DocumentAsset {
+  id                    String                  @id @default(uuid())
+  applicationId         String                  @map("application_id")
+  application           CrmCreditApplication    @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  applicantId           String?                 @map("applicant_id")
+  applicant             Applicant?              @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+  category              DocumentCategory
+  title                 String
+  description           String?
+  currentVersionId      String?                 @map("current_version_id")
+  lifecycleStatus       DocumentLifecycleStatus @default(ACTIVE)
+  createdByUserId       String?                 @map("created_by_user_id")
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  versions              DocumentVersion[]
+  uploadIntents         DocumentUploadIntent[]
+  accessAudits          DocumentAccessAudit[]
+
+  @@index([applicationId])
+  @@index([applicantId])
+  @@map("document_assets")
+}
+
+/// Versión física inmutable de un documento en almacenamiento privado
+model DocumentVersion {
+  id                    String                  @id @default(uuid())
+  assetId               String                  @map("asset_id")
+  asset                 DocumentAsset           @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  versionNumber         Int                     @default(1)
+  storageKey            String                  @map("storage_key")
+  originalFileName      String                  @map("original_file_name")
+  fileSizeBytes         Int                     @map("file_size_bytes")
+  detectedMimeType      String                  @map("detected_mime_type")
+  sha256                String                  @map("sha256")
+  scanStatus            DocumentScanStatus      @default(PENDING_SCAN)
+  scanEngine            String?                 @map("scan_engine")
+  scanCompletedAt       DateTime?               @map("scan_completed_at")
+  scanDetails           String?                 @map("scan_details")
+  uploadedByUserId      String?                 @map("uploaded_by_user_id")
+  uploadedByUser        AppUser?                @relation("UploadedDocumentVersions", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  uploadedAt            DateTime                @default(now())
+  supersededAt          DateTime?               @map("superseded_at")
+
+  evidenceLinks         DocumentRequirementEvidence[]
+  bankReviews           DocumentBankReview[]
+  accessAudits          DocumentAccessAudit[]
+
+  @@unique([assetId, versionNumber])
+  @@index([storageKey])
+  @@index([sha256])
+  @@map("document_versions")
+}
+
+/// Definición versionada de un requisito documental por entidad bancaria, producto y perfil
+model DocumentRequirementDefinition {
+  id                    String                     @id @default(uuid())
+  requirementCode       String                     @unique @map("requirement_code")
+  bankId                String?                    @map("bank_id") // null = transversal a todos los bancos
+  productType           String?                    @map("product_type") // null = aplica a todos los productos
+  applicantProfile      String                     @default("TODOS") @map("applicant_profile") // ASALARIADO, INDEPENDIENTE, PENSIONADO, COLEX, TODOS
+  requirementVersion    String                     @default("v1.0") @map("requirement_version")
+  effectiveDate         String                     @default("2026-01-01") @map("effective_date")
+  sourceDocument        String?                    @map("source_document")
+  sourceClassification  RequirementClassification  @default(OFFICIAL_DOCUMENTED) @map("source_classification")
+  category              DocumentCategory
+  title                 String
+  description           String
+  validityDays          Int?                       @map("validity_days")
+  isMandatory           Boolean                    @default(true) @map("is_mandatory")
+  allowedMimeTypes      String[]                   @default(["application/pdf", "image/jpeg", "image/png"]) @map("allowed_mime_types")
+  maxSizeBytes          Int                        @default(15728640) @map("max_size_bytes") // 15 MB
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  bankRequirements      BankDocumentRequirement[]
+
+  @@index([bankId, productType, applicantProfile])
+  @@map("document_requirement_definitions")
+}
+
+/// Obligación documental materializada para un subexpediente bancario específico
+model BankDocumentRequirement {
+  id                      String                           @id @default(uuid())
+  bankApplicationId       String                           @map("bank_application_id")
+  bankApplication         BankApplication                  @relation(fields: [bankApplicationId], references: [id], onDelete: Restrict)
+  applicantId             String?                          @map("applicant_id")
+  applicant               Applicant?                       @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+  requirementDefinitionId String                           @map("requirement_definition_id")
+  requirementDefinition   DocumentRequirementDefinition   @relation(fields: [requirementDefinitionId], references: [id])
+  requirementVersion      String                           @default("v1.0") @map("requirement_version")
+  isMandatory             Boolean                          @default(true) @map("is_mandatory")
+  applicabilityStatus     RequirementApplicabilityStatus   @default(APPLICABLE) @map("applicability_status")
+  waiverReason            String?                          @map("waiver_reason")
+  waivedByUserId          String?                          @map("waived_by_user_id")
+  dueAt                   DateTime?                        @map("due_at")
+  createdAt               DateTime                         @default(now())
+  updatedAt               DateTime                         @updatedAt
+
+  evidenceLinks           DocumentRequirementEvidence[]
+  reviews                 DocumentBankReview[]
+  uploadIntents           DocumentUploadIntent[]
+
+  @@unique([bankApplicationId, requirementDefinitionId, applicantId])
+  @@index([bankApplicationId, isMandatory])
+  @@map("bank_document_requirements")
+}
+
+/// Asociación entre un requisito bancario y la versión física de un documento (reutilización N:M)
+model DocumentRequirementEvidence {
+  id                    String                  @id @default(uuid())
+  requirementId         String                  @map("requirement_id")
+  requirement           BankDocumentRequirement @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+  documentVersionId     String                  @map("document_version_id")
+  documentVersion       DocumentVersion         @relation(fields: [documentVersionId], references: [id], onDelete: Restrict)
+  attachedAt            DateTime                @default(now()) @map("attached_at")
+  attachedByUserId      String?                 @map("attached_by_user_id")
+
+  @@unique([requirementId, documentVersionId])
+  @@map("document_requirement_evidences")
+}
+
+/// Revisión humana y veredicto independiente por cada entidad bancaria aliada
+model DocumentBankReview {
+  id                          String                  @id @default(uuid())
+  bankApplicationId           String                  @map("bank_application_id")
+  bankApplication             BankApplication         @relation(fields: [bankApplicationId], references: [id], onDelete: Restrict)
+  requirementId               String                  @map("requirement_id")
+  requirement                 BankDocumentRequirement @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+  documentVersionId           String                  @map("document_version_id")
+  documentVersion             DocumentVersion         @relation(fields: [documentVersionId], references: [id], onDelete: Restrict)
+  reviewerUserId              String?                 @map("reviewer_user_id")
+  reviewerUser                AppUser?                @relation("ReviewerDocumentBankReviews", fields: [reviewerUserId], references: [id], onDelete: SetNull)
+  status                      DocumentReviewStatus    @default(PENDING_REVIEW)
+  rejectionReasonCode         String?                 @map("rejection_reason_code")
+  rejectionReasonDescription  String?                 @map("rejection_reason_description")
+  internalNotes               String?                 @map("internal_notes")
+  customerVisibleNotes        String?                 @map("customer_visible_notes")
+  reviewedAt                  DateTime?               @map("reviewed_at")
+  validUntil                  DateTime?               @map("valid_until")
+  reviewVersion               Int                     @default(1) @map("review_version")
+  createdAt                   DateTime                @default(now())
+  updatedAt                   DateTime                @updatedAt
+
+  @@unique([requirementId, documentVersionId, reviewVersion])
+  @@index([bankApplicationId, status])
+  @@map("document_bank_reviews")
+}
+
+/// Intención de carga temporal e idempotente para control de ingestión
+model DocumentUploadIntent {
+  id                    String                  @id @default(uuid())
+  applicationId         String                  @map("application_id")
+  application           CrmCreditApplication    @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  assetId               String?                 @map("asset_id")
+  asset                 DocumentAsset?          @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  requirementId         String?                 @map("requirement_id")
+  requirement           BankDocumentRequirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  generatedStorageKey   String                  @unique @map("generated_storage_key")
+  declaredFileName      String                  @map("declared_file_name")
+  declaredMimeType      String                  @map("declared_mime_type")
+  maxAllowedBytes       Int                     @default(15728640) @map("max_allowed_bytes") // 15MB
+  expiresAt             DateTime                @map("expires_at")
+  status                UploadIntentStatus      @default(INTENT_CREATED)
+  confirmedAt           DateTime?               @map("confirmed_at")
+  createdByUserId       String?                 @map("created_by_user_id")
+  createdAt             DateTime                @default(now())
+
+  @@index([applicationId, status])
+  @@map("document_upload_intents")
+}
+
+/// Bitácora append-only inmutable de auditoría de accesos documentales
+model DocumentAccessAudit {
+  id                    String                  @id @default(uuid())
+  documentVersionId     String?                 @map("document_version_id")
+  documentVersion       DocumentVersion?        @relation(fields: [documentVersionId], references: [id], onDelete: SetNull)
+  assetId               String?                 @map("asset_id")
+  asset                 DocumentAsset?          @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  applicationId         String                  @map("application_id")
+  actorUserId           String                  @map("actor_user_id")
+  actorRole             String                  @map("actor_role")
+  action                String                  @map("action") // PRESIGN_UPLOAD, CONFIRM_UPLOAD, DOWNLOAD_VIEW, APPROVE, REJECT
+  ipAddress             String?                 @map("ip_address")
+  userAgent             String?                 @map("user_agent")
+  isAuthorized          Boolean                 @map("is_authorized")
+  denialReason          String?                 @map("denial_reason")
+  timestamp             DateTime                @default(now())
+
+  @@index([applicationId, timestamp])
+  @@index([actorUserId, timestamp])
+  @@map("document_access_audits")
+}
+
+// ============================================================================
+// FASE 6.5: GATE F — MODELOS DEL PORTAL DEL CLIENTE ENTERPRISE
+// ============================================================================
+
+/// Intento de vinculación de cuenta Clerk a cliente con desafío seguro y anti-fuga
+model CustomerAccountLinkAttempt {
+  id                    String              @id @default(uuid())
+  clerkUserId           String              @map("clerk_user_id")
+  clientId              String?             @map("client_id")
+  documentType          String              @map("document_type")
+  documentNumber        String              @map("document_number")
+  hashedVerifier        String              @map("hashed_verifier") // SHA-256 del OTP/challenge
+  verificationChannel   String              @map("verification_channel") // "SMS_OTP", "EMAIL_OTP", "MANUAL_RECOVERY"
+  targetPhone           String?             @map("target_phone")
+  targetEmail           String?             @map("target_email")
+  status                AccountLinkStatus   @default(PENDING)
+  attemptCount          Int                 @default(0) @map("attempt_count")
+  maxAttempts           Int                 @default(3) @map("max_attempts")
+  expiresAt             DateTime            @map("expires_at")
+  verifiedAt            DateTime?           @map("verified_at")
+  failureReason         String?             @map("failure_reason")
+  ipAddress             String?             @map("ip_address")
+  userAgent             String?             @map("user_agent")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  @@index([clerkUserId, status])
+  @@index([documentType, documentNumber])
+  @@map("customer_account_link_attempts")
+}
+
+/// Asignación granular de permisos de acceso a cliente, solicitud o cotitular
+model CustomerAccessGrant {
+  id                    String              @id @default(uuid())
+  clerkUserId           String              @map("clerk_user_id")
+  clientId              String              @map("client_id")
+  client                Client              @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  applicationId         String?             @map("application_id")
+  application           CrmCreditApplication? @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  applicantId           String?             @map("applicant_id")
+  applicant             Applicant?          @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+  grantRole             CustomerGrantRole   @default(PRIMARY_HOLDER) @map("grant_role")
+  canViewApplication    Boolean             @default(true) @map("can_view_application")
+  canViewDocuments      Boolean             @default(true) @map("can_view_documents")
+  canUploadDocuments    Boolean             @default(true) @map("can_upload_documents")
+  canMessageAdvisor     Boolean             @default(true) @map("can_message_advisor")
+  effectiveAt           DateTime            @default(now()) @map("effective_at")
+  expiresAt             DateTime?           @map("expires_at")
+  revokedAt             DateTime?           @map("revoked_at")
+  revokedReason         String?             @map("revoked_reason")
+  grantedByUserId       String?             @map("granted_by_user_id")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  @@unique([clerkUserId, clientId, applicationId, applicantId])
+  @@index([clerkUserId, revokedAt])
+  @@index([clientId])
+  @@index([applicationId])
+  @@map("customer_access_grants")
+}
+
+/// Evento de publicación explícita de hitos bancarios al cliente
+model CustomerPublishedEvent {
+  id                    String              @id @default(uuid())
+  bankApplicationId     String              @map("bank_application_id")
+  bankApplication       BankApplication     @relation(fields: [bankApplicationId], references: [id], onDelete: Restrict)
+  canonicalStage        BankStage           @map("canonical_stage")
+  publicStageTitle      String              @map("public_stage_title")
+  publicExplanation     String              @map("public_explanation")
+  actionRequiredNote    String?             @map("action_required_note")
+  publishedByUserId     String?             @map("published_by_user_id")
+  publishedByUser       AppUser?            @relation(fields: [publishedByUserId], references: [id], onDelete: SetNull)
+  publishedAt           DateTime            @default(now()) @map("published_at")
+  version               Int                 @default(1)
+  isRevoked             Boolean             @default(false) @map("is_revoked")
+  revokedReason         String?             @map("revoked_reason")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  @@index([bankApplicationId, isRevoked, publishedAt])
+  @@map("customer_published_events")
+}
+
+/// Canal bidireccional seguro de mensajería cliente-asesor vinculado al expediente
+model CustomerMessage {
+  id                    String              @id @default(uuid())
+  applicationId         String              @map("application_id")
+  application           CrmCreditApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  senderType            MessageSenderType   @map("sender_type")
+  senderClerkUserId     String?             @map("sender_clerk_user_id")
+  senderUserId          String?             @map("sender_user_id")
+  senderUser            AppUser?            @relation(fields: [senderUserId], references: [id], onDelete: SetNull)
+  senderName            String              @map("sender_name")
+  content               String
+  isRead                Boolean             @default(false) @map("is_read")
+  readAt                DateTime?           @map("read_at")
+  isInternalOnly        Boolean             @default(false) @map("is_internal_only") // Siempre false para cliente
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  @@index([applicationId, createdAt])
+  @@map("customer_messages")
+}
+
+/// Registro inmutable y formal de excepción administrativa documental
+model AdministrativeExceptionRecord {
+  id                    String              @id @default(uuid())
+  bankApplicationId     String              @map("bank_application_id")
+  bankApplication       BankApplication     @relation(fields: [bankApplicationId], references: [id], onDelete: Restrict)
+  targetStage           BankStage           @map("target_stage")
+  requestedByUserId     String              @map("requested_by_user_id")
+  requestedByUser       AppUser             @relation("ExceptionRequester", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  approvedByUserId      String              @map("approved_by_user_id")
+  approvedByUser        AppUser             @relation("ExceptionApprover", fields: [approvedByUserId], references: [id], onDelete: Restrict)
+  approvalCode          String              @map("approval_code")
+  reason                String
+  supportingEvidenceRef String              @map("supporting_evidence_ref")
+  bankFilingNumber      String?             @map("bank_filing_number")
+  version               Int                 @default(1)
+  isRevoked             Boolean             @default(false) @map("is_revoked")
+  revokedAt             DateTime?           @map("revoked_at")
+  revokedReason         String?             @map("revoked_reason")
+  createdAt             DateTime            @default(now()) @map("created_at")
+
+  @@index([bankApplicationId, approvalCode])
+  @@map("administrative_exception_records")
+}
+
+// ============================================================================
+// FASE 7.0: GATE G — ENTERPRISE AUTOMATION, NOTIFICATIONS & COMMERCIAL BI
+// ============================================================================
+
+/// Sobre cifrado de entrega temporal de OTP (AES-256-GCM) para canales de notificación
+model OtpDeliveryEnvelope {
+  id                 String          @id @default(uuid())
+  challengeId        String          @unique @map("challenge_id")
+  encryptedOtp       String          @map("encrypted_otp") // Ciphertext cifrado AES-256-GCM
+  targetMasked       String          @map("target_masked") // e.g. +57 *** *** 4589
+  channel            String          // "LOCAL_SINK_SMS" | "LOCAL_SINK_WHATSAPP"
+  status             String          @default("PENDING") // PENDING | DELIVERED_LOCAL | EXPIRED | CONSUMED
+  expiresAt          DateTime        @map("expires_at")
+  consumedAt         DateTime?       @map("consumed_at")
+  createdAt          DateTime        @default(now()) @map("created_at")
+
+  @@index([challengeId])
+  @@index([status, expiresAt])
+  @@map("otp_delivery_envelopes")
+}
+
+/// Registro durable de procesamiento idempotente por consumidor y evento
+model OutboxConsumerReceipt {
+  id                 String          @id @default(uuid())
+  consumerName       String          @map("consumer_name")
+  eventId            String          @map("event_id")
+  status             String          @default("SUCCESS") // SUCCESS | FAILED
+  resultSummary      String?         @map("result_summary")
+  processedAt        DateTime        @default(now()) @map("processed_at")
+
+  @@unique([consumerName, eventId])
+  @@index([consumerName])
+  @@index([eventId])
+  @@map("outbox_consumer_receipts")
+}
+
+/// Registro de auditoría de notificaciones operativas (solo proyecciones públicas redactadas)
+model NotificationDispatchLog {
+  id                 String          @id @default(uuid())
+  recipientType      String          @map("recipient_type") // "CLIENT" | "ADVISOR" | "SUPERVISOR"
+  recipientId        String          @map("recipient_id")
+  channel            String          // "LOCAL_SINK_SMS" | "LOCAL_SINK_WHATSAPP" | "LOCAL_SINK_EMAIL" | "INTERNAL_CRM_ALERT"
+  templateCode       String          @map("template_code")
+  title              String
+  content            String          // Solo contenido público autorizado
+  status             String          @default("CAPTURED_LOCAL") // "CAPTURED_LOCAL" | "QUEUED" | "FAILED"
+  metadata           Json?
+  createdAt          DateTime        @default(now()) @map("created_at")
+
+  @@index([recipientId])
+  @@index([channel])
+  @@index([createdAt])
+  @@map("notification_dispatch_logs")
+}
+
+/// Tarea de seguimiento y escalación automática de SLAs bancarios y documentos
+model SlaAutomationTask {
+  id                 String          @id @default(uuid())
+  ruleCode           String          @map("rule_code") // "BANK_STAGE_OVERDUE" | "INACTIVE_CASE_ALERT" | "DOCUMENT_EXPIRING_WARNING" | "CUSTOMER_MESSAGE_PENDING"
+  dedupKey           String          @unique @map("dedup_key") // (ruleCode, resourceId, policyVersion, evaluationWindow)
+  applicationId      String          @map("application_id")
+  bankApplicationId  String?         @map("bank_application_id")
+  severity           String          // "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+  title              String
+  description        String
+  assignedRole       String          @map("assigned_role")
+  assignedUserId     String?         @map("assigned_user_id")
+  status             String          @default("OPEN") // "OPEN" | "IN_PROGRESS" | "RESOLVED" | "DISMISSED"
+  actionRequired     String?         @map("action_required")
+  resolvedAt         DateTime?       @map("resolved_at")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  @@index([ruleCode])
+  @@index([applicationId])
+  @@index([assignedUserId, status])
+  @@map("sla_automation_tasks")
+}
+
+/// Agregación analítica diaria del embudo comercial (Read-Model OLAP aislado)
+model BiDailyConversionMetric {
+  id                  String          @id @default(uuid())
+  metricDate          DateTime        @map("metric_date") @db.Date
+  bankId              String?         @map("bank_id")
+  leadsCaptured       Int             @default(0) @map("leads_captured")
+  prequalified        Int             @default(0)
+  docsSubmitted       Int             @default(0) @map("docs_submitted")
+  bankSubmissions     Int             @default(0) @map("bank_submissions")
+  conditionalApprovals Int            @default(0) @map("conditional_approvals")
+  definitiveApprovals Int             @default(0) @map("definitive_approvals")
+  disbursedCount      Int             @default(0) @map("disbursed_count")
+  disbursedAmountCOP  Decimal         @default(0) @map("disbursed_amount_cop") @db.Decimal(18, 2)
+  avgTurnaroundDays   Float           @default(0) @map("avg_turnaround_days")
+  createdAt           DateTime        @default(now()) @map("created_at")
+
+  @@unique([metricDate, bankId])
+  @@index([metricDate])
+  @@map("bi_daily_conversion_metrics")
+}
+
+/// Agregación analítica de rendimiento y velocidad por entidad bancaria
+model BiBankPerformanceMetric {
+  id                        String          @id @default(uuid())
+  bankId                    String          @map("bank_id")
+  monthPeriod               String          @map("month_period") // YYYY-MM
+  totalCases                Int             @default(0) @map("total_cases")
+  approvedCases             Int             @default(0) @map("approved_cases")
+  rejectedCases             Int             @default(0) @map("rejected_cases")
+  avgTimeToApprovalDays     Float           @default(0) @map("avg_time_to_approval_days")
+  avgTimeToDisbursementDays Float           @default(0) @map("avg_time_to_disbursement_days")
+  slaComplianceRate         Float           @default(0) @map("sla_compliance_rate")
+  updatedAt                 DateTime        @updatedAt @map("updated_at")
+
+  @@unique([bankId, monthPeriod])
+  @@index([bankId])
+  @@map("bi_bank_performance_metrics")
+}
+
+/// Agregación analítica de carga y productividad por asesor comercial
+model BiAdvisorWorkloadMetric {
+  id                        String          @id @default(uuid())
+  advisorUserId             String          @unique @map("advisor_user_id")
+  activeApplications        Int             @default(0) @map("active_applications")
+  overdueTasks              Int             @default(0) @map("overdue_tasks")
+  messagesPending           Int             @default(0) @map("messages_pending")
+  conversionRate            Float           @default(0) @map("conversion_rate")
+  updatedAt                 DateTime        @updatedAt @map("updated_at")
+
+  @@index([advisorUserId])
+  @@map("bi_advisor_workload_metrics")
+}
+

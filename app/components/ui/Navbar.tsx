@@ -21,6 +21,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Inicio", href: "/" },
+    { name: "Simulador", href: "/simulador" },
     { name: "Créditos", href: "/creditos" },
     { name: "Portafolio", href: "/portafolio" },
     { name: "Nosotros", href: "/nosotros" },

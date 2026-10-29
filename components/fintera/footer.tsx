@@ -204,7 +204,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors duration-300"
             >
-              <img src="/images/apex-logo.png" alt="Apex AI Solutions" className="w-4 h-4 object-contain opacity-75" />
+              <Image src="/images/apex-logo.png" alt="Apex AI Solutions" width={16} height={16} unoptimized loading="eager" className="w-4 h-4 object-contain opacity-75" />
               Powered by Apex AI Solutions
             </a>
           </div>

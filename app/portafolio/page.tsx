@@ -23,7 +23,7 @@ const currentServices = [
     id: "servicios",
     icon: BuildingLibraryIcon,
     title: "Alianzas con Entidades Financieras",
-    description: "Somos aliado comercial oficial de Banco de Bogotá, lo que nos permite ofrecerte acceso directo a los mejores productos crediticios del mercado colombiano.",
+    description: "Somos aliados comerciales oficiales de Bancolombia, Banco de Bogotá, AV Villas, BBVA, Banco de Occidente, Banco Caja Social, Credifamilia y Banco Unión, ofreciéndote acceso multientidad directo y transparente.",
     features: [
       "Crédito de vivienda con tasas desde 10.5% E.A.",
       "Crédito de libre inversión hasta $150M",

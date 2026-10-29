@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
+import { ClerkProvider } from "@clerk/nextjs";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import "./globals.css";
 
@@ -68,12 +69,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="scroll-smooth">
-      <body className={`${inter.className} antialiased`}>
-        <GoogleAnalytics />
-        {children}
-        <Toaster richColors position="top-right" />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="es" className="scroll-smooth">
+        <body className={`${inter.className} antialiased`}>
+          <GoogleAnalytics />
+          {children}
+          <Toaster richColors position="top-right" />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
