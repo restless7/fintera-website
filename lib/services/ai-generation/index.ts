@@ -4,8 +4,8 @@
  * Autonomous Financial Content & LinkedIn Drafting Engine for FINTERA Soluciones Financieras.
  * Uses the exact same Homelab + Cloud model cascade as apex-website (hermes-content-agent.ts):
  *   1. Homelab Hermes Agent: http://127.0.0.1:8642/v1/chat/completions (model: 'hermes-agent')
- *   2. NVIDIA NIM API: https://integrate.api.nvidia.com/v1/chat/completions (model: 'meta/llama-3.1-70b-instruct')
- *   3. OpenRouter API: https://openrouter.ai/api/v1/chat/completions (model: 'google/gemini-2.0-flash-001')
+ *   2. NVIDIA NIM API: https://integrate.api.nvidia.com/v1/chat/completions (model: 'nvidia/nemotron-3.5-super-vl-120b-a12b')
+ *   3. Qwen API: https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1/chat/completions (model: 'qwen3.7-plus-2026-05-26')
  *   4. Deterministic Institutional Fallback (when running offline/without tunnel)
  * Also loads ~/.hermes/.env and /home/jauria/.hermes/.env automatically on the homelab.
  */
@@ -119,8 +119,14 @@ async function generateWithNvidiaNim(
   prompt: string,
   systemPrompt: string
 ): Promise<{ text: string; provider: string; model: string }> {
-  const apiKey = process.env.NVIDIA_API_KEY || process.env.NVIDIA_NIM_API_KEY;
-  const model = process.env.NVIDIA_MODEL || "meta/llama-3.1-70b-instruct";
+  const apiKey =
+    process.env.NVIDIA_API_KEY ||
+    process.env.NIM_API_KEY ||
+    process.env.NEMOTRON_API_KEY;
+  const model =
+    process.env.NVIDIA_MODEL ||
+    process.env.NEMOTRON_MODEL ||
+    "nvidia/nemotron-3.5-super-vl-120b-a12b";
   if (!apiKey || apiKey.includes("your_")) {
     throw new Error("NVIDIA_API_KEY not configured");
   }
@@ -174,27 +180,31 @@ async function generateWithNvidiaNim(
   }
 }
 
-async function generateWithOpenRouter(
+async function generateWithQwen(
   prompt: string,
   systemPrompt: string
 ): Promise<{ text: string; provider: string; model: string }> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-001";
+  const apiKey = process.env.QWEN_API_KEY || process.env.DASHSCOPE_API_KEY;
+  const baseUrl =
+    process.env.QWEN_BASE_URL ||
+    "https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1";
+  const model =
+    process.env.QWEN_GENERATION_MODEL ||
+    process.env.QWEN_MODEL ||
+    "qwen3.7-plus-2026-05-26";
   if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY not configured");
+    throw new Error("QWEN_API_KEY not configured");
   }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 90000);
 
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://www.finterasoluciones.co",
-        "X-Title": "Fintera Content Agent",
       },
       signal: controller.signal,
       body: JSON.stringify({
@@ -203,28 +213,28 @@ async function generateWithOpenRouter(
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt },
         ],
-        max_tokens: 16384,
+        max_completion_tokens: 8192,
         temperature: 0.65,
+        enable_thinking: false,
+        preserve_thinking: false,
       }),
     });
     clearTimeout(timeoutId);
 
     if (!res.ok) {
       const body = await res.text();
-      throw new Error(
-        `OpenRouter error ${res.status}: ${body.slice(0, 200)}`
-      );
+      throw new Error(`Qwen API error ${res.status}: ${body.slice(0, 200)}`);
     }
 
     const data = await res.json();
     const text = data.choices?.[0]?.message?.content || "";
     if (!text || text.length < 250) {
-      throw new Error("OpenRouter returned empty/short text");
+      throw new Error("Qwen API returned empty/short text");
     }
 
     return {
       text,
-      provider: "OpenRouter",
+      provider: "Qwen-API",
       model,
     };
   } catch (err) {
@@ -285,19 +295,19 @@ Estructura el documento en Markdown limpio (sin bloques de código JSON envolven
   let providerUsed = "FINTERA-Institutional-Synthesizer";
   let modelUsed = "fintera-financial-editorial-v1";
 
-  // Same 3-tier cascade as apex-website: 1) Homelab Hermes -> 2) NVIDIA NIM -> 3) OpenRouter
+  // Same 3-tier cascade as apex-website: 1) Homelab Hermes -> 2) NVIDIA NIM -> 3) Qwen API
   const providers = [
     {
       name: "Hermes (Homelab 127.0.0.1:8642)",
       fn: () => generateWithHermesHomelab(userPrompt, systemPrompt),
     },
     {
-      name: "NVIDIA NIM (meta/llama-3.1-70b-instruct)",
+      name: "NVIDIA NIM (nvidia/nemotron-3.5-super-vl-120b-a12b)",
       fn: () => generateWithNvidiaNim(userPrompt, systemPrompt),
     },
     {
-      name: "OpenRouter (google/gemini-2.0-flash-001)",
-      fn: () => generateWithOpenRouter(userPrompt, systemPrompt),
+      name: "Qwen API (qwen3.7-plus-2026-05-26)",
+      fn: () => generateWithQwen(userPrompt, systemPrompt),
     },
   ];
 
