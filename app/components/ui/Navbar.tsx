@@ -24,6 +24,7 @@ export function Navbar() {
     { name: "Simulador", href: "/simulador" },
     { name: "Créditos", href: "/creditos" },
     { name: "Portafolio", href: "/portafolio" },
+    { name: "Insights", href: "/insights" },
     { name: "Nosotros", href: "/nosotros" },
     { name: "Contacto", href: "/contacto" },
   ];

@@ -6,17 +6,18 @@ import PrequalificationSection from "@/components/fintera/prequalification-secti
 import TrustSection from "@/components/fintera/trust-section";
 import HowItWorksSection from "@/components/fintera/how-it-works-section";
 import SocialProofSection from "@/components/fintera/social-proof-section";
+import InsightsShowcaseSection from "@/components/fintera/insights-showcase-section";
 import CTASection from "@/components/fintera/cta-section";
 import Footer from "@/components/fintera/footer";
 
 export const metadata: Metadata = {
-  title: "Fintera | El Crédito que Necesitas Hoy - Colombia",
-  description: "Créditos de vivienda, libre inversión y empresarial en Colombia. Proceso rápido, tasas preferenciales y aprobación garantizada. Precalíficate en 2 minutos.",
-  keywords: ["credito colombia", "credito vivienda", "credito libre inversion", "credito empresarial", "prestamos bucaramanga", "financiamiento colombia"],
+  title: "FINTERA | Soluciones Financieras para Personas y Empresas en Colombia",
+  description: "Conectamos personas y empresas con soluciones financieras en Colombia mediante orientación especializada, criterio financiero, acompañamiento y transparencia. Crédito de vivienda y soluciones empresariales.",
+  keywords: ["credito colombia", "credito vivienda", "leasing habitacional", "soluciones empresariales", "factoring colombia", "fintera soluciones financieras"],
   authors: [{ name: "Fintera" }],
   openGraph: {
-    title: "Fintera | El Crédito que Necesitas Hoy - Colombia",
-    description: "Créditos rápidos y seguros en Colombia. Precalíficate ahora.",
+    title: "FINTERA | Hagamos posible tu próximo proyecto",
+    description: "Conectamos personas y empresas con soluciones financieras mediante orientación especializada y acompañamiento.",
     type: "website",
   },
 };
@@ -43,6 +44,9 @@ export default function HomePage() {
       
       {/* Social Proof Section */}
       <SocialProofSection />
+
+      {/* FINTERA Insights & Research Showcase Section */}
+      <InsightsShowcaseSection />
       
       {/* Call to Action Section */}
       <CTASection />

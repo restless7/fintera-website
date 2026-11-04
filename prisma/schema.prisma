@@ -1225,3 +1225,316 @@ model RolePermissionPolicy {
 
   @@map("role_permission_policies")
 }
+
+// ============================================================================
+// FASE 8: FINTERA INSIGHTS, RESEARCH OS & LINKEDIN AUTHORITY ENGINE
+// ============================================================================
+
+enum PostStatus {
+  DRAFT
+  IN_REVIEW
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QaStatus {
+  UNVERIFIED
+  PASSED
+  FAILED
+  REMEDIATED
+  BYPASSED
+}
+
+enum ContentType {
+  BLOG_POST
+  WHITEPAPER
+  CASE_STUDY
+  GUIDE
+  WEBINAR
+  TUTORIAL
+}
+
+enum ResearchDeskStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+model TrendSignal {
+  id             String      @id @default(uuid())
+  source         String      // "sfc", "banrep", "dane", "dian", "fna", "supersociedades", "asobancaria", "camacol", "oecd", "ifc"
+  sourceId       String      @unique @map("source_id")
+  title          String
+  url            String?
+  rawContent     String?     @map("raw_content") @db.Text
+  score          Int         @default(0)
+  relevanceScore Float?      @map("relevance_score")
+  extractedTheme String?     @map("extracted_theme")
+  pillar         String?     // "VIVIENDA_B2C", "FACTORING_B2B", "AUTORIDAD_MERCADO", "CONFIANZA_OPORTUNIDADES"
+  status         String      @default("PENDING") // "PENDING", "PROCESSED", "IGNORED", "FAILED"
+  scrapedAt      DateTime    @default(now()) @map("scraped_at")
+  processedAt    DateTime?   @map("processed_at")
+
+  generatedPosts BlogPost[]
+
+  @@index([status, relevanceScore])
+  @@index([pillar])
+  @@map("fintera_trend_signals")
+}
+
+model BlogPost {
+  id                  String             @id @default(uuid())
+  title               String
+  slug                String             @unique
+  subtitle            String?
+  excerpt             String?            @db.Text
+  content             String             @db.Text
+  contentHtml         String?            @map("content_html") @db.Text
+  status              PostStatus         @default(DRAFT)
+  contentType         ContentType        @default(BLOG_POST) @map("content_type")
+  featured            Boolean            @default(false)
+
+  // FINTERA Strategic Pillar & Audience Metadata
+  pillar              String?            // "VIVIENDA_B2C", "FACTORING_B2B", "AUTORIDAD_MERCADO", "CONFIANZA_OPORTUNIDADES"
+  audience            String?            // "B2C_VIVIENDA", "B2B_EMPRESAS", "HIBRIDO_ALIADOS"
+  cutoffDate          String?            @map("cutoff_date") // Fecha de corte de datos oficiales
+
+  // Type-specific structured metadata (JSON)
+  typeMetadata        Json?              @map("type_metadata")
+
+  // Gated content & lead capture
+  gated               Boolean            @default(false)
+  downloadUrl         String?            @map("download_url")
+
+  // AI Pipeline Relations
+  aiGenerated         Boolean            @default(false) @map("ai_generated")
+  aiModel             String?            @map("ai_model")
+  generationPrompt    String?            @map("generation_prompt") @db.Text
+  trendSignalId       String?            @map("trend_signal_id")
+  trendSignal         TrendSignal?       @relation(fields: [trendSignalId], references: [id], onDelete: SetNull)
+
+  // SEO & Metadata
+  seoTitle            String?            @map("seo_title")
+  seoDescription      String?            @map("seo_description") @db.Text
+  seoKeywords         String?            @map("seo_keywords")
+  canonicalUrl        String?            @map("canonical_url")
+  readingTime         Int?               @map("reading_time")
+  wordCount           Int?               @map("word_count")
+  tableOfContents     String?            @map("table_of_contents") @db.Text
+
+  // Quality Assurance & Governance Gate
+  qaStatus            QaStatus           @default(UNVERIFIED) @map("qa_status")
+  qaScore             Float?             @map("qa_score")
+  qaPassedAt          DateTime?          @map("qa_passed_at")
+  qaApprovalHash      String?            @map("qa_approval_hash")
+  qaReport            Json?              @map("qa_report")
+  qaHistory           BlogPostQaReport[]
+
+  // Media Relations
+  coverImageId        String?            @map("cover_image_id")
+  coverImage          MediaAsset?        @relation("PostCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  ogImageId           String?            @map("og_image_id")
+  ogImage             MediaAsset?        @relation("PostOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  // Author & Taxonomy
+  authorId            String?            @map("author_id")
+  author              BlogAuthor?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  categoryId          String?            @map("category_id")
+  category            BlogCategory?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags                BlogPostTag[]
+  revisions           BlogPostRevision[]
+
+  // Analytics
+  views               Int                @default(0)
+  likes               Int                @default(0)
+
+  // Timestamps
+  publishedAt         DateTime?          @map("published_at")
+  scheduledAt         DateTime?          @map("scheduled_at")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt])
+  @@index([contentType, status])
+  @@index([pillar])
+  @@index([slug])
+  @@index([authorId])
+  @@index([categoryId])
+  @@map("fintera_blog_posts")
+}
+
+model BlogPostQaReport {
+  id                  String   @id @default(uuid())
+  postId              String   @map("post_id")
+  post                BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  overallScore        Float    @map("overall_score")
+  status              QaStatus
+  structuralScore     Float    @map("structural_score")
+  editorialScore      Float    @map("editorial_score")
+  seoGeoScore         Float    @map("seo_geo_score")
+  factualScore        Float    @map("factual_score")
+  brandVoiceScore     Float    @map("brand_voice_score")
+  originalityScore    Float    @map("originality_score")
+  technicalScore      Float    @map("technical_score")
+  safetyScore         Float    @map("safety_score")
+
+  findings            Json
+  metrics             Json
+  remediationApplied  Boolean  @default(false) @map("remediation_applied")
+  remediationDiff     String?  @map("remediation_diff") @db.Text
+  evaluatedBy         String   @default("FINTERA-QA-Gate-v1.0") @map("evaluated_by")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@index([postId, createdAt])
+  @@map("fintera_blog_post_qa_reports")
+}
+
+model BlogPostRevision {
+  id          String   @id @default(uuid())
+  postId      String   @map("post_id")
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  title       String
+  content     String   @db.Text
+  excerpt     String?  @db.Text
+  version     Int
+  changeNotes String?  @map("change_notes")
+  createdBy   String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([postId, version])
+  @@map("fintera_blog_post_revisions")
+}
+
+model MediaAsset {
+  id               String     @id @default(uuid())
+  filename         String
+  originalName     String     @map("original_name")
+  url              String
+  mimeType         String     @map("mime_type")
+  size             Int
+  width            Int?
+  height           Int?
+  altText          String?    @map("alt_text")
+  caption          String?
+  blurDataUrl      String?    @map("blur_data_url") @db.Text
+  folder           String     @default("insights")
+  uploadedBy       String?    @map("uploaded_by")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  coverForPosts    BlogPost[] @relation("PostCoverImage")
+  ogForPosts       BlogPost[] @relation("PostOgImage")
+  authorAvatars    BlogAuthor[]
+
+  @@index([folder])
+  @@index([mimeType])
+  @@map("fintera_media_assets")
+}
+
+model BlogAuthor {
+  id          String      @id @default(uuid())
+  name        String
+  slug        String      @unique
+  email       String?     @unique
+  role        String?
+  bio         String?     @db.Text
+  avatarId    String?     @map("avatar_id")
+  avatar      MediaAsset? @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  socialLinks String?     @map("social_links") @db.Text
+  posts       BlogPost[]
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@map("fintera_blog_authors")
+}
+
+model BlogCategory {
+  id          String     @id @default(uuid())
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  color       String     @default("#0284c7")
+  icon        String?
+  parentId    String?    @map("parent_id")
+  parent      BlogCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    BlogCategory[] @relation("CategoryHierarchy")
+  posts       BlogPost[]
+  sortOrder   Int        @default(0) @map("sort_order")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("fintera_blog_categories")
+}
+
+model BlogTag {
+  id        String        @id @default(uuid())
+  name      String        @unique
+  slug      String        @unique
+  color     String        @default("#0f172a")
+  posts     BlogPostTag[]
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@map("fintera_blog_tags")
+}
+
+model BlogPostTag {
+  postId    String   @map("post_id")
+  tagId     String   @map("tag_id")
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("fintera_blog_post_tags")
+}
+
+model PipelineRun {
+  id               String    @id @default(uuid())
+  pipelineType     String    @map("pipeline_type") // "SCRAPER", "GENERATOR", "LINKEDIN_CADENCE"
+  status           String    @default("RUNNING")   // "RUNNING", "SUCCESS", "PARTIAL", "FAILED"
+  startedAt        DateTime  @default(now()) @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+  signalsFound     Int       @default(0) @map("signals_found")
+  signalsRelevant  Int       @default(0) @map("signals_relevant")
+  draftsGenerated  Int       @default(0) @map("drafts_generated")
+  draftsFailed     Int       @default(0) @map("drafts_failed")
+  tokensUsed       Int       @default(0) @map("tokens_used")
+  errorMessage     String?   @map("error_message") @db.Text
+  metadata         String?   @db.Text
+
+  @@index([pipelineType, startedAt])
+  @@index([status])
+  @@map("fintera_pipeline_runs")
+}
+
+model ResearchDesk {
+  id               String             @id @default(uuid())
+  name             String
+  slug             String             @unique
+  description      String?            @db.Text
+  pillar           String?            // "VIVIENDA_B2C", "FACTORING_B2B", "AUTORIDAD_MERCADO", "CONFIANZA_OPORTUNIDADES"
+  targetSharePct   Int                @default(25) @map("target_share_pct")
+  status           ResearchDeskStatus @default(ACTIVE)
+
+  topics           Json               // string[]
+  keywords         Json               // string[]
+  geographicFocus  Json?              @map("geographic_focus")
+  industries       Json?
+  enabledSources   Json               @map("enabled_sources")
+  customFeeds      Json?              @map("custom_feeds")
+  brandVoiceNotes  String?            @map("brand_voice_notes") @db.Text
+  minRelevance     Float              @default(0.6) @map("min_relevance")
+  autoGenerate     Boolean            @default(false) @map("auto_generate")
+  preferredFormats Json?              @map("preferred_formats")
+
+  signalsCount     Int                @default(0) @map("signals_count")
+  briefsCount      Int                @default(0) @map("briefs_count")
+  lastSweptAt      DateTime?          @map("last_swept_at")
+
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("fintera_research_desks")
+}
+

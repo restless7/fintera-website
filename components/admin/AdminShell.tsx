@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import * as Dialog from "@radix-ui/react-dialog";
-import { BarChart3, BriefcaseBusiness, ChevronRight, Clock3, House, Menu, PanelLeftClose, PanelLeftOpen, UsersRound, X } from "lucide-react";
+import { BarChart3, BookOpen, Bot, BriefcaseBusiness, ChevronRight, Clock3, Compass, House, Menu, PanelLeftClose, PanelLeftOpen, Share2, UsersRound, X } from "lucide-react";
 import type { Permission } from "@/lib/auth/types";
 import { isNavigationActive, type AdminNavGroup } from "./navigation";
 
@@ -17,7 +17,18 @@ export const useAdminPermissions = () => useContext(AdminPermissionsContext);
 
 function subscribeSidebar(listener: () => void) { window.addEventListener("storage", listener); window.addEventListener("fintera-sidebar-change", listener); return () => { window.removeEventListener("storage", listener); window.removeEventListener("fintera-sidebar-change", listener); }; }
 
-const icons = { overview: House, applications: BriefcaseBusiness, assigned: UsersRound, "follow-up": Clock3, analytics: BarChart3, users: UsersRound };
+const icons = {
+  overview: House,
+  applications: BriefcaseBusiness,
+  assigned: UsersRound,
+  "follow-up": Clock3,
+  analytics: BarChart3,
+  users: UsersRound,
+  content: BookOpen,
+  research: Compass,
+  linkedin: Share2,
+  pipeline: Bot,
+};
 export interface AdminShellProps { children: ReactNode; navigation: AdminNavGroup[]; employeeName: string; roleLabel: string; accountControl?: ReactNode; permissions?: Permission[]; }
 
 export function AdminShell({ children, navigation, employeeName, roleLabel, accountControl, permissions = [] }: AdminShellProps) {
@@ -44,6 +55,11 @@ export function AdminShell({ children, navigation, employeeName, roleLabel, acco
   if (pathname.endsWith("/documents")) crumbs.push({ label: "Documentos", href: pathname });
   if (pathname.endsWith("/bi") && home.href !== pathname) crumbs.push({ label: "Analítica comercial", href: pathname });
   if (pathname.endsWith("/users")) crumbs.push({ label: "Usuarios y accesos", href: pathname });
+  if (pathname.startsWith("/admin/content")) crumbs.push({ label: "Centro Editorial", href: "/admin/content" });
+  if (pathname.startsWith("/admin/content/pipeline")) crumbs.push({ label: "Motor IA y Scraping", href: "/admin/content/pipeline" });
+  if (pathname.startsWith("/admin/content/new")) crumbs.push({ label: "Nueva Pieza", href: "/admin/content/new" });
+  if (pathname.startsWith("/admin/research")) crumbs.push({ label: "Fuentes e Inteligencia", href: "/admin/research" });
+  if (pathname.startsWith("/admin/linkedin")) crumbs.push({ label: "Plan LinkedIn 90 Días", href: "/admin/linkedin" });
 
   const sidebar = (rail: boolean) => <>
     <Link href={home.href} className="admin-brand" aria-label={`Fintera, ${home.label}`} title={rail ? `Fintera · ${home.label}` : undefined}>

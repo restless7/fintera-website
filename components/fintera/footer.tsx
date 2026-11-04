@@ -14,6 +14,7 @@ const footerLinks = {
     { name: "Servicios Financieros", href: "/portafolio#servicios" },
     { name: "Procesos y Documentación", href: "/portafolio#procesos" },
     { name: "Productos Futuros", href: "/portafolio#futuros" },
+    { name: "FINTERA Insights (Blog & Whitepapers)", href: "/insights" },
   ],
   nosotros: [
     { name: "Cómo Trabajamos", href: "/nosotros#como-trabajamos" },

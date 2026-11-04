@@ -245,6 +245,88 @@ export default async function CrmDashboardPage() {
             </table>
           </div>
         </div>
+
+        {/* FINTERA Insights & Posicionamiento LinkedIn (90 Días) Executive Strip */}
+        <div className="admin-card p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-sky-400">
+                FINTERA INSIGHTS & MARCA · MOTOR DE AUTORIDAD Y GENERACIÓN DE DEMANDA
+              </span>
+              <h2 className="mt-1 text-lg font-bold text-white">
+                Posicionamiento en LinkedIn (90 Días) e Inteligencia Financiera
+              </h2>
+              <p className="mt-0.5 text-xs text-slate-400">
+                Conecta la generación de contenido respaldado en 14 fuentes oficiales (SFC, BanRep, DANE, DIAN/RADIAN, OCDE) con la captación de prospectos B2C (Vivienda) y B2B (Factoring).
+              </p>
+            </div>
+            <Link href="/insights" target="_blank" className="admin-button text-xs">
+              Ver Portal Público (/insights) ↗
+            </Link>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link
+              href="/admin/content"
+              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                Centro Editorial
+              </span>
+              <p className="mt-1 text-sm font-semibold text-white">
+                Artículos, Whitepapers, Webinars y Casos
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                Gobernanza QA Gate de 8 dimensiones y copy listo para LinkedIn.
+              </p>
+            </Link>
+
+            <Link
+              href="/admin/research"
+              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-400">
+                14 Fuentes Autorizadas
+              </span>
+              <p className="mt-1 text-sm font-semibold text-white">
+                Monitor SFC, BanRep, DIAN y OCDE
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                4 Mesas de investigación con fecha de corte y separación Hecho vs. Criterio.
+              </p>
+            </Link>
+
+            <Link
+              href="/admin/linkedin"
+              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                Plan LinkedIn 90 Días
+              </span>
+              <p className="mt-1 text-sm font-semibold text-white">
+                Calendario Mensual y Constructor UTM
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                4 publicaciones semanales (Lun–Jue), rutina semanal y embudo B2C/B2B.
+              </p>
+            </Link>
+
+            <Link
+              href="/admin/content/pipeline"
+              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                Motor IA y Scraping
+              </span>
+              <p className="mt-1 text-sm font-semibold text-white">
+                Agentes Autónomos FINTERA
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                Ejecuta barridos en tiempo real y redacción multiformato asistida.
+              </p>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

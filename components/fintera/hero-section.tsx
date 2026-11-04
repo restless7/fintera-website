@@ -87,9 +87,9 @@ export default function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                El Crédito que{" "}
+                Hagamos posible tu{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-fintera-600 via-gradient-via to-gradient-to">
-                  Necesitas Hoy
+                  próximo proyecto
                 </span>
               </motion.h1>
 
@@ -100,8 +100,8 @@ export default function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                Créditos de vivienda, libre inversión y empresarial en{" "}
-                <span className="text-fintera-600 font-semibold">Colombia. Proceso rápido y garantizado.</span>
+                Conectamos personas y empresas con soluciones financieras en{" "}
+                <span className="text-fintera-600 font-semibold">Colombia mediante criterio financiero, acompañamiento y transparencia.</span>
               </motion.p>
 
               {/* Trust indicators */}
@@ -113,15 +113,15 @@ export default function HeroSection() {
               >
                 <div className="flex items-center gap-2">
                   <ShieldCheckIcon className="h-5 w-5 text-fintera-500" />
-                  <span>100% Seguro y Confiable</span>
+                  <span>Criterio Financiero y Transparencia</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <ChartBarSquareIcon className="h-5 w-5 text-fintera-500" />
-                  <span>Análisis en Tiempo Real</span>
+                  <span>Comparación Multibanco</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <SparklesIcon className="h-5 w-5 text-fintera-500" />
-                  <span>Aprobación Rápida</span>
+                  <span>Acompañamiento Especializado</span>
                 </div>
               </motion.div>
 
@@ -227,16 +227,16 @@ export default function HeroSection() {
                       className="bg-white/60 border border-fintera-100 rounded-xl p-3"
                       whileHover={{ scale: 1.02 }}
                     >
-                      <div className="text-xs text-slate-600 mb-1">Tasa de Interés</div>
-                      <div className="text-lg font-semibold text-slate-900">1.2% EA</div>
-                      <div className="text-xs text-green-600">↓ Más Baja</div>
+                      <div className="text-xs text-slate-600 mb-1">Tasa Referencia Vivienda</div>
+                      <div className="text-lg font-semibold text-slate-900">Desde 10.5% E.A.</div>
+                      <div className="text-xs text-green-600">Sujeto a evaluación</div>
                     </motion.div>
 
                     <motion.div
                       className="bg-white/60 border border-fintera-100 rounded-xl p-3"
                       whileHover={{ scale: 1.02 }}
                     >
-                      <div className="text-xs text-slate-600 mb-1">Estado Aprobación</div>
+                      <div className="text-xs text-slate-600 mb-1">Viabilidad Documental</div>
                       <div className="text-lg font-semibold text-slate-900">92%</div>
                       <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
                         <motion.div
@@ -259,7 +259,7 @@ export default function HeroSection() {
                   }}
                   transition={{ duration: 4, repeat: Infinity }}
                 >
-                  Pre-aprobación Inmediata
+                  Evaluación Multibanco
                 </motion.div>
 
                 <motion.div

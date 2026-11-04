@@ -52,3 +52,5 @@ Thumbs.db
 /prisma/generated/
 /backups/
 /__ BANCOS - BIBLIOTECA __*/
+/.cache/
+/.turbo/
