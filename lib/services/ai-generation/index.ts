@@ -2,11 +2,16 @@
  * lib/services/ai-generation/index.ts
  *
  * Autonomous Financial Content & LinkedIn Drafting Engine for FINTERA Soluciones Financieras.
- * Supports multi-format generation (BLOG_POST, WHITEPAPER, WEBINAR, CASE_STUDY, GUIDE, TUTORIAL)
- * with OpenRouter / NVIDIA NIM / Gemini API support and deterministic institutional synthesis
- * fallback so generation always succeeds with 95+ QA Gate scores.
+ * Uses the exact same Homelab + Cloud model cascade as apex-website (hermes-content-agent.ts):
+ *   1. Homelab Hermes Agent: http://127.0.0.1:8642/v1/chat/completions (model: 'hermes-agent')
+ *   2. NVIDIA NIM API: https://integrate.api.nvidia.com/v1/chat/completions (model: 'meta/llama-3.1-70b-instruct')
+ *   3. OpenRouter API: https://openrouter.ai/api/v1/chat/completions (model: 'google/gemini-2.0-flash-001')
+ *   4. Deterministic Institutional Fallback (when running offline/without tunnel)
+ * Also loads ~/.hermes/.env and /home/jauria/.hermes/.env automatically on the homelab.
  */
 
+import fs from "fs";
+import path from "path";
 import {
   ContentTypeKey,
   FINTERA_CONTENT_PILLARS,
@@ -15,6 +20,39 @@ import {
 import { FinteraContentItem, upsertFinteraContent } from "../../blog";
 import { FINTERA_MONTH_1_CALENDAR } from "../../linkedin-strategy";
 import { researchSignalEngine } from "../../research/signal-engine";
+
+// Load Homelab .hermes/.env if present (matches packages/apex-website/scripts/hermes-content-agent.ts)
+function loadHermesHomelabEnv(): void {
+  const candidates = [
+    path.join(process.env.HOME || "/home/jauria", ".hermes", ".env"),
+    "/home/jauria/.hermes/.env",
+  ];
+  for (const envPath of candidates) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const eqIdx = trimmed.indexOf("=");
+          if (eqIdx <= 0) continue;
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed
+            .slice(eqIdx + 1)
+            .trim()
+            .replace(/^["']|["']$/g, "");
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      }
+    } catch {
+      // Ignore permission/fs errors in non-homelab containers
+    }
+  }
+}
+
+loadHermesHomelabEnv();
 
 export interface GenerateFinteraDraftInput {
   topic?: string;
@@ -25,6 +63,176 @@ export interface GenerateFinteraDraftInput {
   publishImmediately?: boolean;
 }
 
+async function generateWithHermesHomelab(
+  prompt: string,
+  systemPrompt: string
+): Promise<{ text: string; provider: string; model: string }> {
+  const hermesUrl =
+    process.env.HERMES_API_URL || "http://127.0.0.1:8642/v1/chat/completions";
+  const hermesModel = process.env.HERMES_MODEL || "hermes-agent";
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+  try {
+    const res = await fetch(hermesUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: hermesModel,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.65,
+        max_tokens: 16384,
+      }),
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      throw new Error(
+        `Hermes API error ${res.status}: ${errorBody.slice(0, 200)}`
+      );
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || "";
+    if (!text || text.length < 250) {
+      throw new Error("Hermes returned insufficient content");
+    }
+
+    return {
+      text,
+      provider: "Homelab-Hermes",
+      model: hermesModel,
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
+async function generateWithNvidiaNim(
+  prompt: string,
+  systemPrompt: string
+): Promise<{ text: string; provider: string; model: string }> {
+  const apiKey = process.env.NVIDIA_API_KEY || process.env.NVIDIA_NIM_API_KEY;
+  const model = process.env.NVIDIA_MODEL || "meta/llama-3.1-70b-instruct";
+  if (!apiKey || apiKey.includes("your_")) {
+    throw new Error("NVIDIA_API_KEY not configured");
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+  try {
+    const res = await fetch(
+      "https://integrate.api.nvidia.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt },
+          ],
+          max_tokens: 16384,
+          temperature: 0.65,
+          top_p: 0.9,
+        }),
+      }
+    );
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`NVIDIA API error ${res.status}: ${body.slice(0, 200)}`);
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || "";
+    if (!text || text.length < 250) {
+      throw new Error("NVIDIA returned empty/short text");
+    }
+
+    return {
+      text,
+      provider: "NVIDIA-NIM",
+      model,
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
+async function generateWithOpenRouter(
+  prompt: string,
+  systemPrompt: string
+): Promise<{ text: string; provider: string; model: string }> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-001";
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY not configured");
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://www.finterasoluciones.co",
+        "X-Title": "Fintera Content Agent",
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 16384,
+        temperature: 0.65,
+      }),
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(
+        `OpenRouter error ${res.status}: ${body.slice(0, 200)}`
+      );
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || "";
+    if (!text || text.length < 250) {
+      throw new Error("OpenRouter returned empty/short text");
+    }
+
+    return {
+      text,
+      provider: "OpenRouter",
+      model,
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
 export async function generateFinteraContentDraft(
   input: GenerateFinteraDraftInput
 ): Promise<{
@@ -32,25 +240,18 @@ export async function generateFinteraContentDraft(
   providerUsed: string;
   modelUsed: string;
 }> {
-  // 1. Check if generating from a Month 1 LinkedIn Calendar slot
   const calendarSlot = input.calendarPostId
     ? FINTERA_MONTH_1_CALENDAR.find((c) => c.id === input.calendarPostId)
     : undefined;
 
-  // 2. Check if generating from a Research Signal
   const signal = input.signalId
-    ? researchSignalEngine
-        .getSignals()
-        .find((s) => s.id === input.signalId)
+    ? researchSignalEngine.getSignals().find((s) => s.id === input.signalId)
     : researchSignalEngine.getSignals({
         pillar: calendarSlot?.pillar || input.pillar,
       })[0];
 
   const pillar: FinteraContentPillarKey =
-    calendarSlot?.pillar ||
-    input.pillar ||
-    signal?.pillar ||
-    "VIVIENDA_B2C";
+    calendarSlot?.pillar || input.pillar || signal?.pillar || "VIVIENDA_B2C";
   const pillarCfg = FINTERA_CONTENT_PILLARS[pillar];
   const contentType: ContentTypeKey =
     calendarSlot?.contentType || input.contentType || "BLOG_POST";
@@ -65,23 +266,7 @@ export async function generateFinteraContentDraft(
     ? `Plan Editorial LinkedIn · Semana ${calendarSlot.week} (${calendarSlot.day}) · Formato: ${calendarSlot.format}`
     : `Análisis técnico respaldado en fuentes oficiales de Colombia (${pillarCfg.shortLabel})`;
 
-  let generatedMarkdown = "";
-  let providerUsed = "FINTERA-Institutional-Synthesizer";
-  let modelUsed = "fintera-financial-editorial-v1";
-
-  const apiKey =
-    process.env.OPENROUTER_API_KEY || process.env.NVIDIA_NIM_API_KEY;
-
-  if (apiKey) {
-    try {
-      const endpoint = process.env.OPENROUTER_API_KEY
-        ? "https://openrouter.ai/api/v1/chat/completions"
-        : "https://integrate.api.nvidia.com/v1/chat/completions";
-      const model = process.env.OPENROUTER_API_KEY
-        ? "nousresearch/hermes-3-llama-3.1-70b"
-        : "meta/llama-3.1-70b-instruct";
-
-      const systemPrompt = `Eres el Director de Criterio Financiero de FINTERA Soluciones Financieras (https://www.finterasoluciones.co/) en Colombia.
+  const systemPrompt = `Eres el Director de Criterio Financiero de FINTERA Soluciones Financieras (https://www.finterasoluciones.co/) en Colombia.
 Escribe en español profesional, claro y ejecutivo siguiendo estrictamente la Regla Editorial de FINTERA:
 1. Usa fuentes primarias oficiales de Colombia e internacionales (Superintendencia Financiera de Colombia SFC, Banco de la República, DANE, Fondo Nacional del Ahorro FNA, DIAN / RADIAN, Superintendencia de Sociedades, Asobancaria, Camacol, Confecámaras, Bancóldex, IFC, OCDE, Banco Mundial, FCI).
 2. Indica explícitamente "Fecha de corte: Octubre 2026".
@@ -90,46 +275,41 @@ Escribe en español profesional, claro y ejecutivo siguiendo estrictamente la Re
 5. NUNCA prometas "aprobación garantizada", "liquidez garantizada" ni pidas datos confidenciales en comentarios públicos.
 6. Refuerza los 3 atributos de FINTERA: criterio financiero, acompañamiento y transparencia.`;
 
-      const userPrompt = `Desarrolla una pieza completa tipo ${contentType} titulada: "${title}".
+  const userPrompt = `Desarrolla una pieza completa tipo ${contentType} titulada: "${title}".
 Pilar: ${pillarCfg.label}.
 ${calendarSlot ? `Guía base del calendario:\n${calendarSlot.draftOutlineMarkdown}` : ""}
 ${signal ? `Señal oficial de referencia: ${signal.sourceName} - ${signal.summary} (Ángulo: ${signal.finteraAngle})` : ""}
-Estructura el documento en Markdown con subtítulos H2 (##), viñetas accionables, un ejemplo práctico transparente y cierre consultivo hacia FINTERA.`;
+Estructura el documento en Markdown limpio (sin bloques de código JSON envolventes) con subtítulos H2 (##), viñetas accionables, un ejemplo práctico transparente y cierre consultivo hacia FINTERA.`;
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
-      const res = await fetch(endpoint, {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          temperature: 0.35,
-          max_tokens: 1800,
-        }),
-      });
-      clearTimeout(timeout);
+  let generatedMarkdown = "";
+  let providerUsed = "FINTERA-Institutional-Synthesizer";
+  let modelUsed = "fintera-financial-editorial-v1";
 
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.choices?.[0]?.message?.content;
-        if (text && text.length > 350) {
-          generatedMarkdown = text;
-          providerUsed = process.env.OPENROUTER_API_KEY
-            ? "OpenRouter"
-            : "NVIDIA-NIM";
-          modelUsed = model;
-        }
-      }
+  // Same 3-tier cascade as apex-website: 1) Homelab Hermes -> 2) NVIDIA NIM -> 3) OpenRouter
+  const providers = [
+    {
+      name: "Hermes (Homelab 127.0.0.1:8642)",
+      fn: () => generateWithHermesHomelab(userPrompt, systemPrompt),
+    },
+    {
+      name: "NVIDIA NIM (meta/llama-3.1-70b-instruct)",
+      fn: () => generateWithNvidiaNim(userPrompt, systemPrompt),
+    },
+    {
+      name: "OpenRouter (google/gemini-2.0-flash-001)",
+      fn: () => generateWithOpenRouter(userPrompt, systemPrompt),
+    },
+  ];
+
+  for (const provider of providers) {
+    try {
+      const res = await provider.fn();
+      generatedMarkdown = res.text;
+      providerUsed = res.provider;
+      modelUsed = res.model;
+      break;
     } catch {
-      // Fallback to deterministic synthesis below
+      // Continue to next provider in cascade
     }
   }
 
@@ -261,4 +441,3 @@ En **FINTERA Soluciones Financieras** conectamos personas y empresas con alterna
     ctaSection,
   ].join("\n\n");
 }
-
