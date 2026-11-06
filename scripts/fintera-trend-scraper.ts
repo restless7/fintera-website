@@ -5,6 +5,10 @@
  * Usage: npx tsx scripts/fintera-trend-scraper.ts
  */
 
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
+
 import { researchSignalEngine } from "../lib/research/signal-engine";
 
 async function main() {

@@ -22,39 +22,42 @@ const currentServices = [
   {
     id: "servicios",
     icon: BuildingLibraryIcon,
-    title: "Alianzas con Entidades Financieras",
-    description: "Somos aliados comerciales oficiales de Bancolombia, Banco de Bogotá, AV Villas, BBVA, Banco de Occidente, Banco Caja Social, Credifamilia y Banco Unión, ofreciéndote acceso multientidad directo y transparente.",
+    title: "Línea 1 · Crédito de Vivienda y Financiación Personal (B2C)",
+    description:
+      "Conectamos compradores de vivienda y personas naturales con entidades financieras vigiladas (Bancolombia, Banco de Bogotá, AV Villas, BBVA, Banco de Occidente, Banco Caja Social, Credifamilia y Banco Unión) mediante comparación objetiva y transparente.",
     features: [
-      "Crédito de vivienda con tasas desde 10.5% E.A.",
-      "Crédito de libre inversión hasta $150M",
-      "Crédito de vehículo con aprobación rápida",
-      "Libranza con descuento directo de nómina",
+      "Crédito hipotecario y leasing habitacional VIS y No VIS (Pesos y UVR)",
+      "Análisis de capacidad de endeudamiento (relación primera cuota / ingreso ≤ 30%)",
+      "Comparación integral de tasa E.A. (SFC), seguros vinculados y gastos de cierre",
+      "Crédito de libre inversión y libranza sujetos a perfil crediticio",
     ],
     gradient: "from-blue-600 to-cyan-500",
   },
   {
     id: "procesos",
     icon: DocumentCheckIcon,
-    title: "Procesamiento y Diligenciamiento Digital",
-    description: "Simplificamos todo el proceso de solicitud y aprobación de créditos con nuestra plataforma digital de última generación.",
+    title: "Gestión Documental y Precalificación Digital",
+    description:
+      "Estructuramos y validamos tu carpeta financiera antes de radicar ante los bancos aliados, reduciendo reprocesos y cuidando tu historial en centrales de riesgo.",
     features: [
-      "Formularios en línea optimizados y seguros",
-      "Carga de documentos 100% digital",
-      "Seguimiento en tiempo real de tu solicitud",
-      "Firma electrónica válida legalmente",
+      "Simulación hipotecaria y autodiagnóstico financiero en línea",
+      "Revisión previa de extractos, soportes laborales y declaraciones tributarias (DIAN)",
+      "Seguimiento transparente del estado de tu solicitud en el Portal de Clientes",
+      "Tratamiento seguro de datos personales bajo la Ley 1581 de 2012 (Habeas Data)",
     ],
     gradient: "from-cyan-500 to-blue-600",
   },
   {
     id: "acompanamiento",
     icon: UserGroupIcon,
-    title: "Acompañamiento en Tiempos de Trámite",
-    description: "No estás solo en el proceso. Nuestro equipo te acompaña desde la precalificación hasta el desembolso de tu crédito.",
+    title: "Acompañamiento Especializado en Todo el Proceso",
+    description:
+      "No solo presentamos una solicitud: te orientamos desde la estructuración inicial hasta el estudio de títulos, avalúo y desembolso.",
     features: [
-      "Asesores especializados disponibles 6 días a la semana",
-      "Respuesta a consultas en menos de 2 horas",
-      "Actualizaciones automáticas por WhatsApp y correo",
-      "Resolución proactiva de inconvenientes",
+      "Especialistas en estructuración hipotecaria y financiera a tu disposición",
+      "Orientación clara sobre requisitos para empleados, independientes y colombianos en el exterior",
+      "Actualizaciones oportunas en cada hito del estudio de crédito",
+      "Educación financiera continua a través de nuestro portal FINTERA Insights",
     ],
     gradient: "from-purple-500 to-blue-500",
   },
@@ -63,49 +66,56 @@ const currentServices = [
 const futureServices = [
   {
     icon: ChartBarIcon,
-    title: "Factoring",
-    description: "Próximamente: Adelanto de cartera para empresas y comercios.",
-    status: "Próximamente",
+    title: "Línea 2 · Liquidez Empresarial y Factoring (RADIAN / DIAN)",
+    description:
+      "Diagnóstico de capital de trabajo para empresas que venden a crédito (30–90 días), verificación de los 3 eventos obligatorios de factura electrónica en RADIAN y estructuración de operaciones de factoring a través de nuestros aliados financieros autorizados.",
+    status: "Diagnóstico y Estructuración con Aliados",
     gradient: "from-green-500 to-cyan-500",
   },
   {
-    icon: TruckIcon,
-    title: "Renting y Leasing",
-    description: "Acceso a vehículos y equipos sin compra inicial.",
-    status: "En Desarrollo",
-    gradient: "from-orange-500 to-red-500",
-  },
-  {
     icon: BuildingOfficeIcon,
-    title: "Integración Multibanca",
-    description: "Comparación en tiempo real entre múltiples entidades financieras.",
-    status: "2026",
+    title: "Comparador Multibanco Basado en Datos Oficiales",
+    description:
+      "Monitoreo continuo de reportes de tasas de interés de la Superfinanciera (SFC), Banco de la República y DANE para decisiones informadas.",
+    status: "Activo en FINTERA Insights",
     gradient: "from-indigo-500 to-purple-500",
   },
   {
+    icon: TruckIcon,
+    title: "Leasing Operativo y Financiación de Activos Productivos",
+    description:
+      "Alternativas en desarrollo para renovación de maquinaria, equipos y flota empresarial sin descapitalizar la operación.",
+    status: "En Estructuración",
+    gradient: "from-orange-500 to-red-500",
+  },
+  {
     icon: BanknotesIcon,
-    title: "Servicios B2B de Procesamiento de Leads",
-    description: "Plataforma especializada para intermediarios y brokers financieros.",
-    status: "En Planeación",
+    title: "Red de Aliados Estratégicos (Inmobiliarias, Constructoras y Contadores)",
+    description:
+      "Canal especializado de acompañamiento financiero para compradores de proyectos inmobiliarios y clientes empresariales.",
+    status: "Alianzas Abiertas",
     gradient: "from-pink-500 to-purple-500",
   },
 ];
 
 const differentiators = [
   {
-    icon: ClockIcon,
-    title: "Velocidad de Respuesta",
-    description: "Precalificación en 2 minutos, respuesta final en menos de 24 horas.",
+    icon: ChartBarIcon,
+    title: "1. Criterio Financiero",
+    description:
+      "Analizamos tu capacidad de pago, estructura de costos, seguros y flujo de caja antes de recomendar una alternativa.",
+  },
+  {
+    icon: UserGroupIcon,
+    title: "2. Acompañamiento Cercano",
+    description:
+      "Te orientamos paso a paso durante la preparación documental, radicación y seguimiento ante las entidades aliadas.",
   },
   {
     icon: ShieldCheckIcon,
-    title: "Transparencia Total",
-    description: "Sin letra pequeña ni sorpresas. Tasas y condiciones claras desde el inicio.",
-  },
-  {
-    icon: ChartBarIcon,
-    title: "Modelo de Precisión",
-    description: "Inteligencia comercial y scoring avanzado para mayor tasa de aprobación.",
+    title: "3. Transparencia Absoluta",
+    description:
+      "Explicamos requisitos, tasas efectivas anuales (E.A.), condiciones y riesgos reales sin promesas engañosas.",
   },
 ];
 
@@ -238,7 +248,7 @@ export default function PortafolioPage() {
                 viewport={{ once: true }}
               >
                 <RocketLaunchIcon className="w-8 h-8 text-purple-600" />
-                Productos Futuros
+                Soluciones Empresariales B2B y Ecosistema de Aliados
               </motion.h2>
 
               <div className="grid md:grid-cols-2 gap-6">

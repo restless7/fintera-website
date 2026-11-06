@@ -515,7 +515,7 @@ Las empresas proveedoras de grandes compañías en Colombia suelen enfrentar pla
       "Ejercicio financiero ilustrativo diseñado por FINTERA bajo su regla de transparencia editorial: cómo comparar matemáticamente el costo de anticipar una cuenta por cobrar frente al costo de oportunidad de esperar 90 días.",
     content: `## Nota de Transparencia Editorial FINTERA
 
-> **Declaración explícita de simulación**: *Siguiendo la Regla Editorial de FINTERA, este documento presenta un **caso práctico con cifras ilustrativas e hipotéticas**. No corresponde al testimonio de un cliente real ni constituye una promesa de tasa o liquidez garantizada. Toda operación real está sujeta al registro válido en RADIAN (DIAN), evaluación del pagador y condiciones comerciales de los aliados financieros.*
+> **Declaración explícita de simulación**: *Siguiendo la Regla Editorial de FINTERA, este documento presenta un **caso práctico con cifras ilustrativas e hipotéticas**. No corresponde al testimonio de un cliente real ni constituye una promesa de tasa o de desembolso sin estudio previo. Toda operación real está sujeta al registro válido en RADIAN (DIAN), evaluación del pagador y condiciones comerciales de los aliados financieros.*
 
 ## 1. Planteamiento del Escenario Ilustrativo
 
@@ -881,6 +881,338 @@ Esta pieza inaugura el calendario editorial de 90 días de **FINTERA Soluciones 
     createdAt: "2026-11-01T08:00:00Z",
     updatedAt: "2026-11-03T08:00:00Z",
   }),
+
+  // 9. BLOG_POST — Señal SFC: Tasas de interés efectivas anuales para adquisición de vivienda VIS y No VIS (Pesos y UVR)
+  buildSeededItem({
+    id: "fintera_post_02_tasas_sfc_vis_no_vis_pesos_uvr",
+    title:
+      "Reporte de tasas de interés efectivas anuales para adquisición de vivienda VIS y No VIS (Pesos y UVR): qué evaluar más allá del indicador",
+    slug: "reporte-de-tasas-de-interes-efectivas-anuales-para-adquisicion-de-vivienda-vis-y-no-vis-pesos-y-uvr",
+    subtitle:
+      "Análisis técnico respaldado en fuentes oficiales de Colombia (Superfinanciera, Banco de la República y DANE · Corte: Octubre 2026)",
+    excerpt:
+      "Por qué existen diferencias de hasta 280 puntos básicos entre bancos en Colombia para un mismo perfil hipotecario y cómo comparar el costo total incluyendo seguros de vida, incendio y gastos de cierre.",
+    content: `## Contexto Estratégico: El Costo Real del Crédito de Vivienda en Colombia
+
+En el mercado financiero colombiano, tomar decisiones sobre endeudamiento hipotecario exige contrastar datos oficiales verificables con la realidad del flujo de caja familiar (*Fecha de corte de referencia: Octubre 2026*).
+
+## 1. Datos Publicados por Fuentes Oficiales (Fecha de Corte: Octubre 2026)
+
+- **Superintendencia Financiera de Colombia (SFC)**: El reporte público de tasas de interés efectivas anuales (E.A.) por establecimiento de crédito evidencia diferencias relevantes (de hasta 250–280 puntos básicos entre entidades) para créditos de vivienda VIS y No VIS, tanto en modalidades en **pesos** como en **UVR**. ([Fuente: Superfinanciera](https://www.superfinanciera.gov.co))
+- **Banco de la República y DANE**: El comportamiento del Índice de Precios al Consumidor (IPC) determina el ajuste de la Unidad de Valor Real (UVR), mientras que las estadísticas de financiación de vivienda del DANE y del **Fondo Nacional del Ahorro (FNA)** recuerdan el límite prudencial del **30% en la relación primera cuota / ingreso familiar** bajo la Ley 546 de 1999. ([Fuente: BanRep](https://www.banrep.gov.co) · [Fuente: DANE](https://www.dane.gov.co))
+- **Asobancaria y Camacol**: Los informes sectoriales subrayan la importancia de estructurar adecuadamente el cierre financiero (cuota inicial, avalúo, estudio de títulos y seguros obligatorios) para prevenir desistimientos. ([Fuente: Asobancaria](https://www.asobancaria.com/informes/))
+
+## 2. Criterio e Interpretación de FINTERA (Separado del Dato Oficial)
+
+A partir del seguimiento a la **Superintendencia Financiera de Colombia (SFC)**, nuestra lectura técnica en **FINTERA Soluciones Financieras** se centra en tres recomendaciones prácticas:
+
+1. **Analizar el costo financiero integral, no solo la tasa nominal**: En vivienda deben sumarse las pólizas de seguro de vida deudor e incendio/terremoto, costos de avalúo y gastos de escrituración y registro.
+2. **Preparar los soportes antes de iniciar la gestión**: La consistencia entre extractos bancarios, información tributaria ante la **DIAN** y certificados de ingresos reduce reprocesos y protege el perfil crediticio en centrales de riesgo.
+3. **Distinguir condiciones reales según el perfil**: En FINTERA no prometemos resultados ni aprobaciones sin evaluación previa; cada alternativa se estructura de acuerdo con la capacidad de pago del solicitante y las políticas vigentes de cada entidad vigilada.
+
+## 3. Simulación Ilustrativa con Supuestos Transparentes
+
+> **Nota de transparencia editorial**: *El siguiente ejercicio emplea cifras hipotéticas con fines estrictamente pedagógicos. Toda solicitud real está sujeta al estudio de crédito y políticas de cada entidad financiera vigilada.*
+
+- **Escenario**: Compra de vivienda por **COP \\$300.000.000** con cuota inicial del **30% (COP \\$90.000.000)** y saldo a financiar de **COP \\$210.000.000** a **15 años**.
+- **Evaluación financiera**: Antes de elegir entre **crédito hipotecario en pesos (cuota fija)**, **UVR** o **leasing habitacional**, el comprador debe verificar que la primera cuota mensual (incluyendo seguros) no supere el **30% de sus ingresos familiares demostrables** y reservar entre un **3% y 4%** adicional para gastos de cierre y registro.
+
+## 4. Hagamos Posible tu Próximo Proyecto con FINTERA
+
+En **FINTERA Soluciones Financieras** conectamos personas y empresas con alternativas de financiación adecuadas mediante orientación especializada y acompañamiento durante el proceso.
+
+- **Llamado a la acción**: [Simular mi crédito de vivienda](/simulador?utm_source=linkedin&utm_medium=organic&utm_campaign=vivienda_b2c)
+- **Protección de datos (Ley 1581 Habeas Data)**: *Por tu seguridad financiera, nunca compartas cédula, NIT, ingresos ni extractos en comentarios públicos; utiliza siempre nuestros canales privados de evaluación.*`,
+    status: "PUBLISHED",
+    contentType: "BLOG_POST",
+    pillar: "VIVIENDA_B2C",
+    audience: "B2C_VIVIENDA",
+    cutoffDate: "Octubre 2026",
+    featured: true,
+    gated: false,
+    downloadUrl: "/simulador?utm_source=insights&utm_medium=tasas_sfc",
+    typeMetadata: {
+      linkedinWeek: 1,
+      linkedinDay: "Jueves",
+      linkedinFormat: "Post de autoridad con referencia a Superfinanciera",
+    },
+    aiGenerated: true,
+    aiModel: "NVIDIA-NIM/nvidia/nemotron-3.5-super-vl-120b-a12b",
+    seoTitle:
+      "Reporte de Tasas Efectivas Anuales Crédito de Vivienda VIS y No VIS (Pesos y UVR) | FINTERA",
+    seoDescription:
+      "Análisis técnico de FINTERA sobre el comparativo de tasas de interés de vivienda de la Superfinanciera (SFC), diferencias entre Pesos y UVR, y costos totales.",
+    seoKeywords:
+      "tasas crédito de vivienda Colombia, Superfinanciera tasas hipotecarias, VIS y No VIS, UVR vs Pesos, FINTERA",
+    readingTime: 6,
+    authorName: "Comité de Criterio Financiero FINTERA",
+    authorRole: "FINTERA Insights",
+    categoryName: "Vivienda y Financiación Personal",
+    categorySlug: "vivienda-b2c",
+    tags: [
+      "Superfinanciera",
+      "Tasas de Interés",
+      "Crédito de Vivienda",
+      "UVR vs Pesos",
+      "Criterio Financiero",
+    ],
+    views: 265,
+    publishedAt: "2026-11-04T08:00:00Z",
+    scheduledAt: null,
+    createdAt: "2026-11-04T07:30:00Z",
+    updatedAt: "2026-11-04T08:00:00Z",
+  }),
+
+  // 10. BLOG_POST — Señal DIAN/RADIAN: Lineamientos técnicos del registro RADIAN y eventos obligatorios
+  buildSeededItem({
+    id: "fintera_post_03_lineamientos_radian_dian_factoring",
+    title:
+      "Lineamientos técnicos del registro RADIAN y eventos obligatorios para que la factura electrónica sea título valor negociable",
+    slug: "lineamientos-tecnicos-del-registro-radian-y-eventos-obligatorios-para-que-la-factura-electronica-sea-titulo-valor-negociable",
+    subtitle:
+      "Guía ejecutiva para gerentes financieros, contadores y empresarios sobre trazabilidad documental ante la DIAN y Supersociedades (Corte: Octubre 2026)",
+    excerpt:
+      "Qué exige la normativa de la DIAN en el sistema RADIAN para que una cuenta por cobrar a 60 o 90 días pueda endosarse electrónicamente en una operación de factoring en Colombia.",
+    content: `## Contexto Estratégico: La Factura Electrónica como Activo de Liquidez
+
+Para las empresas colombianas que venden a plazo de 30, 60 o 90 días, convertir cuentas por cobrar en capital de trabajo depende en primer lugar de la validez jurídica y técnica de sus facturas electrónicas (*Fecha de corte de referencia: Octubre 2026*).
+
+## 1. Datos Publicados por Fuentes Oficiales (Fecha de Corte: Octubre 2026)
+
+- **Dirección de Impuestos y Aduanas Nacionales (DIAN — Registro RADIAN)**: De acuerdo con el Anexo Técnico de RADIAN, para que una factura electrónica de venta constituya un **título valor negociable** mediante factoring en Colombia, debe registrar tres eventos electrónicos esenciales:
+  1. **Acuse de recibo de la factura electrónica de venta** por parte del adquirente/pagador.
+  2. **Recibo del bien o prestación del servicio**.
+  3. **Aceptación expresa o tácita** de la factura. ([Fuente: DIAN](https://www.dian.gov.co))
+- **Superintendencia de Sociedades & IFC**: El marco de supervisión societaria y los programas conjuntos con la Corporación Financiera Internacional (IFC) destacan al factoring como un instrumento formal para fortalecer la liquidez de las cadenas de suministro de mipymes en Colombia. ([Fuente: Supersociedades](https://www.supersociedades.gov.co))
+- **OCDE (*Financing SMEs and Entrepreneurs 2026* — Capítulo Colombia) y Confecámaras**: Los reportes evidencian que las ventas a plazo presionan el capital de trabajo de los proveedores empresariales, haciendo indispensable evaluar el costo del tiempo de espera frente a alternativas de descuento de títulos valores. ([Fuente: OCDE](https://www.oecd.org))
+
+## 2. Criterio e Interpretación de FINTERA (Separado del Dato Oficial)
+
+Desde **FINTERA Soluciones Financieras**, recomendamos a los directores financieros y contadores tratar el registro en **RADIAN** como un proceso estándar de tesorería y no como un trámite aislado:
+
+1. **Verificar la trazabilidad desde la emisión**: Asegurar que el cliente corporativo registre el acuse de recibo y la recepción de mercancía dentro de los plazos comerciales pactados.
+2. **Evaluar el costo financiero integral**: Comparar la tasa de descuento y costos operativos frente al costo de oportunidad de esperar 60 o 90 días (por ejemplo, descuentos por pronto pago con proveedores de insumos).
+3. **Estructuración transparente con aliados**: En FINTERA orientamos a las empresas en el diagnóstico de su ciclo de caja y en la preparación documental para conectar con alternativas de financiación empresarial y factoring a través de aliados autorizados cuando las condiciones operativas y del pagador se cumplen.
+
+## 3. Simulación Ilustrativa con Supuestos Transparentes
+
+> **Nota de transparencia editorial**: *El siguiente ejercicio emplea cifras hipotéticas con fines estrictamente pedagógicos y no representa una promesa de liquidez ni el caso de un cliente real.*
+
+- **Escenario**: Una pyme emite una factura electrónica por **COP \\$90.000.000** a **60 días** a favor de un gran pagador corporativo, con sus tres eventos debidamente inscritos en **RADIAN (DIAN)**.
+- **Evaluación financiera**: Si la empresa requiere comprar insumos en el día 10 con un descuento por pronto pago del **3,5% (COP \\$3.150.000)**, el director financiero debe comparar ese ahorro comercial directo frente al costo efectivo de anticipar la factura.
+
+## 4. Hagamos Posible tu Próximo Proyecto con FINTERA
+
+En **FINTERA Soluciones Financieras** conectamos personas y empresas con alternativas de financiación adecuadas mediante orientación especializada y acompañamiento durante el proceso.
+
+- **Llamado a la acción**: [Solicitar diagnóstico de liquidez empresarial](/contacto?linea=factoring&utm_source=linkedin&utm_medium=organic&utm_campaign=factoring_b2b)
+- **Protección de datos (Ley 1581 Habeas Data)**: *Por tu seguridad financiera, nunca compartas cédula, NIT, ingresos ni extractos en comentarios públicos; utiliza siempre nuestros canales privados de evaluación.*`,
+    status: "PUBLISHED",
+    contentType: "BLOG_POST",
+    pillar: "FACTORING_B2B",
+    audience: "B2B_EMPRESAS",
+    cutoffDate: "Octubre 2026",
+    featured: false,
+    gated: false,
+    downloadUrl: "/contacto?linea=factoring&utm_source=insights&utm_medium=radian_dian",
+    typeMetadata: {
+      linkedinWeek: 2,
+      linkedinDay: "Miércoles",
+      linkedinFormat: "Carrusel / Análisis educativo sobre RADIAN",
+    },
+    aiGenerated: true,
+    aiModel: "NVIDIA-NIM/nvidia/nemotron-3.5-super-vl-120b-a12b",
+    seoTitle:
+      "Lineamientos Técnicos del Registro RADIAN (DIAN) para Factoring en Colombia | FINTERA",
+    seoDescription:
+      "Conoce los 3 eventos obligatorios en el registro RADIAN de la DIAN para que una factura electrónica de venta sea título valor negociable mediante factoring.",
+    seoKeywords:
+      "registro RADIAN DIAN, eventos obligatorios factura electrónica, título valor factoring Colombia, liquidez pymes, FINTERA",
+    readingTime: 6,
+    authorName: "Comité de Criterio Financiero FINTERA",
+    authorRole: "FINTERA B2B",
+    categoryName: "Liquidez Empresarial y Factoring",
+    categorySlug: "factoring-b2b",
+    tags: [
+      "Factoring",
+      "RADIAN",
+      "DIAN",
+      "Liquidez Empresarial",
+      "Capital de Trabajo",
+    ],
+    views: 230,
+    publishedAt: "2026-11-05T08:00:00Z",
+    scheduledAt: null,
+    createdAt: "2026-11-05T07:30:00Z",
+    updatedAt: "2026-11-05T08:00:00Z",
+  }),
+
+  // 11. SOCIAL_POST — Semana 1 Viernes: Conversación y conversión consultiva
+  buildSeededItem({
+    id: "fintera_social_01_evaluando_vivienda_o_flujo_caja",
+    title:
+      "Semana 1 · Viernes: ¿Estás evaluando comprar vivienda o mejorar el flujo de caja de tu empresa? Preguntas clave antes de iniciar",
+    slug: "semana-1-viernes-evaluando-comprar-vivienda-o-mejorar-flujo-de-caja-empresa",
+    subtitle:
+      "Publicación de conversación y conversión consultiva del Plan de 90 Días en LinkedIn: orientación sin promesas vacías (Corte: Octubre 2026)",
+    excerpt:
+      "Las 4 preguntas de autodiagnóstico que toda familia compradora de vivienda y todo gerente financiero de pyme en Colombia deberían responder antes de radicar una solicitud.",
+    content: `## Diagnóstico Previo: El Primer Paso de una Decisión Financiera Sólida
+
+Antes de firmar una solicitud de crédito o comprometer el flujo de caja, detenerse a estructurar la operación marca la diferencia entre una aprobación fluida y un desgaste innecesario (*Fecha de corte de referencia: Octubre 2026*).
+
+## 1. Referencias Oficiales de Contexto en Colombia
+
+- **Superintendencia Financiera de Colombia (SFC) y Fondo Nacional del Ahorro (FNA)**: Recuerdan a los consumidores financieros verificar la tasa efectiva anual (E.A.), el sistema de amortización (Pesos o UVR) y el tope legal del **30% en la relación primera cuota / ingreso mensual** antes de adquirir obligaciones hipotecarias.
+- **DIAN (Sistema RADIAN) y Superintendencia de Sociedades**: Enfatizan que las empresas que buscan liquidez mediante el descuento de facturas deben contar con la trazabilidad completa de aceptación del título valor y operar exclusivamente con entidades legalmente constituidas.
+
+## 2. Cuatro Preguntas Clave de Autodiagnóstico (Criterio FINTERA)
+
+### Si eres persona natural y planeas comprar vivienda (B2C):
+1. **¿Mi primera cuota proyectada (incluyendo seguros de vida e incendio) representa máximo el 30% de mis ingresos demostrables?**
+2. **¿Tengo contemplado, además de la cuota inicial (20%–30%), el 3% a 4% adicional para avalúo, estudio de títulos, escrituración y registro?**
+
+### Si lideras una empresa que vende a plazo de 30, 60 o 90 días (B2B):
+3. **¿Mis facturas electrónicas cumplen oportunamente con los 3 eventos obligatorios en RADIAN (acuse de recibo, recibo del bien/servicio y aceptación)?**
+4. **¿He comparado el costo financiero de anticipar mis cuentas por cobrar frente al costo de oportunidad de esperar 90 días (por ejemplo, descuentos por pronto pago con mis proveedores)?**
+
+## 3. Simulación Ilustrativa de Diagnóstico Inicial
+
+> **Nota de transparencia editorial**: *Ejemplo pedagógico con supuestos transparentes; no constituye oferta ni promesa de aprobación.*
+
+- **Caso A (Vivienda)**: Un profesional con ingresos mensuales de **COP \\$10.000.000** tiene un techo prudencial de primera cuota de **COP \\$3.000.000**. Si mantiene tarjetas de crédito con cupos altos que absorben **COP \\$900.000** de capacidad mensual, reducir o consolidar esos cupos antes de radicar amplía su margen para el crédito de vivienda.
+- **Caso B (Liquidez B2B)**: Una empresa con **COP \\$150.000.000** en facturas por cobrar a 60 días puede evaluar qué facturas corresponden a grandes pagadores con aceptación expresa en **RADIAN** para estructurar su flujo de caja.
+
+## 4. Conversemos sobre tu Necesidad de Financiación
+
+En **FINTERA Soluciones Financieras** conectamos personas y empresas con alternativas financieras acordes con su perfil, mediante **criterio financiero**, **acompañamiento** y **transparencia**.
+
+- **Para compra de vivienda**: [Simular mi crédito de vivienda](/simulador?utm_source=linkedin&utm_medium=organic&utm_campaign=semana1_viernes)
+- **Para empresas y aliados**: [Solicitar diagnóstico de financiación](/contacto?utm_source=linkedin&utm_medium=organic&utm_campaign=semana1_viernes)
+- **Seguridad y Habeas Data (Ley 1581 de 2012)**: *Nunca envíes documentos ni datos sensibles por comentarios públicos.*`,
+    status: "PUBLISHED",
+    contentType: "GUIDE",
+    pillar: "CONFIANZA_OPORTUNIDADES",
+    audience: "HIBRIDO_ALIADOS",
+    cutoffDate: "Octubre 2026",
+    featured: false,
+    gated: false,
+    downloadUrl: "/contacto?utm_source=insights&utm_medium=social_viernes",
+    typeMetadata: {
+      linkedinWeek: 1,
+      linkedinDay: "Viernes",
+      linkedinFormat: "Post de conversación y conversión consultiva",
+    },
+    aiGenerated: true,
+    aiModel: "Qwen-API/qwen3.7-plus-2026-05-26",
+    seoTitle:
+      "¿Evaluando Comprar Vivienda o Mejorar el Flujo de Caja de tu Empresa? | FINTERA",
+    seoDescription:
+      "Autodiagnóstico financiero de FINTERA para personas que planean solicitar crédito de vivienda y empresas que buscan optimizar su liquidez en Colombia.",
+    seoKeywords:
+      "diagnóstico crédito de vivienda, flujo de caja empresas Colombia, asesoría financiera FINTERA, capacidad de endeudamiento",
+    readingTime: 5,
+    authorName: "Comité de Criterio Financiero FINTERA",
+    authorRole: "FINTERA Insights",
+    categoryName: "Confianza y Generación de Oportunidades",
+    categorySlug: "confianza-oportunidades",
+    tags: [
+      "Autodiagnóstico",
+      "Crédito de Vivienda",
+      "Flujo de Caja",
+      "Transparencia",
+      "FINTERA",
+    ],
+    views: 175,
+    publishedAt: "2026-11-05T14:00:00Z",
+    scheduledAt: null,
+    createdAt: "2026-11-05T13:00:00Z",
+    updatedAt: "2026-11-05T14:00:00Z",
+  }),
+
+  // 12. BLOG_POST — Semana 2 Jueves: Qué mirar además de la tasa de interés
+  buildSeededItem({
+    id: "fintera_post_04_que_mirar_ademas_de_la_tasa",
+    title:
+      "Qué mirar además de la tasa de interés al comparar alternativas de financiación en Colombia",
+    slug: "que-mirar-ademas-de-la-tasa-de-interes-al-comparar-alternativas-de-financiacion",
+    subtitle:
+      "Criterio financiero para evaluar seguros vinculados, sistemas de amortización, plazos, costos de cierre y condiciones operativas (Corte: Octubre 2026)",
+    excerpt:
+      "Por qué la tasa nominal o efectiva anual aislada no cuenta toda la historia: cómo comparar el costo total de un crédito de vivienda o de una operación de liquidez empresarial en Colombia.",
+    content: `## Más Allá del Titular Comercial: El Costo Efectivo Total
+
+Tanto al buscar un crédito hipotecario para comprar vivienda como al evaluar alternativas de capital de trabajo para una empresa, el error más común es elegir únicamente por la tasa de interés nominal anunciada (*Fecha de corte de referencia: Octubre 2026*).
+
+## 1. Lo que Muestran los Datos Oficiales en Colombia
+
+- **Superintendencia Financiera de Colombia (SFC)**: La normativa de protección al consumidor financiero exige informar la **Tasa Efectiva Anual (E.A.)** y los cargos asociados; sin embargo, el costo de las pólizas de seguro (vida deudor e incendio/terremoto), los gastos de avalúo y estudio de títulos pueden modificar sustancialmente el desembolso mensual real entre dos bancos. ([Fuente: Superfinanciera](https://www.superfinanciera.gov.co))
+- **Banco de la República y DANE**: La evolución de la inflación (IPC) impacta directamente el saldo de capital y la cuota en créditos denominados en **UVR**, frente a la previsibilidad de los sistemas en **pesos a cuota fija**. ([Fuente: BanRep](https://www.banrep.gov.co))
+- **DIAN (RADIAN) y Superintendencia de Sociedades**: En operaciones empresariales y factoring, además de la tasa de descuento, deben revisarse los costos de estructuración, validación electrónica de eventos y plazos reales de recaudo del pagador. ([Fuente: DIAN](https://www.dian.gov.co))
+
+## 2. Cinco Variables que FINTERA Evalúa en Cada Comparación
+
+1. **Seguros obligatorios y libertad de endoso**: En crédito de vivienda, el valor mensual del seguro de vida y de incendio/terremoto puede representar entre el **8% y el 15% de la cuota mensual total**. Además, la ley colombiana permite endosar pólizas contratadas con aseguradoras autorizadas si cumplen las condiciones exigidas por el banco.
+2. **Sistema de amortización (Pesos vs. UVR) y modalidad (Hipotecario vs. Leasing Habitacional)**: Evaluamos la sensibilidad del flujo de caja familiar ante escenarios de inflación y el porcentaje requerido de cuota inicial.
+3. **Costos únicos de originación y cierre**: Avalúo comercial, estudio de títulos, derechos notariales, beneficencia y registro.
+4. **Flexibilidad para abonos extraordinarios a capital**: En Colombia, los créditos de vivienda permiten realizar abonos anticipados a capital (para reducir plazo o reducir cuota) sin sanción por prepago.
+5. **En empresas (B2B): Costo financiero vs. Costo de oportunidad**: Contrastar el descuento de una factura en **RADIAN** contra el beneficio comercial de pagar materias primas de contado o sostener el ritmo de entregas.
+
+## 3. Simulación Ilustrativa Comparativa (Cifras Hipotéticas)
+
+> **Nota de transparencia editorial**: *Simulación pedagógica con supuestos transparentes. No corresponde a una oferta vinculante ni garantiza condiciones de aprobación.*
+
+- **Supuesto**: Financiación de vivienda por **COP \\$200.000.000** a **15 años (180 meses)** en pesos:
+  - **Opción A**: Tasa de **10,9% E.A.** con seguros vinculados mensuales de **COP \\$185.000**.
+  - **Opción B**: Tasa de **11,2% E.A.** con seguros mensuales optimizados de **COP \\$98.000** y menor costo de estudio de títulos.
+- **Resultado del análisis integral**: Pese a tener una tasa E.A. ligeramente superior en 30 puntos básicos, la **Opción B** puede resultar en un desembolso mensual total más eficiente para el comprador.
+
+## 4. Toma Decisiones Informadas con FINTERA
+
+En **FINTERA Soluciones Financieras** te acompañamos a comparar opciones reales con **criterio financiero, acompañamiento y transparencia**.
+
+- **Simula y compara tu crédito de vivienda**: [Ir al Simulador Hipotecario](/simulador?utm_source=linkedin&utm_medium=organic&utm_campaign=semana2_jueves)
+- **Habla con un especialista**: [Solicitar orientación personalizada](/contacto?utm_source=linkedin&utm_medium=organic&utm_campaign=semana2_jueves)
+- **Protección de datos (Ley 1581 Habeas Data)**: *Por tu seguridad, nunca compartas información confidencial en comentarios públicos.*`,
+    status: "PUBLISHED",
+    contentType: "BLOG_POST",
+    pillar: "AUTORIDAD_MERCADO",
+    audience: "HIBRIDO_ALIADOS",
+    cutoffDate: "Octubre 2026",
+    featured: true,
+    gated: false,
+    downloadUrl: "/simulador?utm_source=insights&utm_medium=comparar_mas_alla_tasa",
+    typeMetadata: {
+      linkedinWeek: 2,
+      linkedinDay: "Jueves",
+      linkedinFormat: "Post de análisis financiero comparativo",
+    },
+    aiGenerated: true,
+    aiModel: "Qwen-API/qwen3.7-plus-2026-05-26",
+    seoTitle:
+      "Qué Mirar Además de la Tasa de Interés al Comparar Financiación en Colombia | FINTERA",
+    seoDescription:
+      "Aprende a comparar créditos de vivienda y alternativas de financiación empresarial en Colombia evaluando seguros, UVR vs Pesos, costos de cierre y flujo de caja.",
+    seoKeywords:
+      "comparar crédito de vivienda Colombia, seguros crédito hipotecario, tasa efectiva anual Superfinanciera, criterio financiero FINTERA",
+    readingTime: 7,
+    authorName: "Dirección de Criterio Financiero FINTERA",
+    authorRole: "FINTERA Insights",
+    categoryName: "Autoridad y Análisis del Mercado",
+    categorySlug: "autoridad-mercado",
+    tags: [
+      "Criterio Financiero",
+      "Tasas de Interés",
+      "Seguros Hipotecarios",
+      "Superfinanciera",
+      "Transparencia",
+    ],
+    views: 245,
+    publishedAt: "2026-11-06T08:00:00Z",
+    scheduledAt: null,
+    createdAt: "2026-11-06T07:30:00Z",
+    updatedAt: "2026-11-06T08:00:00Z",
+  }),
 ];
 
 function loadCachedPosts(): FinteraContentItem[] {
@@ -889,7 +1221,24 @@ function loadCachedPosts(): FinteraContentItem[] {
       const raw = fs.readFileSync(POSTS_CACHE_FILE, "utf8");
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        const bySlug = new Map<string, FinteraContentItem>();
+        for (const item of parsed as FinteraContentItem[]) {
+          if (item && item.slug) {
+            bySlug.set(item.slug, item);
+          }
+        }
+        for (const seeded of SEEDED_FINTERA_INSIGHTS) {
+          if (!bySlug.has(seeded.slug)) {
+            bySlug.set(seeded.slug, seeded);
+          } else {
+            const current = bySlug.get(seeded.slug)!;
+            // Promote seeded flagship pieces if cached copy was still DRAFT
+            if (seeded.status === "PUBLISHED" && current.status === "DRAFT") {
+              bySlug.set(seeded.slug, seeded);
+            }
+          }
+        }
+        return Array.from(bySlug.values());
       }
     }
   } catch {
@@ -1203,4 +1552,29 @@ export async function remediateFinteraContent(
     appliedFixes,
   };
 }
+
+export async function deleteFinteraContent(
+  idOrSlug: string
+): Promise<{ deleted: boolean; slug?: string }> {
+  const items = loadCachedPosts();
+  const target = items.find((i) => i.id === idOrSlug || i.slug === idOrSlug);
+  if (!target) {
+    return { deleted: false };
+  }
+  const filtered = items.filter((i) => i.id !== target.id && i.slug !== target.slug);
+  saveCachedPosts(filtered);
+
+  try {
+    await prisma.blogPost.deleteMany({
+      where: {
+        OR: [{ id: target.id }, { slug: target.slug }],
+      },
+    });
+  } catch {
+    // Graceful fallback if table is not migrated
+  }
+
+  return { deleted: true, slug: target.slug };
+}
+
 

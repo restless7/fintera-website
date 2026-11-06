@@ -3,31 +3,34 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CheckCircleIcon, ShieldCheckIcon, LockClosedIcon, AcademicCapIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
+import Link from "next/link";
 
 const trustFeatures = [
   {
     icon: ShieldCheckIcon,
-    title: "Entidades Financieras Reconocidas",
-    description: "Trabajamos únicamente con bancos y entidades supervisadas por la Superfinanciera, garantizando tu seguridad y confianza.",
+    title: "Entidades Financieras Vigiladas en Colombia",
+    description:
+      "Conectamos solicitudes de vivienda y soluciones empresariales exclusivamente con bancos y aliados supervisados por la Superintendencia Financiera o la Superintendencia de Sociedades.",
   },
   {
     icon: LockClosedIcon,
-    title: "Proceso 100% Transparente",
-    description: "Sin letra pequeña ni sorpresas. Conoces todas las condiciones antes de comprometerte con cualquier crédito.",
+    title: "Transparencia y Protección de Datos (Habeas Data)",
+    description:
+      "Explicamos requisitos, tasas efectivas anuales (E.A.), seguros y costos antes de radicar, protegiendo tu información bajo la Ley 1581 de 2012.",
   },
   {
     icon: AcademicCapIcon,
-    title: "Experiencia del Sector",
-    description: "Nuestro equipo cuenta con más de 15 años de experiencia en banca y finanzas en el mercado colombiano.",
+    title: "Criterio Financiero Basado en Fuentes Oficiales",
+    description:
+      "Nuestro análisis separa los datos publicados por Superfinanciera, Banco de la República, DANE y DIAN (RADIAN) de nuestra recomendación consultiva.",
   },
 ];
 
 const certifications = [
-  "Superfinanciera",
-  "Ley de Habeas Data",
-  "ISO 27001",
-  "PCI DSS",
+  "Entidades Aliadas Vigiladas SFC",
+  "Ley 1581 Habeas Data",
+  "Trazabilidad RADIAN / DIAN",
+  "Criterio Financiero Transparente",
 ];
 
 export default function TrustSection() {
@@ -135,7 +138,7 @@ export default function TrustSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              <h4 className="text-sm font-semibold text-slate-700 mb-4">Certificaciones y Cumplimiento</h4>
+              <h4 className="text-sm font-semibold text-slate-700 mb-4">Estándares de Gobernanza y Cumplimiento</h4>
               <div className="flex flex-wrap gap-3">
                 {certifications.map((cert, index) => (
                   <motion.div
@@ -156,18 +159,30 @@ export default function TrustSection() {
 
             {/* CTA */}
             <motion.div
+              className="flex flex-wrap gap-4"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 1 }}
             >
-              <Button
-                variant="gradient"
-                size="lg"
-                className="px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300"
-              >
-                Ver Nuestras Certificaciones
-              </Button>
+              <Link href="/insights">
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  className="px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300"
+                >
+                  Explorar FINTERA Insights
+                </Button>
+              </Link>
+              <Link href="/simulador">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="px-8 py-3 rounded-xl border-fintera-200 text-fintera-700 hover:bg-fintera-50"
+                >
+                  Simular Crédito de Vivienda
+                </Button>
+              </Link>
             </motion.div>
           </motion.div>
 
@@ -196,10 +211,10 @@ export default function TrustSection() {
                 <div className="space-y-6">
                   {/* Header */}
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-slate-900">Security Center</h3>
+                    <h3 className="text-lg font-semibold text-slate-900">Gobernanza y Criterio FINTERA</h3>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-green-600 font-medium">All Systems Secure</span>
+                      <span className="text-sm text-green-600 font-medium">Canales Privados Activos</span>
                     </div>
                   </div>
 
@@ -210,10 +225,10 @@ export default function TrustSection() {
                       whileHover={{ scale: 1.02 }}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-green-700">Encryption</span>
+                        <span className="text-sm text-green-700">Protección de Datos</span>
                         <CheckCircleIcon className="h-5 w-5 text-green-500" />
                       </div>
-                      <div className="text-2xl font-bold text-green-900">AES-256</div>
+                      <div className="text-2xl font-bold text-green-900">Ley 1581</div>
                     </motion.div>
 
                     <motion.div
@@ -221,19 +236,19 @@ export default function TrustSection() {
                       whileHover={{ scale: 1.02 }}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-fintera-700">Uptime</span>
+                        <span className="text-sm text-fintera-700">Fuentes Oficiales</span>
                         <CheckCircleIcon className="h-5 w-5 text-fintera-500" />
                       </div>
-                      <div className="text-2xl font-bold text-fintera-900">99.9%</div>
+                      <div className="text-2xl font-bold text-fintera-900">14 Entidades</div>
                     </motion.div>
                   </div>
 
                   {/* Security Features */}
                   <div className="space-y-3">
                     {[
-                      { label: "Multi-Factor Authentication", status: "Active" },
-                      { label: "Real-time Monitoring", status: "Active" },
-                      { label: "Data Backup & Recovery", status: "Active" },
+                      { label: "Validación de Capacidad de Pago (Ley 546)", status: "Verificado" },
+                      { label: "Trazabilidad de Eventos en RADIAN (DIAN)", status: "Verificado" },
+                      { label: "Comparación Multibanco sin Costos Ocultos", status: "Activo" },
                     ].map((item, index) => (
                       <motion.div
                         key={item.label}
@@ -265,7 +280,7 @@ export default function TrustSection() {
                 }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
-                Secured
+                Criterio Financiero
               </motion.div>
 
               <motion.div
@@ -276,7 +291,7 @@ export default function TrustSection() {
                 }}
                 transition={{ duration: 4, repeat: Infinity, delay: 2 }}
               >
-                Trusted
+                Transparencia
               </motion.div>
             </div>
           </motion.div>

@@ -4,14 +4,18 @@
  * Autonomous CLI Content & LinkedIn Positioning Generator for FINTERA Soluciones Financieras.
  * Uses the exact same Homelab + Cloud model cascade as apex-website/scripts/hermes-content-agent.ts:
  *   1. Homelab Hermes Agent (http://127.0.0.1:8642/v1/chat/completions · model: 'hermes-agent')
- *   2. NVIDIA NIM API (https://integrate.api.nvidia.com/v1/chat/completions · model: 'meta/llama-3.1-70b-instruct')
- *   3. OpenRouter API (https://openrouter.ai/api/v1/chat/completions · model: 'google/gemini-2.0-flash-001')
+ *   2. NVIDIA NIM API (https://integrate.api.nvidia.com/v1/chat/completions · model: 'nvidia/nemotron-3.5-super-vl-120b-a12b')
+ *   3. Qwen API (https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1/chat/completions · model: 'qwen3.7-plus-2026-05-26')
  *   4. Deterministic Institutional Fallback
  *
  * Usage:
  *   npx tsx scripts/fintera-content-agent.ts
  *   npx tsx scripts/fintera-content-agent.ts --type=WHITEPAPER --pillar=FACTORING_B2B
  */
+
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 
 import {
   ContentTypeKey,
@@ -30,7 +34,7 @@ async function main() {
   const topicArg = args.find((a) => a.startsWith("--topic="))?.split("=")[1];
 
   console.log("==============================================================");
-  console.log("FINTERA CONTENT OS · HOMELAB HERMES / NIM / OPENROUTER CASCADE");
+  console.log("FINTERA CONTENT OS · HOMELAB HERMES / NVIDIA NIM / QWEN CASCADE");
   console.log("==============================================================");
   console.log(`📋 Formato: ${typeArg} | Pilar: ${pillarArg}`);
 

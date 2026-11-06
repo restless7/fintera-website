@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeAdminApi } from "@/lib/auth/admin-api";
 import {
+  deleteFinteraContent,
   getAllFinteraContent,
   getFinteraContentByIdOrSlug,
   remediateFinteraContent,
@@ -140,4 +141,35 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const authorization = await authorizeAdminApi("crm:application:read");
+  if (authorization.response) return authorization.response;
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json(
+        { error: "Se requiere el parámetro id para eliminar la pieza" },
+        { status: 400 }
+      );
+    }
+
+    const result = await deleteFinteraContent(id);
+    if (!result.deleted) {
+      return NextResponse.json(
+        { error: "Pieza editorial no encontrada" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, deletedSlug: result.slug });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Error al eliminar pieza";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 

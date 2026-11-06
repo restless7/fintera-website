@@ -11,6 +11,10 @@
  *   npx tsx scripts/fintera-orchestrator-daemon.ts
  */
 
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
+
 import { exec } from "child_process";
 import { promisify } from "util";
 
@@ -40,7 +44,7 @@ async function runCycle(label: string, command: string) {
 async function main() {
   console.log("🚀 FINTERA Autonomous Homelab Orchestrator Daemon iniciado");
   console.log(
-    "🔗 Conectado a Hermes Local (http://127.0.0.1:8642/v1/chat/completions) + Cascade NIM/OpenRouter"
+    "🔗 Conectado a Hermes Local (http://127.0.0.1:8642/v1/chat/completions) + Cascade NVIDIA NIM / Qwen API"
   );
 
   // Run an initial sweep on startup

@@ -15,32 +15,36 @@ import Image from "next/image";
 const features = [
   {
     icon: HomeIcon,
-    title: "Crédito de Vivienda",
-    description: "Financia la compra de tu casa propia con las tasas más competitivas del mercado. Hasta $500M con plazos de hasta 20 años.",
+    title: "Crédito de Vivienda y Leasing (B2C)",
+    description:
+      "Acompañamos la compra de tu vivienda VIS o No VIS mediante comparación multibanco en Pesos y UVR, evaluando capacidad de endeudamiento, seguros y costos reales.",
     gradient: "from-fintera-500 to-gradient-via",
     delay: 0.1,
     image: "/images/credito-vivienda.jpg",
   },
   {
-    icon: BanknotesIcon,
-    title: "Crédito de Libre Inversión",
-    description: "Dinero disponible para lo que necesites: educación, vehículo, vacaciones o cualquier proyecto personal. Hasta $150M.",
-    gradient: "from-gradient-via to-gradient-to",
-    delay: 0.2,
-    image: "/images/credito-libre-inversion.jpg",
-  },
-  {
     icon: BuildingOfficeIcon,
-    title: "Crédito Empresarial",
-    description: "Impulsa tu negocio con capital de trabajo, maquinaria o expansión. Financiamiento especializado para empresas.",
+    title: "Liquidez Empresarial y Factoring (B2B)",
+    description:
+      "Diagnóstico de capital de trabajo para empresas que venden a crédito (30–90 días), validación de eventos en RADIAN (DIAN) y estructuración de operaciones con aliados.",
     gradient: "from-gradient-from to-fintera-500",
-    delay: 0.3,
+    delay: 0.2,
     image: "/images/credito-empresarial.jpg",
   },
   {
+    icon: BanknotesIcon,
+    title: "Crédito Personal y Libre Inversión",
+    description:
+      "Conectamos tu perfil con alternativas de financiación personal en entidades vigiladas, priorizando sostenibilidad en la cuota mensual y claridad en las condiciones.",
+    gradient: "from-gradient-via to-gradient-to",
+    delay: 0.3,
+    image: "/images/credito-libre-inversion.jpg",
+  },
+  {
     icon: ShieldCheckIcon,
-    title: "Proceso Rápido y Seguro",
-    description: "Precalificación en línea, documentos digitales y respuesta en menos de 24 horas. Tu información está protegida.",
+    title: "Criterio Financiero y Transparencia",
+    description:
+      "Orientación paso a paso en preparación documental, protección de datos (Ley 1581 Habeas Data) y evaluación objetiva sin promesas de aprobación sin estudio previo.",
     gradient: "from-fintera-600 to-gradient-from",
     delay: 0.4,
     image: "/images/proceso-rapido.jpg",
@@ -48,9 +52,21 @@ const features = [
 ];
 
 const stats = [
-  { value: "96%", label: "Tasa de Aprobación", icon: ShieldCheckIcon },
-  { value: "$24.500M", label: "Créditos Otorgados", icon: BanknotesIcon },
-  { value: "2.800+", label: "Clientes Satisfechos", icon: LightBulbIcon },
+  {
+    value: "8+",
+    label: "Entidades Financieras Aliadas Vigiladas en Colombia",
+    icon: ShieldCheckIcon,
+  },
+  {
+    value: "14",
+    label: "Fuentes Oficiales Monitoreadas (SFC, BanRep, DIAN/RADIAN)",
+    icon: BanknotesIcon,
+  },
+  {
+    value: "100%",
+    label: "Transparencia en Tasas E.A., Seguros y Requisitos",
+    icon: LightBulbIcon,
+  },
 ];
 
 export default function FeaturesSection() {
@@ -81,7 +97,7 @@ export default function FeaturesSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <span className="text-fintera-600 text-sm font-semibold tracking-wider uppercase">
-              Nuestros Productos
+              Hagamos Posible tu Próximo Proyecto
             </span>
           </motion.div>
 
@@ -92,9 +108,9 @@ export default function FeaturesSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Créditos{" "}
+            Soluciones Financieras para{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-fintera-600 to-gradient-via">
-              Especializados
+              Personas y Empresas
             </span>
           </motion.h2>
 
@@ -105,8 +121,8 @@ export default function FeaturesSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            Ofrecemos las mejores opciones de financiamiento en Colombia, con tasas preferenciales
-            y aprobación rápida para hacer realidad tus proyectos.
+            Conectamos necesidades de financiación con alternativas adecuadas mediante
+            criterio financiero, acompañamiento cercano y transparencia en cada etapa.
           </motion.p>
         </motion.div>
 
