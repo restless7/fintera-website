@@ -13,9 +13,24 @@
  *   npx tsx scripts/fintera-content-agent.ts --type=WHITEPAPER --pillar=FACTORING_B2B
  */
 
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
-dotenv.config();
+import fs from "fs";
+import path from "path";
+
+for (const envFile of [".env.local", ".env"]) {
+  const fullPath = path.join(process.cwd(), envFile);
+  if (fs.existsSync(fullPath)) {
+    for (const line of fs.readFileSync(fullPath, "utf8").split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx > 0) {
+        const key = trimmed.slice(0, eqIdx).trim();
+        const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, "");
+        if (!process.env[key]) process.env[key] = val;
+      }
+    }
+  }
+}
 
 import {
   ContentTypeKey,
