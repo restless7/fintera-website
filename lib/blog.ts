@@ -11,12 +11,21 @@ import fs from "fs";
 import path from "path";
 import prisma from "./prisma";
 import {
+  buildFinteraBrandImagePrompt,
   ContentTypeKey,
+  FINTERA_CONTENT_PILLARS,
   FinteraAudienceKey,
   FinteraContentPillarKey,
 } from "./content-types";
 import { ContentQaGate } from "./qa/qa-gate";
 import { QaEvaluationResult } from "./qa/types";
+
+export interface FinteraCreativeAsset {
+  url: string;
+  prompt: string;
+  model: string;
+  createdAt: string;
+}
 
 export interface FinteraContentItem {
   id: string;
@@ -33,6 +42,9 @@ export interface FinteraContentItem {
   featured: boolean;
   gated: boolean;
   downloadUrl: string | null;
+  coverImage?: string | null;
+  imagePrompt?: string | null;
+  creativeAssets?: FinteraCreativeAsset[];
   typeMetadata: Record<string, unknown>;
   aiGenerated: boolean;
   aiModel: string | null;
@@ -81,9 +93,21 @@ function buildSeededItem(
   });
 
   const wordCount = partial.content.trim().split(/\s+/).filter(Boolean).length;
+  const pillarCfg =
+    FINTERA_CONTENT_PILLARS[partial.pillar] ||
+    FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
 
   return {
     ...partial,
+    coverImage: partial.coverImage || pillarCfg.coverImage,
+    imagePrompt:
+      partial.imagePrompt ||
+      buildFinteraBrandImagePrompt({
+        title: partial.title,
+        pillar: partial.pillar,
+        contentType: partial.contentType,
+      }),
+    creativeAssets: partial.creativeAssets || [],
     wordCount,
     qaStatus: qa.decision === "PASSED" ? "PASSED" : "UNVERIFIED",
     qaScore: qa.overallScore,
@@ -1216,6 +1240,33 @@ En **FINTERA Soluciones Financieras** te acompañamos a comparar opciones reales
 ];
 
 function loadCachedPosts(): FinteraContentItem[] {
+  const enrichItem = (item: FinteraContentItem): FinteraContentItem => {
+    const pillarCfg =
+      FINTERA_CONTENT_PILLARS[item.pillar] ||
+      FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
+    const meta = (item.typeMetadata || {}) as Record<string, unknown>;
+    return {
+      ...item,
+      coverImage:
+        item.coverImage ||
+        (typeof meta.coverImage === "string" ? meta.coverImage : null) ||
+        pillarCfg.coverImage,
+      imagePrompt:
+        item.imagePrompt ||
+        (typeof meta.imagePrompt === "string" ? meta.imagePrompt : null) ||
+        buildFinteraBrandImagePrompt({
+          title: item.title,
+          pillar: item.pillar,
+          contentType: item.contentType,
+        }),
+      creativeAssets: Array.isArray(item.creativeAssets)
+        ? item.creativeAssets
+        : Array.isArray(meta.creativeAssets)
+        ? (meta.creativeAssets as FinteraCreativeAsset[])
+        : [],
+    };
+  };
+
   try {
     if (fs.existsSync(POSTS_CACHE_FILE)) {
       const raw = fs.readFileSync(POSTS_CACHE_FILE, "utf8");
@@ -1224,17 +1275,17 @@ function loadCachedPosts(): FinteraContentItem[] {
         const bySlug = new Map<string, FinteraContentItem>();
         for (const item of parsed as FinteraContentItem[]) {
           if (item && item.slug) {
-            bySlug.set(item.slug, item);
+            bySlug.set(item.slug, enrichItem(item));
           }
         }
         for (const seeded of SEEDED_FINTERA_INSIGHTS) {
           if (!bySlug.has(seeded.slug)) {
-            bySlug.set(seeded.slug, seeded);
+            bySlug.set(seeded.slug, enrichItem(seeded));
           } else {
             const current = bySlug.get(seeded.slug)!;
             // Promote seeded flagship pieces if cached copy was still DRAFT
             if (seeded.status === "PUBLISHED" && current.status === "DRAFT") {
-              bySlug.set(seeded.slug, seeded);
+              bySlug.set(seeded.slug, enrichItem(seeded));
             }
           }
         }
@@ -1244,7 +1295,7 @@ function loadCachedPosts(): FinteraContentItem[] {
   } catch {
     // Fallback to seeded insights
   }
-  return [...SEEDED_FINTERA_INSIGHTS];
+  return SEEDED_FINTERA_INSIGHTS.map(enrichItem);
 }
 
 function saveCachedPosts(posts: FinteraContentItem[]): void {
@@ -1339,6 +1390,28 @@ export async function upsertFinteraContent(
   const readingTime =
     input.readingTime || Math.max(3, Math.ceil(wordCount / 180));
 
+  const pillarCfg =
+    FINTERA_CONTENT_PILLARS[pillar] || FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
+  const coverImage =
+    input.coverImage ?? existing?.coverImage ?? pillarCfg.coverImage;
+  const imagePrompt =
+    input.imagePrompt ??
+    existing?.imagePrompt ??
+    buildFinteraBrandImagePrompt({
+      title: input.title,
+      pillar,
+      contentType,
+    });
+  const creativeAssets =
+    input.creativeAssets ?? existing?.creativeAssets ?? [];
+  const mergedTypeMetadata: Record<string, unknown> = {
+    ...(existing?.typeMetadata || {}),
+    ...(input.typeMetadata || {}),
+    coverImage,
+    imagePrompt,
+    creativeAssets,
+  };
+
   const updatedItem: FinteraContentItem = {
     id,
     title: input.title,
@@ -1361,7 +1434,10 @@ export async function upsertFinteraContent(
     featured: input.featured ?? existing?.featured ?? false,
     gated: input.gated ?? existing?.gated ?? false,
     downloadUrl: input.downloadUrl ?? existing?.downloadUrl ?? null,
-    typeMetadata: input.typeMetadata ?? existing?.typeMetadata ?? {},
+    coverImage,
+    imagePrompt,
+    creativeAssets,
+    typeMetadata: mergedTypeMetadata,
     aiGenerated: input.aiGenerated ?? existing?.aiGenerated ?? false,
     aiModel: input.aiModel ?? existing?.aiModel ?? null,
     seoTitle: input.seoTitle ?? existing?.seoTitle ?? `${input.title} | FINTERA`,

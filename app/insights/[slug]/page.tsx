@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
+import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
 import { getAllFinteraContent, getFinteraContentByIdOrSlug } from "@/lib/blog";
 import {
   CaseStudyMetadata,
@@ -58,56 +59,75 @@ export default async function FinteraInsightDetailPage({
       ? (item.typeMetadata as unknown as TutorialMetadata)
       : null;
 
-  const blocks = item.content.split(/\n\n+/);
+  const coverSrc = item.coverImage || pillarCfg.coverImage;
 
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-slate-50 pt-24 pb-20">
+      <main className="min-h-screen bg-[#F7F7F7] pt-24 pb-20">
         <article className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
             <Link
               href="/insights"
-              className="text-sm font-semibold text-blue-600 hover:underline"
+              className="text-sm font-bold text-[#0A2342] hover:text-[#008f82]"
             >
               ← Volver a FINTERA Insights
             </Link>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+            <span className="rounded-full border border-[#00C4B3]/40 bg-[#0A2342] px-3.5 py-1 text-xs font-bold text-[#00C4B3]">
               ✔ Verificado por Comité QA FINTERA ({item.qaScore}/100)
             </span>
           </div>
 
-          <header className="rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-8 text-white shadow-lg sm:p-10">
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="rounded-full border border-sky-400/30 bg-sky-500/20 px-3 py-1 font-bold text-sky-300">
-                {typeCfg?.label}
-              </span>
-              <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-slate-200">
-                {pillarCfg.label}
-              </span>
-              <span className="text-slate-300">
-                · Fecha de corte oficial: {item.cutoffDate}
-              </span>
+          <header className="overflow-hidden rounded-3xl bg-[#0A2342] text-white shadow-xl">
+            <div className="relative h-64 w-full overflow-hidden sm:h-80">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverSrc}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A2342] via-[#0A2342]/60 to-transparent" />
+              <div className="absolute top-4 left-6 right-6 flex flex-wrap items-center justify-between gap-2">
+                <span className="rounded-full bg-[#0A2342]/90 border border-[#00C4B3]/50 px-3.5 py-1 text-xs font-bold text-[#00C4B3]">
+                  {typeCfg?.label}
+                </span>
+                <span className="rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-[#0A2342]">
+                  “{pillarCfg.brandClaim}”
+                </span>
+              </div>
             </div>
 
-            <h1 className="mt-4 text-2xl font-extrabold leading-tight sm:text-4xl">
-              {item.title}
-            </h1>
-
-            {item.subtitle && (
-              <p className="mt-3 text-base text-slate-300 sm:text-lg">
-                {item.subtitle}
-              </p>
-            )}
-
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-4 text-xs text-slate-300">
-              <div>
-                <strong className="text-white">{item.authorName}</strong> ·{" "}
-                {item.authorRole}
+            <div className="p-8 sm:p-10 -mt-12 relative z-10">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="rounded-full bg-[#00C4B3]/20 border border-[#00C4B3]/40 px-3 py-1 font-semibold text-[#00C4B3]">
+                  {pillarCfg.label}
+                </span>
+                <span className="text-slate-300">
+                  · Fecha de corte oficial: {item.cutoffDate}
+                </span>
               </div>
-              <div>
-                Lectura estimada: {item.readingTime} min · {item.wordCount}{" "}
-                palabras
+
+              <h1 className="mt-4 text-2xl font-extrabold leading-tight sm:text-4xl text-white">
+                {item.title}
+              </h1>
+
+              {item.subtitle && (
+                <p className="mt-3 text-base text-slate-200 sm:text-lg">
+                  {item.subtitle}
+                </p>
+              )}
+
+              <div className="mt-4 h-1 w-16 rounded-full bg-[#FFD447]" />
+
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-4 text-xs text-slate-300">
+                <div>
+                  <strong className="text-white">{item.authorName}</strong> ·{" "}
+                  {item.authorRole}
+                </div>
+                <div>
+                  Lectura estimada: {item.readingTime} min · {item.wordCount}{" "}
+                  palabras
+                </div>
               </div>
             </div>
           </header>
@@ -335,55 +355,15 @@ export default async function FinteraInsightDetailPage({
             )}
 
           {/* Main Content Body */}
-          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10 space-y-5">
-            {blocks.map((block, index) => {
-              const trimmed = block.trim();
-              if (trimmed.startsWith("## ")) {
-                return (
-                  <h2
-                    key={index}
-                    className="pt-4 text-xl font-bold text-slate-900 sm:text-2xl"
-                  >
-                    {trimmed.replace(/^##\s+/, "")}
-                  </h2>
-                );
-              }
-              if (trimmed.startsWith("### ")) {
-                return (
-                  <h3
-                    key={index}
-                    className="pt-2 text-lg font-bold text-slate-800"
-                  >
-                    {trimmed.replace(/^###\s+/, "")}
-                  </h3>
-                );
-              }
-              if (trimmed.startsWith("> ")) {
-                return (
-                  <blockquote
-                    key={index}
-                    className="rounded-xl border-l-4 border-blue-600 bg-blue-50/70 p-4 text-sm italic text-slate-700"
-                  >
-                    {trimmed.replace(/^>\s+/, "")}
-                  </blockquote>
-                );
-              }
-              return (
-                <div
-                  key={index}
-                  className="whitespace-pre-line text-base leading-relaxed text-slate-700"
-                >
-                  {trimmed}
-                </div>
-              );
-            })}
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
+            <MarkdownRenderer content={item.content} variant="light" />
 
             {/* Tags */}
-            <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-6">
+            <div className="mt-8 flex flex-wrap gap-2 border-t border-slate-100 pt-6">
               {item.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-[#0A2342]"
                 >
                   #{tag}
                 </span>

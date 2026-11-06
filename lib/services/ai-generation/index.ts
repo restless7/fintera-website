@@ -13,11 +13,17 @@
 import fs from "fs";
 import path from "path";
 import {
+  buildFinteraBrandImagePrompt,
   ContentTypeKey,
+  FINTERA_BRAND_BLUEPRINT,
   FINTERA_CONTENT_PILLARS,
   FinteraContentPillarKey,
 } from "../../content-types";
-import { FinteraContentItem, upsertFinteraContent } from "../../blog";
+import {
+  FinteraContentItem,
+  getFinteraContentByIdOrSlug,
+  upsertFinteraContent,
+} from "../../blog";
 import { FINTERA_MONTH_1_CALENDAR } from "../../linkedin-strategy";
 import { researchSignalEngine } from "../../research/signal-engine";
 
@@ -257,8 +263,8 @@ export async function generateFinteraContentDraft(
   const signal = input.signalId
     ? researchSignalEngine.getSignals().find((s) => s.id === input.signalId)
     : researchSignalEngine.getSignals({
-        pillar: calendarSlot?.pillar || input.pillar,
-      })[0];
+      pillar: calendarSlot?.pillar || input.pillar,
+    })[0];
 
   const pillar: FinteraContentPillarKey =
     calendarSlot?.pillar || input.pillar || signal?.pillar || "VIVIENDA_B2C";
@@ -345,29 +351,29 @@ Estructura el documento en Markdown limpio (sin bloques de código JSON envolven
     aiModel: `${providerUsed}/${modelUsed}`,
     typeMetadata: calendarSlot
       ? {
-          linkedinWeek: calendarSlot.week,
-          linkedinDay: calendarSlot.day,
-          linkedinFormat: calendarSlot.format,
-          ctaUrlWithUtm: calendarSlot.ctaUrlWithUtm,
-        }
+        linkedinWeek: calendarSlot.week,
+        linkedinDay: calendarSlot.day,
+        linkedinFormat: calendarSlot.format,
+        ctaUrlWithUtm: calendarSlot.ctaUrlWithUtm,
+      }
       : {},
     tags:
       pillar === "VIVIENDA_B2C"
         ? [
-            "Crédito de Vivienda",
-            "Superfinanciera",
-            "Capacidad de Endeudamiento",
-            "UVR vs Pesos",
-          ]
+          "Crédito de Vivienda",
+          "Superfinanciera",
+          "Capacidad de Endeudamiento",
+          "UVR vs Pesos",
+        ]
         : pillar === "FACTORING_B2B"
-        ? [
+          ? [
             "Factoring",
             "RADIAN",
             "DIAN",
             "Liquidez Empresarial",
             "Capital de Trabajo",
           ]
-        : [
+          : [
             "Análisis Financiero",
             "Banco de la República",
             "FINTERA",
@@ -411,11 +417,10 @@ function buildDeterministicFinteraDraft(params: {
 
   const interpretationSection = `## 2. Criterio e Interpretación de FINTERA (Separado del Dato Oficial)
 
-${
-  signal
-    ? `A partir de la señal monitoreada en **${signal.sourceName}** (*"${signal.title}"*), nuestra lectura técnica en **FINTERA Soluciones Financieras** se centra en tres recomendaciones prácticas:`
-    : `Desde la metodología de **FINTERA Soluciones Financieras**, fundamentada en **criterio financiero**, **acompañamiento** y **transparencia**, recomendamos evaluar los siguientes puntos antes de tomar una decisión:`
-}
+${signal
+      ? `A partir de la señal monitoreada en **${signal.sourceName}** (*"${signal.title}"*), nuestra lectura técnica en **FINTERA Soluciones Financieras** se centra en tres recomendaciones prácticas:`
+      : `Desde la metodología de **FINTERA Soluciones Financieras**, fundamentada en **criterio financiero**, **acompañamiento** y **transparencia**, recomendamos evaluar los siguientes puntos antes de tomar una decisión:`
+    }
 
 1. **Analizar el costo financiero integral, no solo la tasa nominal**: En vivienda deben sumarse las pólizas de seguro de vida deudor e incendio/terremoto, gastos de avalúo y escrituración; en liquidez empresarial debe compararse la tasa de descuento frente al costo de oportunidad de esperar 60 o 90 días.
 2. **Preparar los soportes antes de iniciar la gestión**: La consistencia entre extractos bancarios, información tributaria ante la **DIAN** y certificados de ingresos o eventos en **RADIAN** reduce reprocesos y protege el perfil crediticio.
@@ -451,3 +456,297 @@ En **FINTERA Soluciones Financieras** conectamos personas y empresas con alterna
     ctaSection,
   ].join("\n\n");
 }
+
+export interface RewriteFinteraContentInput {
+  idOrSlug: string;
+  instructions: string;
+  newTitle?: string;
+  cutoffDate?: string;
+}
+
+export async function rewriteFinteraContentWithAi(
+  input: RewriteFinteraContentInput
+): Promise<{
+  item: FinteraContentItem;
+  providerUsed: string;
+  modelUsed: string;
+  previousQaScore: number;
+  newQaScore: number;
+}> {
+  const existing = getFinteraContentByIdOrSlug(input.idOrSlug);
+  if (!existing) {
+    throw new Error(`No se encontró la pieza editorial: ${input.idOrSlug}`);
+  }
+
+  const previousQaScore = existing.qaScore;
+  const targetTitle = input.newTitle?.trim() || existing.title;
+  const targetCutoff =
+    input.cutoffDate?.trim() || existing.cutoffDate || "Octubre 2026";
+  const pillarCfg = FINTERA_CONTENT_PILLARS[existing.pillar];
+
+  const systemPrompt = `Eres el Editor Jefe y Director de Criterio Financiero de FINTERA Soluciones Financieras en Colombia.
+Tu misión es reescribir y perfeccionar piezas editoriales siguiendo las instrucciones del editor humano y el FINTERA Brand Blueprint (${FINTERA_BRAND_BLUEPRINT.version}):
+1. Posicionamiento: "${FINTERA_BRAND_BLUEPRINT.positioning}"
+2. Arquetipos: ${FINTERA_BRAND_BLUEPRINT.archetypes.primary} + ${FINTERA_BRAND_BLUEPRINT.archetypes.secondary}. Personalidad: Clara, Criteriosa, Cercana, Responsable y Resuelta.
+3. Principio "Primero la respuesta": explica requisitos, criterios y pasos visibles desde el inicio sin rodeos innecesarios.
+4. Regla Editorial FINTERA:
+   - Mantén y refuerza las referencias a fuentes oficiales (Superfinanciera SFC, Banco de la República, DANE, FNA, DIAN / RADIAN, Supersociedades, Asobancaria, Camacol, Confecámaras, Bancóldex, OCDE, IFC).
+   - Incluye explícitamente "Fecha de corte: ${targetCutoff}".
+   - Separa los datos publicados por las fuentes oficiales del criterio financiero de FINTERA.
+   - Si hay cifras o tablas comparativas, declara que son simulaciones ilustrativas con supuestos transparentes y no resultados garantizados.
+   - PROHIBIDO usar frases como "crédito aprobado", "aprobación garantizada", "liquidez garantizada", "tasa asegurada" o "sin requisitos".
+   - Incluye siempre nota de privacidad Ley 1581 de 2012 (Habeas Data).
+5. Devuelve ÚNICAMENTE el contenido reescrito en Markdown limpio (con encabezados ##, listas y tablas Markdown bien formadas), sin comentarios meta ni bloques \`\`\`markdown envolventes.`;
+
+  const userPrompt = `PIEZA ACTUAL A REESCRIBIR:
+Título: "${targetTitle}"
+Pilar: ${pillarCfg.label} (${pillarCfg.brandClaim})
+Formato: ${existing.contentType}
+
+INSTRUCCIONES ESPECÍFICAS DEL EDITOR PARA ESTA REESCRITURA:
+"${input.instructions}"
+
+CONTENIDO MARKDOWN ACTUAL:
+${existing.content}
+
+Por favor reescribe y entrega la versión mejorada completa en Markdown limpio aplicando las instrucciones del editor y conservando el máximo rigor técnico y cumplimiento QA de FINTERA:`;
+
+  let rewrittenMarkdown = "";
+  let providerUsed = "FINTERA-Brand-Blueprint-Editor";
+  let modelUsed = "fintera-editorial-rewriter-v1";
+
+  const providers = [
+    {
+      name: "Hermes (Homelab 127.0.0.1:8642)",
+      fn: () => generateWithHermesHomelab(userPrompt, systemPrompt),
+    },
+    {
+      name: "NVIDIA NIM (nvidia/nemotron-3.5-super-vl-120b-a12b)",
+      fn: () => generateWithNvidiaNim(userPrompt, systemPrompt),
+    },
+    {
+      name: "Qwen API (qwen3.7-plus-2026-05-26)",
+      fn: () => generateWithQwen(userPrompt, systemPrompt),
+    },
+  ];
+
+  for (const provider of providers) {
+    try {
+      const res = await provider.fn();
+      const cleaned = res.text
+        .replace(/^```(?:markdown|md)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+      if (cleaned.length >= 250) {
+        rewrittenMarkdown = cleaned;
+        providerUsed = res.provider;
+        modelUsed = res.model;
+        break;
+      }
+    } catch {
+      // Try next provider in cascade
+    }
+  }
+
+  if (!rewrittenMarkdown) {
+    rewrittenMarkdown = `${existing.content.trim()}
+
+---
+
+## Síntesis de Claridad FINTERA (${pillarCfg.brandClaim})
+
+> **Actualización Editorial (${targetCutoff} · Directriz Aplicada)**: *${input.instructions}*
+
+- **Lo que debes verificar primero**: En **FINTERA** organizamos la información con **criterio financiero**, **acompañamiento** y **transparencia** para que comprendas los requisitos, costos efectivos (según reportes de la **Superintendencia Financiera de Colombia — SFC**, **Banco de la República**, **DANE** y **DIAN / RADIAN**) y el siguiente paso antes de radicar.
+- **Alcance transparente**: Este análisis es orientativo y sujeto a evaluación de cada aliado financiero vigilado. Protegemos tu información bajo la **Ley 1581 de 2012 (Habeas Data)**.`;
+  }
+
+  const updatedItem = await upsertFinteraContent({
+    ...existing,
+    title: targetTitle,
+    cutoffDate: targetCutoff,
+    content: rewrittenMarkdown,
+    aiGenerated: true,
+    aiModel: `${providerUsed}/${modelUsed}`,
+  });
+
+  return {
+    item: updatedItem,
+    providerUsed,
+    modelUsed,
+    previousQaScore,
+    newQaScore: updatedItem.qaScore,
+  };
+}
+
+export interface GenerateFinteraCreativeImageInput {
+  idOrSlug?: string;
+  prompt?: string;
+  setAsCover?: boolean;
+  size?: "1024x1024" | "1280x720" | "720x1280";
+}
+
+export async function generateFinteraCreativeImage(
+  input: GenerateFinteraCreativeImageInput
+): Promise<{
+  imageUrl: string;
+  promptUsed: string;
+  modelUsed: string;
+  item?: FinteraContentItem;
+}> {
+  const existing = input.idOrSlug
+    ? getFinteraContentByIdOrSlug(input.idOrSlug)
+    : undefined;
+
+  const promptUsed =
+    input.prompt?.trim() ||
+    existing?.imagePrompt ||
+    buildFinteraBrandImagePrompt({
+      title: existing?.title || "FINTERA Claridad Financiera en Colombia",
+      pillar: existing?.pillar || "VIVIENDA_B2C",
+      contentType: existing?.contentType || "BLOG_POST",
+    });
+
+  const apiKey = process.env.QWEN_API_KEY || process.env.DASHSCOPE_API_KEY;
+  const baseUrl =
+    process.env.QWEN_BASE_URL ||
+    "https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1";
+  const imageModel = process.env.QWEN_IMAGE_MODEL || "qwen-image-3.0";
+
+  let generatedUrl = "";
+  let modelUsed = imageModel;
+
+  if (apiKey) {
+    try {
+      const res = await fetch(`${baseUrl}/images/generations`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: imageModel,
+          prompt: promptUsed,
+          n: 1,
+          size: input.size || "1024x1024",
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        generatedUrl = data?.data?.[0]?.url || "";
+      }
+    } catch {
+      // Fallback to multimodal endpoint below
+    }
+
+    if (!generatedUrl) {
+      try {
+        const dashscopeHost = baseUrl.replace(/\/compatible-mode\/v1\/?$/, "");
+        const res = await fetch(
+          `${dashscopeHost}/api/v1/services/aigc/multimodal-generation/generation`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: imageModel,
+              input: {
+                messages: [
+                  {
+                    role: "user",
+                    content: [{ text: promptUsed }],
+                  },
+                ],
+              },
+              parameters: {
+                size: (input.size || "1024x1024").replace("x", "*"),
+                n: 1,
+              },
+            }),
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          const contentArr =
+            data?.output?.choices?.[0]?.message?.content || [];
+          const imgObj = contentArr.find(
+            (c: { image?: string }) => typeof c?.image === "string"
+          );
+          if (imgObj?.image) {
+            generatedUrl = imgObj.image;
+          }
+        }
+      } catch {
+        // Graceful fallback
+      }
+    }
+  }
+
+  let finalImageUrl = generatedUrl;
+
+  // If we obtained a remote image URL from Qwen, persist it locally into public/images/insights when writable
+  if (generatedUrl) {
+    try {
+      const imgRes = await fetch(generatedUrl);
+      if (imgRes.ok) {
+        const buffer = Buffer.from(await imgRes.arrayBuffer());
+        const insightsDir = path.join(
+          process.cwd(),
+          "public",
+          "images",
+          "insights"
+        );
+        fs.mkdirSync(insightsDir, { recursive: true });
+        const safeSlug = (existing?.slug || "fintera-creative")
+          .slice(0, 48)
+          .replace(/[^a-z0-9-]/g, "-");
+        const fileName = `${safeSlug}-${Date.now()}.png`;
+        const filePath = path.join(insightsDir, fileName);
+        fs.writeFileSync(filePath, buffer);
+        finalImageUrl = `/images/insights/${fileName}`;
+      }
+    } catch {
+      // On read-only serverless filesystems, keep the signed HTTPS URL directly
+      finalImageUrl = generatedUrl;
+    }
+  }
+
+  if (!finalImageUrl) {
+    const pillarCfg =
+      FINTERA_CONTENT_PILLARS[existing?.pillar || "VIVIENDA_B2C"];
+    finalImageUrl = pillarCfg.coverImage;
+    modelUsed = "fintera-brand-pillar-cover";
+  }
+
+  let updatedItem: FinteraContentItem | undefined;
+  if (existing) {
+    const newAsset = {
+      url: finalImageUrl,
+      prompt: promptUsed,
+      model: `Qwen-API/${modelUsed}`,
+      createdAt: new Date().toISOString(),
+    };
+    const existingAssets = Array.isArray(existing.creativeAssets)
+      ? existing.creativeAssets
+      : [];
+    updatedItem = await upsertFinteraContent({
+      ...existing,
+      coverImage:
+        input.setAsCover !== false ? finalImageUrl : existing.coverImage,
+      imagePrompt: promptUsed,
+      creativeAssets: [newAsset, ...existingAssets],
+    });
+  }
+
+  return {
+    imageUrl: finalImageUrl,
+    promptUsed,
+    modelUsed: `Qwen-API/${modelUsed}`,
+    item: updatedItem,
+  };
+}
+

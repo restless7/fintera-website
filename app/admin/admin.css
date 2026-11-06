@@ -81,3 +81,59 @@
 .admin-shell .hover\:bg-emerald-500:hover, .admin-dialog .hover\:bg-emerald-500:hover { background-color:#065f46; }
 .admin-shell .bg-emerald-600\/80 { background-color:#047857; }
 .admin-shell .overflow-x-auto:focus-visible { outline-offset:-2px; }
+
+/* FINTERA Brand Blueprint V1.0 — High-Contrast Form Controls, Tables & Editorial Studio */
+.admin-title { color:#ffffff; font-size:clamp(22px,2vw,28px); font-weight:700; letter-spacing:-.025em; line-height:1.25; margin-top:4px; }
+.admin-subtitle { color:#cbd5e1; font-size:13px; line-height:1.65; margin-top:8px; max-width:760px; }
+.admin-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:20px; }
+
+.admin-input,
+.admin-select,
+.admin-shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-shell select,
+.admin-shell textarea {
+  background-color:#0a192f !important;
+  color:#f8fafc !important;
+  border:1px solid #334155 !important;
+  border-radius:10px;
+  padding:9px 13px;
+  font-size:13px;
+  line-height:1.5;
+  color-scheme:dark;
+  transition:border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.admin-input::placeholder,
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder {
+  color:#94a3b8 !important;
+  opacity:1;
+}
+
+.admin-input:focus,
+.admin-select:focus,
+.admin-shell input:focus,
+.admin-shell select:focus,
+.admin-shell textarea:focus {
+  border-color:#00C4B3 !important;
+  box-shadow:0 0 0 2px rgba(0, 196, 179, 0.25) !important;
+  outline:none !important;
+}
+
+.admin-shell select option,
+.admin-input option,
+.admin-select option {
+  background-color:#0a2342 !important;
+  color:#ffffff !important;
+  padding:8px 12px;
+}
+
+.admin-table-wrap { width:100%; overflow-x:auto; border:1px solid #1e293b; border-radius:10px; background:#0b1528; }
+.admin-table { width:100%; border-collapse:collapse; font-size:13px; }
+.admin-table th { text-align:left; padding:11px 14px; color:#94a3b8; font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:.08em; border-bottom:1px solid #1e293b; background:#091120; }
+.admin-table td { padding:12px 14px; border-bottom:1px solid #172338; color:#f1f5f9; }
+.admin-table tr:last-child td { border-bottom:none; }
+
+.admin-status-info { color:#7dd3fc; border-color:#0369a1; background:#0c2d48; }
+.admin-status-neutral { color:#cbd5e1; border-color:#475569; background:#1e293b; }
+

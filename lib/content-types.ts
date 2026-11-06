@@ -29,6 +29,9 @@ export interface FinteraPillarConfig {
   targetPercentage: number;
   audience: FinteraAudienceKey;
   color: string;
+  coverImage: string;
+  brandClaim: string;
+  visualConcept: string;
   description: string;
   coreTopics: string[];
   defaultCtaLabel: string;
@@ -46,7 +49,10 @@ export const FINTERA_CONTENT_PILLARS: Record<
     shortLabel: "Vivienda B2C (35%)",
     targetPercentage: 35,
     audience: "B2C_VIVIENDA",
-    color: "#0284c7", // Sky 600
+    color: "#0A2342", // Azul profundo FINTERA
+    coverImage: "/images/pillars/pilar-1-vivienda-b2c.png",
+    brandClaim: "Tu crédito, con más claridad.",
+    visualConcept: "Señales de claridad · Rutas limpias y comprensión hipotecaria",
     description:
       "Educación y criterio financiero para compradores de vivienda, empleados y profesionales que evalúan crédito hipotecario o leasing habitacional en Colombia.",
     coreTopics: [
@@ -57,7 +63,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
       "Cómo comparar ofertas de crédito sin mirar únicamente la tasa",
       "Crédito hipotecario en pesos vs. UVR y leasing habitacional",
     ],
-    defaultCtaLabel: "Simular mi crédito de vivienda",
+    defaultCtaLabel: "Explorar opciones en el Simulador",
     defaultCtaUrl:
       "/simulador?utm_source=linkedin&utm_medium=organic&utm_campaign=vivienda_b2c",
   },
@@ -68,7 +74,10 @@ export const FINTERA_CONTENT_PILLARS: Record<
     shortLabel: "Factoring B2B (30%)",
     targetPercentage: 30,
     audience: "B2B_EMPRESAS",
-    color: "#0f766e", // Teal 700
+    color: "#00C4B3", // Turquesa digital FINTERA
+    coverImage: "/images/pillars/pilar-2-factoring-b2b.png",
+    brandClaim: "Mejores oportunidades. Procesos más inteligentes.",
+    visualConcept: "Señales de claridad · Trazabilidad RADIAN y flujo de caja B2B",
     description:
       "Orientación para gerentes financieros, contadores y pymes sobre capital de trabajo, ciclo de caja, RADIAN y negociación de facturas electrónicas.",
     coreTopics: [
@@ -81,7 +90,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     ],
     defaultCtaLabel: "Solicitar diagnóstico de liquidez empresarial",
     defaultCtaUrl:
-      "/contacto?utm_source=linkedin&utm_medium=organic&utm_campaign=factoring_b2b",
+      "/contacto?linea=factoring&utm_source=linkedin&utm_medium=organic&utm_campaign=factoring_b2b",
   },
   AUTORIDAD_MERCADO: {
     key: "AUTORIDAD_MERCADO",
@@ -90,7 +99,10 @@ export const FINTERA_CONTENT_PILLARS: Record<
     shortLabel: "Autoridad y Mercado (20%)",
     targetPercentage: 20,
     audience: "HIBRIDO_ALIADOS",
-    color: "#4338ca", // Indigo 700
+    color: "#0A2342", // Azul profundo FINTERA
+    coverImage: "/images/pillars/pilar-3-autoridad-mercado.png",
+    brandClaim: "Inteligencia financiera con trato humano.",
+    visualConcept: "Señales de claridad · Superficies de datos ordenados y fuentes oficiales",
     description:
       "Análisis riguroso de tasas de intervención, inflación, desembolsos hipotecarios y estadísticas sectoriales con fuentes oficiales verificables.",
     coreTopics: [
@@ -111,7 +123,10 @@ export const FINTERA_CONTENT_PILLARS: Record<
     shortLabel: "Confianza y Conversión (15%)",
     targetPercentage: 15,
     audience: "HIBRIDO_ALIADOS",
-    color: "#059669", // Emerald 600
+    color: "#00C4B3", // Turquesa digital FINTERA
+    coverImage: "/images/pillars/pilar-4-confianza-oportunidades.png",
+    brandClaim: "Claridad que conecta oportunidades.",
+    visualConcept: "Señales de claridad · El Sabio Estratega y el Cuidador Competente",
     description:
       "Transparencia sobre el modelo de acompañamiento multibanco de FINTERA, resolución de preguntas frecuentes y conversión consultiva hacia evaluación de perfil.",
     coreTopics: [
@@ -121,7 +136,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
       "Preguntas frecuentes sobre viabilidad crediticia, centrales de riesgo y tiempos",
       "Invitaciones directas a evaluar una necesidad de financiación personalizada",
     ],
-    defaultCtaLabel: "Iniciar estudio de viabilidad sin costo",
+    defaultCtaLabel: "Explorar opciones con un asesor",
     defaultCtaUrl:
       "/credit-request?utm_source=linkedin&utm_medium=organic&utm_campaign=confianza_fintera",
   },
@@ -344,4 +359,87 @@ export function getFinteraPillarConfig(
   }
   return FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
 }
+
+/**
+ * FINTERA Brand Blueprint V1.0 (Octubre 2026) — Visual Identity & Prompt Builder
+ */
+export const FINTERA_BRAND_BLUEPRINT = {
+  version: "Octubre 2026 · V1.0",
+  masterConcept: "Señales de claridad",
+  positioning: "FINTERA: inteligencia financiera con trato humano.",
+  claims: {
+    b2c: "Tu crédito, con más claridad.",
+    institutional: "Claridad que conecta oportunidades.",
+    b2b: "Mejores oportunidades. Procesos más inteligentes.",
+  },
+  archetypes: {
+    primary: "El Sabio Estratega (analiza, discrimina y hace entendible lo complejo)",
+    secondary: "El Cuidador Competente (escucha necesidades reales y ofrece pasos claros)",
+  },
+  palette: {
+    azulProfundo: "#0A2342",
+    turquesaDigital: "#00C4B3",
+    blancoGrisLuz: "#F7F7F7",
+    amarilloEnergia: "#FFD447",
+  },
+  prohibitedVisuals:
+    "No usar billetes volando, manos sosteniendo montañas de efectivo, sellos falsos de 'aprobado', iconografía bancaria genérica en exceso o recursos de urgencia artificiosa.",
+};
+
+export function buildFinteraBrandImagePrompt(input: {
+  title: string;
+  pillar?: FinteraContentPillarKey | string;
+  contentType?: ContentTypeKey | string;
+}): string {
+  const pillarCfg = getFinteraPillarConfig(input.pillar);
+  const sceneByPillar: Record<FinteraContentPillarKey, string> = {
+    VIVIENDA_B2C:
+      "Authentic Colombian contemporary apartment interior with warm daylight overlooking Andean city skyline, a professional couple reviewing a clean minimalist financial path interface with ascending turquoise validation lines",
+    FACTORING_B2B:
+      "Modern Colombian executive glass office and clean enterprise operations setting, a CFO and financial strategist reviewing structured invoice cash-flow pathways and digital validation nodes",
+    AUTORIDAD_MERCADO:
+      "Institutional financial intelligence editorial composition with ordered glassmorphic data surfaces, clean ascending geometric pathways and macroeconomic equilibrium nodes",
+    CONFIANZA_OPORTUNIDADES:
+      "Credible Colombian financial advisor in smart contemporary attire guiding a client with clarity and human warmth in a minimalist architectural studio",
+  };
+
+  const scene =
+    sceneByPillar[pillarCfg.key] || sceneByPillar.VIVIENDA_B2C;
+
+  return `High-end institutional financial editorial photography and graphic design for FINTERA ("${input.title}"). Visual concept: "Señales de claridad" (${pillarCfg.visualConcept}). Scene: ${scene}. Strict FINTERA Brand Blueprint color palette: Deep Navy (#0A2342) dominant architectural base, Digital Turquoise (#00C4B3) ascending progress lines and validation checkpoints, crisp light gray/white (#F7F7F7) negative space, and a subtle exceptional accent of Energy Yellow (#FFD447). Clean, modern, trustworthy, human and precise. STRICT NEGATIVE PROMPT: NO flying banknotes, NO piles of cash, NO fake "approved" stamps, NO cluttered text overlays, NO generic cartoon banking clichés.`;
+}
+
+export const FINTERA_AI_REWRITE_PRESETS = [
+  {
+    id: "brand_clarity",
+    label: "1. Principio 'Primero la Respuesta' (Manual de Marca)",
+    instruction:
+      "Reescribe aplicando la Identidad Verbal de FINTERA (Sección 06 del Brand Blueprint): 'Primero la respuesta' (presentar requisitos y pasos claros desde el primer párrafo sin introducciones largas), tono del Sabio Estratega y Cuidador Competente (clara, criteriosa, cercana, responsable y resuelta), manteniendo las tablas y fuentes oficiales.",
+  },
+  {
+    id: "add_simulation_table",
+    label: "2. Enriquecer con Tabla Comparativa y Simulación",
+    instruction:
+      "Amplía el análisis incorporando una tabla Markdown comparativa detallada con una simulación numérica ilustrativa en pesos colombianos (COP), declarando explícitamente los supuestos transparentes y que no constituye oferta ni promesa de aprobación.",
+  },
+  {
+    id: "b2c_focus",
+    label: "3. Enfoque B2C ('Tu crédito, con más claridad')",
+    instruction:
+      "Ajusta la pieza hacia la audiencia B2C de compra de vivienda y personas naturales bajo el claim 'Tu crédito, con más claridad': explica sin tecnicismos excluyentes los pasos visibles, documentos requeridos, relación cuota/ingreso del 30% (Ley 546) y comparación Pesos vs. UVR.",
+  },
+  {
+    id: "b2b_focus",
+    label: "4. Enfoque B2B ('Mejores oportunidades. Procesos más inteligentes')",
+    instruction:
+      "Ajusta la pieza hacia la audiencia B2B (gerentes financieros, contadores, pymes y aliados) bajo el claim 'Mejores oportunidades. Procesos más inteligentes': profundiza en ciclo de conversión de caja, los 3 eventos obligatorios en RADIAN (DIAN), elegibilidad y trazabilidad documental.",
+  },
+  {
+    id: "compliance_audit",
+    label: "5. Blindaje de Reputación por Diseño (Sección 10)",
+    instruction:
+      "Audita y perfecciona el texto bajo la Política de Promesas del Brand Blueprint (Sección 10): elimina cualquier expresión que sugiera aprobación automática, tasa asegurada o desembolso garantizado; refuerza que toda operación está sujeta a evaluación del aliado financiero y añade aviso de privacidad Ley 1581 Habeas Data.",
+  },
+];
+
 

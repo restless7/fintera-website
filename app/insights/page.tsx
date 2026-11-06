@@ -5,6 +5,7 @@ import Footer from "@/components/fintera/footer";
 import { getAllFinteraContent } from "@/lib/blog";
 import {
   CONTENT_TYPES,
+  FINTERA_BRAND_BLUEPRINT,
   FINTERA_CONTENT_PILLARS,
   FinteraContentPillarKey,
 } from "@/lib/content-types";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title:
-    "FINTERA Insights | Educación Financiera, Crédito de Vivienda y Factoring en Colombia",
+    "FINTERA Insights | Inteligencia Financiera con Trato Humano en Colombia",
   description:
     "Artículos de análisis, whitepapers, webinars educativos, casos prácticos y guías sobre crédito de vivienda, leasing habitacional, RADIAN y factoring empresarial en Colombia con fuentes oficiales.",
 };
@@ -43,23 +44,25 @@ export default async function FinteraInsightsPublicPage({
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-slate-50 pt-24 pb-20">
-        {/* Hero Header */}
-        <section className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 py-16 text-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-[#F7F7F7] pt-24 pb-20">
+        {/* Institutional Hero Header — FINTERA Brand Blueprint V1.0 (#0A2342 + #00C4B3 + #FFD447) */}
+        <section className="relative overflow-hidden bg-[#0A2342] py-16 text-white">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,196,179,0.18),transparent_55%)]" />
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl">
-              <span className="inline-flex items-center rounded-full border border-sky-400/30 bg-sky-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-sky-300">
-                FINTERA Insights · Criterio Financiero · Acompañamiento ·
-                Transparencia
-              </span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#00C4B3]/40 bg-[#00C4B3]/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#00C4B3]">
+                <span className="h-2 w-2 rounded-full bg-[#FFD447]" />
+                <span>
+                  FINTERA INSIGHTS · {FINTERA_BRAND_BLUEPRINT.positioning}
+                </span>
+              </div>
               <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
-                Conocimiento financiero para tomar decisiones informadas en
-                Colombia
+                Claridad que conecta oportunidades de financiación en Colombia
               </h1>
-              <p className="mt-4 text-base leading-relaxed text-slate-300 sm:text-lg">
-                Conectamos personas y empresas con soluciones financieras.
-                Explora nuestros whitepapers, webinars, simulaciones numéricas y
-                guías sobre{" "}
+              <p className="mt-4 text-base leading-relaxed text-slate-200 sm:text-lg">
+                Hacemos más claro el camino entre una necesidad de financiación y
+                una oportunidad real de crédito. Explora nuestros whitepapers,
+                webinars, simulaciones numéricas y guías sobre{" "}
                 <strong className="text-white">
                   crédito de vivienda, leasing habitacional, flujo de caja,
                   RADIAN y factoring
@@ -70,39 +73,45 @@ export default async function FinteraInsightsPublicPage({
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/simulador?utm_source=insights_hub&utm_medium=web&utm_campaign=vivienda_b2c"
-                  className="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:opacity-95"
+                  className="rounded-xl bg-[#00C4B3] px-5 py-3 text-sm font-bold text-[#0A2342] shadow-lg transition hover:bg-[#00b0a0]"
                 >
-                  Simular Crédito de Vivienda (B2C)
+                  Tu crédito, con más claridad · Simular Vivienda (B2C)
                 </Link>
                 <Link
-                  href="/contacto?utm_source=insights_hub&utm_medium=web&utm_campaign=factoring_b2b"
+                  href="/contacto?linea=factoring&utm_source=insights_hub&utm_medium=web&utm_campaign=factoring_b2b"
                   className="rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
                 >
                   Diagnóstico de Liquidez Empresarial (B2B)
                 </Link>
               </div>
+              <div className="mt-6 h-1 w-20 rounded-full bg-[#FFD447]" />
             </div>
           </div>
         </section>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-10 space-y-12">
-          {/* 4 Content Pillars Filter Cards */}
+          {/* 4 Content Pillars Filter Cards with Brand-Aligned Cover Images */}
           <section aria-label="Pilares estratégicos de contenido">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-              <h2 className="text-xl font-bold text-slate-900">
-                4 Líneas Editoriales de FINTERA
-              </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#008f82]">
+                  ARQUITECTURA EDITORIAL · SEÑALES DE CLARIDAD
+                </span>
+                <h2 className="text-2xl font-bold text-[#0A2342]">
+                  4 Pilares Estratégicos de FINTERA
+                </h2>
+              </div>
               {selectedPillar !== "ALL" && (
                 <Link
                   href="/insights"
-                  className="text-sm font-semibold text-blue-600 hover:underline"
+                  className="rounded-xl bg-[#0A2342] px-4 py-2 text-xs font-bold text-white hover:bg-[#0A2342]/90"
                 >
-                  Ver todas las publicaciones
+                  Ver todas las publicaciones ({getAllFinteraContent({ status: "PUBLISHED" }).length})
                 </Link>
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {Object.values(FINTERA_CONTENT_PILLARS).map((pillar) => {
                 const isActive = selectedPillar === pillar.key;
                 return (
@@ -111,30 +120,58 @@ export default async function FinteraInsightsPublicPage({
                     href={
                       isActive ? "/insights" : `/insights?pillar=${pillar.key}`
                     }
-                    className={`rounded-2xl border p-5 transition shadow-sm ${
+                    className={`group overflow-hidden rounded-2xl border transition duration-200 flex flex-col justify-between ${
                       isActive
-                        ? "border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/30"
-                        : "border-slate-200 bg-white hover:border-blue-300"
+                        ? "border-[#00C4B3] bg-white ring-2 ring-[#00C4B3] shadow-lg"
+                        : "border-slate-200 bg-white shadow-sm hover:-translate-y-1 hover:border-[#00C4B3]/60 hover:shadow-md"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-blue-700">
-                        Pilar {pillar.number} ({pillar.targetPercentage}%)
+                    <div>
+                      <div className="relative h-44 w-full overflow-hidden bg-[#0A2342]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pillar.coverImage}
+                          alt={pillar.label}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0A2342] via-[#0A2342]/35 to-transparent" />
+                        <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                          <span className="rounded-full bg-[#0A2342]/90 border border-[#00C4B3]/40 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#00C4B3]">
+                            Pilar {pillar.number} · {pillar.targetPercentage}%
+                          </span>
+                          <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-bold text-[#0A2342]">
+                            {pillar.audience === "B2C_VIVIENDA"
+                              ? "Personas · B2C"
+                              : pillar.audience === "B2B_EMPRESAS"
+                              ? "Empresas · B2B"
+                              : "Personas y Aliados"}
+                          </span>
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-[11px] font-semibold text-[#FFD447]">
+                            “{pillar.brandClaim}”
+                          </p>
+                          <h3 className="text-base font-bold text-white leading-snug">
+                            {pillar.label.replace(/^Pilar \d+ · /, "")}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="p-4">
+                        <p className="text-xs leading-relaxed text-slate-600">
+                          {pillar.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100 px-4 py-3 flex items-center justify-between text-xs">
+                      <span className="font-semibold text-[#0A2342]">
+                        {isActive ? "Filtro activo" : "Explorar pilar"}
                       </span>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                        {pillar.audience === "B2C_VIVIENDA"
-                          ? "Personas · B2C"
-                          : pillar.audience === "B2B_EMPRESAS"
-                          ? "Empresas · B2B"
-                          : "Personas y Empresas"}
+                      <span className="font-bold text-[#008f82] group-hover:translate-x-0.5 transition-transform">
+                        →
                       </span>
                     </div>
-                    <h3 className="mt-2 text-base font-bold text-slate-900">
-                      {pillar.label.replace(/^Pilar \d+ · /, "")}
-                    </h3>
-                    <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-                      {pillar.description}
-                    </p>
                   </Link>
                 );
               })}
@@ -145,10 +182,10 @@ export default async function FinteraInsightsPublicPage({
           {featuredItems.length > 0 && selectedPillar === "ALL" && (
             <section aria-label="Investigaciones destacadas">
               <div className="mb-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#008f82]">
                   PUBLICACIONES INSIGNIA · FINTERA INSIGHTS
                 </span>
-                <h2 className="text-2xl font-bold text-slate-900">
+                <h2 className="text-2xl font-bold text-[#0A2342]">
                   Informes Descargables, Webinars y Simulaciones Documentadas
                 </h2>
               </div>
@@ -159,40 +196,53 @@ export default async function FinteraInsightsPublicPage({
                   const pillarCfg =
                     FINTERA_CONTENT_PILLARS[
                       item.pillar as FinteraContentPillarKey
-                    ];
+                    ] || FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
+                  const coverSrc = item.coverImage || pillarCfg.coverImage;
                   return (
                     <Link
                       key={item.id}
                       href={`/insights/${item.slug}`}
-                      className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md"
+                      className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#00C4B3] hover:shadow-md"
                     >
                       <div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
-                            {typeCfg?.label}
-                          </span>
-                          <span className="text-xs font-medium text-slate-500">
-                            Corte: {item.cutoffDate}
-                          </span>
+                        <div className="relative h-44 w-full overflow-hidden bg-[#0A2342]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={coverSrc}
+                            alt={item.title}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#0A2342]/80 via-transparent to-transparent" />
+                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                            <span className="rounded-full bg-[#0A2342]/90 border border-[#00C4B3]/40 px-3 py-1 text-xs font-bold text-[#00C4B3]">
+                              {typeCfg?.label}
+                            </span>
+                            <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-bold text-[#0A2342]">
+                              Corte: {item.cutoffDate}
+                            </span>
+                          </div>
                         </div>
-                        <h3 className="mt-4 text-lg font-bold text-slate-900 group-hover:text-blue-700">
-                          {item.title}
-                        </h3>
-                        {item.subtitle && (
-                          <p className="mt-1.5 text-xs font-medium text-slate-600">
-                            {item.subtitle}
+
+                        <div className="p-6">
+                          <h3 className="text-lg font-bold text-[#0A2342] group-hover:text-[#008f82]">
+                            {item.title}
+                          </h3>
+                          {item.subtitle && (
+                            <p className="mt-1.5 text-xs font-medium text-slate-600">
+                              {item.subtitle}
+                            </p>
+                          )}
+                          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">
+                            {item.excerpt.replace(/[#*_`]/g, "")}
                           </p>
-                        )}
-                        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">
-                          {item.excerpt}
-                        </p>
+                        </div>
                       </div>
 
-                      <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 text-xs">
+                      <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-xs">
                         <span className="font-semibold text-slate-700">
                           {pillarCfg?.shortLabel}
                         </span>
-                        <span className="font-bold text-blue-600 group-hover:underline">
+                        <span className="font-bold text-[#0A2342] group-hover:text-[#008f82]">
                           Leer publicación ({item.readingTime} min) →
                         </span>
                       </div>
@@ -207,7 +257,7 @@ export default async function FinteraInsightsPublicPage({
           <section aria-label="Biblioteca completa de FINTERA Insights">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">
+                <h2 className="text-2xl font-bold text-[#0A2342]">
                   Biblioteca Editorial ({publishedItems.length} piezas)
                 </h2>
                 <p className="text-sm text-slate-600">
@@ -221,8 +271,8 @@ export default async function FinteraInsightsPublicPage({
                   href="/insights"
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
                     selectedType === "ALL"
-                      ? "bg-slate-900 text-white"
-                      : "bg-white text-slate-700 border border-slate-200"
+                      ? "bg-[#0A2342] text-white"
+                      : "bg-white text-slate-700 border border-slate-200 hover:border-[#00C4B3]"
                   }`}
                 >
                   Todos
@@ -233,8 +283,8 @@ export default async function FinteraInsightsPublicPage({
                     href={`/insights?type=${t.key}`}
                     className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
                       selectedType === t.key
-                        ? "bg-slate-900 text-white"
-                        : "bg-white text-slate-700 border border-slate-200"
+                        ? "bg-[#0A2342] text-white"
+                        : "bg-white text-slate-700 border border-slate-200 hover:border-[#00C4B3]"
                     }`}
                   >
                     {t.pluralLabel}
@@ -249,41 +299,54 @@ export default async function FinteraInsightsPublicPage({
                 const pillarCfg =
                   FINTERA_CONTENT_PILLARS[
                     item.pillar as FinteraContentPillarKey
-                  ];
+                  ] || FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
+                const coverSrc = item.coverImage || pillarCfg.coverImage;
                 return (
                   <Link
                     key={item.id}
                     href={`/insights/${item.slug}`}
-                    className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-400"
+                    className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-[#00C4B3] hover:shadow-md"
                   >
                     <div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="rounded-md bg-slate-100 px-2.5 py-1 font-bold text-slate-800">
-                          {typeCfg?.label}
-                        </span>
-                        <span className="font-semibold text-blue-700">
-                          {pillarCfg?.label}
-                        </span>
-                        <span className="text-slate-400">
-                          · Corte: {item.cutoffDate}
-                        </span>
+                      <div className="flex flex-col sm:flex-row">
+                        <div className="relative h-40 w-full sm:h-auto sm:w-44 shrink-0 overflow-hidden bg-[#0A2342]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={coverSrc}
+                            alt={item.title}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="p-5 flex-1">
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="rounded-md bg-[#0A2342] px-2.5 py-0.5 font-bold text-[#00C4B3]">
+                              {typeCfg?.label}
+                            </span>
+                            <span className="font-semibold text-[#0A2342]">
+                              {pillarCfg?.shortLabel}
+                            </span>
+                            <span className="text-slate-400">
+                              · Corte: {item.cutoffDate}
+                            </span>
+                          </div>
+
+                          <h3 className="mt-2.5 text-base font-bold text-[#0A2342] group-hover:text-[#008f82] leading-snug">
+                            {item.title}
+                          </h3>
+
+                          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">
+                            {item.excerpt.replace(/[#*_`]/g, "")}
+                          </p>
+                        </div>
                       </div>
-
-                      <h3 className="mt-3 text-lg font-bold text-slate-900 hover:text-blue-700">
-                        {item.title}
-                      </h3>
-
-                      <p className="mt-2 line-clamp-3 text-sm text-slate-600">
-                        {item.excerpt}
-                      </p>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 bg-slate-50/50">
                       <span>
                         Por {item.authorName} · {item.readingTime} min de
                         lectura
                       </span>
-                      <span className="font-bold text-blue-600">
+                      <span className="font-bold text-[#0A2342] group-hover:text-[#008f82]">
                         Consultar análisis →
                       </span>
                     </div>
@@ -295,35 +358,30 @@ export default async function FinteraInsightsPublicPage({
 
           {/* 14 Authoritative Sources Transparency Footer */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#008f82]">
               REGLA EDITORIAL FINTERA · FUENTES DE AUTORIDAD
             </span>
-            <h2 className="mt-1 text-lg font-bold text-slate-900">
-              14 Fuentes Oficiales, Gremiales y Multilaterales que Respaldan
-              Nuestro Criterio
+            <h2 className="mt-1 text-lg font-bold text-[#0A2342]">
+              Respaldo en 14 Fuentes Primarias Oficiales y Multilaterales
             </h2>
             <p className="mt-1 text-xs text-slate-600">
-              En FINTERA utilizamos fuentes primarias verificables con fecha de
-              corte explícita, separamos el dato publicado de nuestra
-              interpretación y nunca presentamos simulaciones hipotéticas como
-              resultados garantizados.
+              Una persona debe comprender un mensaje de FINTERA en la primera
+              lectura, y un aliado financiero debe poder comprobar la afirmación
+              que ese mensaje contiene.
             </p>
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {FINTERA_AUTHORITATIVE_SOURCES.slice(0, 8).map((src) => (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {FINTERA_AUTHORITATIVE_SOURCES.map((source) => (
                 <a
-                  key={src.id}
-                  href={src.url}
+                  key={source.id}
+                  href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs transition hover:border-blue-300"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-[#00C4B3] hover:text-[#0A2342]"
                 >
-                  <strong className="block text-slate-900">
-                    {src.shortName}
-                  </strong>
-                  <span className="mt-1 line-clamp-2 block text-slate-600">
-                    {src.whatItProvides}
-                  </span>
+                  <span className="font-bold">{source.shortName}</span>
+                  <span className="text-slate-400">·</span>
+                  <span>{source.name}</span>
                 </a>
               ))}
             </div>
@@ -334,4 +392,3 @@ export default async function FinteraInsightsPublicPage({
     </>
   );
 }
-
