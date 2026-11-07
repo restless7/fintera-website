@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   UserPlusIcon,
@@ -14,26 +15,29 @@ const steps = [
   {
     step: "01",
     icon: UserPlusIcon,
+    brandIcon: "/images/brand-system/icons/icon-08-inteligencia-analitica.webp",
     title: "Precalíficate",
-    description: "Completa nuestro formulario en 2 minutos y conoce tu capacidad de crédito al instante.",
-    details: ["Datos básicos", "Ingresos y gastos", "Tipo de crédito"],
-    color: "from-fintera-500 to-gradient-via",
+    description: "Completa nuestro diagnóstico en 2 minutos y conoce tu capacidad de financiación con fuentes oficiales al instante.",
+    details: ["Datos básicos", "Ingresos y capacidad DTI", "Pesos vs. UVR o Factoring"],
+    color: "from-[#0A2342] to-[#00C4B3]",
   },
   {
     step: "02",
     icon: LinkIcon,
+    brandIcon: "/images/brand-system/icons/icon-02-comparador-multibanco.webp",
     title: "Revisamos tu Perfil",
-    description: "Analizamos tu información y te conectamos con la entidad financiera ideal para ti.",
-    details: ["Análisis crediticio", "Comparación de opciones", "Selección de entidad"],
-    color: "from-gradient-via to-gradient-to",
+    description: "Analizamos tu información con criterio multibanco y preparamos tu expediente documental sin inconsistencias.",
+    details: ["Análisis de riesgo", "Comparación de 8+ entidades", "Estructuración de carpeta"],
+    color: "from-[#00C4B3] to-[#0A2342]",
   },
   {
     step: "03",
     icon: LightBulbIcon,
-    title: "Obtienes tu Crédito",
-    description: "Recibe la aprobación y desembolso en tiempo récord con las mejores condiciones del mercado.",
-    details: ["Aprobación rápida", "Mejores tasas", "Desembolso inmediato"],
-    color: "from-gradient-from to-fintera-600",
+    brandIcon: "/images/brand-system/icons/icon-04-acompanamiento-humano-v1.webp",
+    title: "Obtienes tu Financiación",
+    description: "Acompañamiento humano cercano hasta el desembolso con las mejores condiciones reales del mercado.",
+    details: ["Acompañamiento continuo", "Claridad en cuotas y seguros", "Desembolso sin reprocesos"],
+    color: "from-[#0A2342] to-[#FFD447]",
   },
 ];
 
@@ -115,20 +119,26 @@ export default function HowItWorksSection() {
                   <div className="md:hidden absolute left-12 top-24 w-0.5 h-16 bg-gradient-to-b from-fintera-200 to-fintera-300"></div>
                 )}
 
-                {/* Step Circle */}
+                {/* Step Circle with Brand System Icon */}
                 <motion.div
                   className="relative mb-8"
                   whileHover={{ scale: 1.05 }}
                 >
-                  <div className={`w-24 h-24 rounded-full bg-gradient-to-r ${step.color} p-0.5 mx-auto relative z-10`}>
-                    <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                      <step.icon className="h-10 w-10 text-fintera-600" />
+                  <div className={`w-24 h-24 rounded-2xl bg-gradient-to-r ${step.color} p-0.5 mx-auto relative z-10 shadow-xl`}>
+                    <div className="w-full h-full bg-[#0A2342] rounded-2xl flex items-center justify-center p-2.5 overflow-hidden">
+                      <Image
+                        src={step.brandIcon}
+                        alt={step.title}
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-contain"
+                      />
                     </div>
                   </div>
 
                   {/* Step Number */}
                   <motion.div
-                    className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-fintera-600 to-gradient-via rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
+                    className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#00C4B3] border-2 border-[#0A2342] rounded-full flex items-center justify-center text-[#0A2342] text-xs font-black shadow-lg z-20"
                     initial={{ scale: 0 }}
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true }}

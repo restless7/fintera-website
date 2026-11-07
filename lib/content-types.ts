@@ -50,7 +50,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     targetPercentage: 35,
     audience: "B2C_VIVIENDA",
     color: "#0A2342", // Azul profundo FINTERA
-    coverImage: "/images/pillars/pilar-1-vivienda-b2c.png",
+    coverImage: "/images/brand-system/pillars/pilar-1-vivienda-b2c.webp",
     brandClaim: "Tu crédito, con más claridad.",
     visualConcept: "Señales de claridad · Rutas limpias y comprensión hipotecaria",
     description:
@@ -75,7 +75,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     targetPercentage: 30,
     audience: "B2B_EMPRESAS",
     color: "#00C4B3", // Turquesa digital FINTERA
-    coverImage: "/images/pillars/pilar-2-factoring-b2b.png",
+    coverImage: "/images/brand-system/pillars/pilar-2-factoring-b2b.webp",
     brandClaim: "Mejores oportunidades. Procesos más inteligentes.",
     visualConcept: "Señales de claridad · Trazabilidad RADIAN y flujo de caja B2B",
     description:
@@ -100,7 +100,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     targetPercentage: 20,
     audience: "HIBRIDO_ALIADOS",
     color: "#0A2342", // Azul profundo FINTERA
-    coverImage: "/images/pillars/pilar-3-autoridad-mercado.png",
+    coverImage: "/images/brand-system/pillars/pilar-3-autoridad-mercado.webp",
     brandClaim: "Inteligencia financiera con trato humano.",
     visualConcept: "Señales de claridad · Superficies de datos ordenados y fuentes oficiales",
     description:
@@ -124,7 +124,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     targetPercentage: 15,
     audience: "HIBRIDO_ALIADOS",
     color: "#00C4B3", // Turquesa digital FINTERA
-    coverImage: "/images/pillars/pilar-4-confianza-oportunidades.png",
+    coverImage: "/images/brand-system/pillars/pilar-4-confianza-oportunidades.webp",
     brandClaim: "Claridad que conecta oportunidades.",
     visualConcept: "Señales de claridad · El Sabio Estratega y el Cuidador Competente",
     description:

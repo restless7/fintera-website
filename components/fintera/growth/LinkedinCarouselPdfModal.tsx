@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   Sparkles,
   X,
+  FileText,
+  BadgeCheck,
 } from "lucide-react";
 import {
   FINTERA_CONTENT_PILLARS,
@@ -22,12 +24,15 @@ import type { FinteraContentItem } from "@/lib/blog";
 
 interface CarouselSlide {
   slideNumber: number;
+  role: "COVER" | "CONTEXT" | "INSIGHT" | "COMPARISON" | "CHECKLIST" | "CTA";
   eyebrow: string;
   headline: string;
   body: string;
   footerTag: string;
   gradientVariant: string;
   accentColor: string;
+  bgImageUrl: string;
+  iconImageUrl?: string;
 }
 
 interface LinkedinCarouselPdfModalProps {
@@ -44,43 +49,58 @@ export function LinkedinCarouselPdfModal({
     FINTERA_CONTENT_PILLARS[item.pillar as FinteraContentPillarKey] ||
     FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
 
-  // Variable Enterprise Gradient Palettes based on FINTERA Brand Blueprint V1.0 (#0A2342, #00C4B3, #FFD447)
+  // Resolving Pillar-Specific Concept Icon for Slide 3
+  const pillarConceptIcon = useMemo(() => {
+    switch (item.pillar) {
+      case "FACTORING_B2B":
+        return "/images/brand-system/icons/icon-07-liquidez-factoring.webp";
+      case "AUTORIDAD_MERCADO":
+        return "/images/brand-system/icons/icon-08-inteligencia-analitica.webp";
+      case "CONFIANZA_OPORTUNIDADES":
+        return "/images/brand-system/icons/icon-02-comparador-multibanco.webp";
+      case "VIVIENDA_B2C":
+      default:
+        return "/images/brand-system/icons/icon-01-credito-vivienda.webp";
+    }
+  }, [item.pillar]);
+
+  // Variable Enterprise Palettes based on FINTERA Brand Blueprint V1.0 (#0A2342, #00C4B3, #FFD447)
   const slideGradients = [
     {
-      gradient: "from-[#07172B] via-[#0A2342] to-[#040D18]",
+      gradient: "from-[#07172B]/90 via-[#0A2342]/90 to-[#040D18]/95",
       accent: "#00C4B3",
       chip: "bg-[#00C4B3]/20 text-[#00C4B3] border-[#00C4B3]/40",
-      printBg: "radial-gradient(circle at top right, rgba(0, 196, 179, 0.28), transparent 60%), #0A2342",
+      bgImage: "/images/brand-system/carousel/carousel-cover-architecture.webp",
     },
     {
-      gradient: "from-[#081F38] via-[#0D2E55] to-[#061426]",
+      gradient: "from-[#081F38]/90 via-[#0D2E55]/90 to-[#061426]/95",
       accent: "#FFD447",
       chip: "bg-[#FFD447]/20 text-[#FFD447] border-[#FFD447]/40",
-      printBg: "radial-gradient(circle at top right, rgba(255, 212, 71, 0.24), transparent 55%), #081F38",
+      bgImage: "/images/brand-system/signatures/fintera-clarity-path.webp",
     },
     {
-      gradient: "from-[#052136] via-[#08384E] to-[#031422]",
+      gradient: "from-[#052136]/90 via-[#08384E]/90 to-[#031422]/95",
       accent: "#00C4B3",
       chip: "bg-[#00C4B3]/20 text-[#00C4B3] border-[#00C4B3]/40",
-      printBg: "radial-gradient(circle at top right, rgba(0, 196, 179, 0.26), transparent 55%), #052136",
+      bgImage: "/images/brand-system/signatures/fintera-financial-signal-network.webp",
     },
     {
-      gradient: "from-[#091D33] via-[#0F3155] to-[#061424]",
+      gradient: "from-[#091D33]/90 via-[#0F3155]/90 to-[#061424]/95",
       accent: "#38BDF8",
       chip: "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/40",
-      printBg: "radial-gradient(circle at top right, rgba(56, 189, 248, 0.25), transparent 55%), #091D33",
+      bgImage: "/images/brand-system/carousel/carousel-data-comparison.webp",
     },
     {
-      gradient: "from-[#082433] via-[#0B3A48] to-[#04151E]",
+      gradient: "from-[#082433]/90 via-[#0B3A48]/90 to-[#04151E]/95",
       accent: "#34D399",
       chip: "bg-[#34D399]/20 text-[#34D399] border-[#34D399]/40",
-      printBg: "radial-gradient(circle at top right, rgba(52, 211, 153, 0.24), transparent 55%), #082433",
+      bgImage: "/images/brand-system/signatures/fintera-knowledge-grid.webp",
     },
     {
-      gradient: "from-[#091C36] via-[#0E2C52] to-[#051122]",
+      gradient: "from-[#091C36]/90 via-[#0E2C52]/90 to-[#051122]/95",
       accent: "#FFD447",
       chip: "bg-[#FFD447]/20 text-[#FFD447] border-[#FFD447]/40",
-      printBg: "radial-gradient(circle at bottom right, rgba(0, 196, 179, 0.32), transparent 60%), radial-gradient(circle at top left, rgba(255, 212, 71, 0.22), transparent 50%), #0A2342",
+      bgImage: "/images/brand-system/carousel/carousel-cta-final.webp",
     },
   ];
 
@@ -93,14 +113,30 @@ export function LinkedinCarouselPdfModal({
     ) {
       return tutorialMeta.carouselSlides.map((s, idx) => {
         const styleVariant = slideGradients[idx % slideGradients.length];
+        const roles: CarouselSlide["role"][] = [
+          "COVER",
+          "CONTEXT",
+          "INSIGHT",
+          "COMPARISON",
+          "CHECKLIST",
+          "CTA",
+        ];
         return {
           slideNumber: s.slideNumber,
+          role: roles[idx % roles.length],
           eyebrow: `${pillarCfg.shortLabel} · Corte: ${item.cutoffDate || "Octubre 2026"}`,
           headline: s.headline,
           body: s.body,
           footerTag: pillarCfg.brandClaim,
           gradientVariant: styleVariant.gradient,
           accentColor: styleVariant.accent,
+          bgImageUrl: styleVariant.bgImage,
+          iconImageUrl:
+            idx === 2
+              ? pillarConceptIcon
+              : idx === 4
+              ? "/images/brand-system/icons/icon-03-gestion-documental.webp"
+              : undefined,
         };
       });
     }
@@ -111,9 +147,13 @@ export function LinkedinCarouselPdfModal({
       .filter((line) => line.trim().startsWith("## "))
       .map((line) => line.replace(/^##\s+/, "").trim());
 
-    const baseSlides = [
+    const baseSlides: Omit<
+      CarouselSlide,
+      "gradientVariant" | "accentColor" | "bgImageUrl"
+    >[] = [
       {
         slideNumber: 1,
+        role: "COVER",
         eyebrow: `FINTERA INSIGHTS · ${pillarCfg.shortLabel.toUpperCase()}`,
         headline: item.title,
         body:
@@ -124,6 +164,7 @@ export function LinkedinCarouselPdfModal({
       },
       {
         slideNumber: 2,
+        role: "CONTEXT",
         eyebrow: `1. HECHO Y CONTEXTO OFICIAL (${item.cutoffDate || "Octubre 2026"})`,
         headline:
           h2Matches[0] || "Contexto Regulatorio y de Mercado en Colombia",
@@ -134,6 +175,7 @@ export function LinkedinCarouselPdfModal({
       },
       {
         slideNumber: 3,
+        role: "INSIGHT",
         eyebrow: "2. CRITERIO FINANCIERO FINTERA",
         headline:
           h2Matches[1] ||
@@ -143,9 +185,11 @@ export function LinkedinCarouselPdfModal({
             ? "Antes de descontar una factura electrónica, verifica los 3 eventos obligatorios en RADIAN (030 Acuse, 032 Recibo del bien/servicio y 033/034 Aceptación) y compara el costo financiero frente al descuento por pronto pago de tus proveedores."
             : "Antes de elegir entre pesos (cuota fija), UVR o leasing habitacional, evalúa la cuota total con seguros, el límite DTI del 30%–40% (Ley 546) y reserva entre 3% y 4% para gastos de escrituración y registro.",
         footerTag: "Criterio Financiero · Acompañamiento · Transparencia",
+        iconImageUrl: pillarConceptIcon,
       },
       {
         slideNumber: 4,
+        role: "COMPARISON",
         eyebrow: "3. EJERCICIO PRÁCTICO CON SUPUESTOS TRANSPARENTES",
         headline:
           h2Matches[2] || "Simulación Ilustrativa para Tomar Decisiones Claras",
@@ -157,6 +201,7 @@ export function LinkedinCarouselPdfModal({
       },
       {
         slideNumber: 5,
+        role: "CHECKLIST",
         eyebrow: "4. LISTA DE VERIFICACIÓN EJECUTIVA",
         headline: "3 Preguntas Clave antes de Radicar tu Operación",
         body:
@@ -164,9 +209,11 @@ export function LinkedinCarouselPdfModal({
             ? "1) ¿Tus facturas tienen los 3 eventos inscritos en RADIAN (DIAN)? 2) ¿Cuánto te cuesta esperar 60–90 días frente a comprar insumos de contado? 3) ¿Conoces el cupo crediticio de tu pagador?"
             : "1) ¿Tu primera cuota mensual (incluyendo seguros) respeta el tope de Ley 546? 2) ¿Tienes listos tus extractos y soportes vigentes en un solo expediente? 3) ¿Comparaste más de una entidad vigilada?",
         footerTag: "Señales de Claridad · FINTERA Soluciones Financieras",
+        iconImageUrl: "/images/brand-system/icons/icon-03-gestion-documental.webp",
       },
       {
         slideNumber: 6,
+        role: "CTA",
         eyebrow: "HAGAMOS POSIBLE TU PRÓXIMO PROYECTO",
         headline: pillarCfg.defaultCtaLabel,
         body: `Consulta el análisis completo en www.finterasoluciones.co/insights/${item.slug} o simula tu operación en línea. Por seguridad (Ley 1581 Habeas Data), nunca compartas cédula, NIT ni extractos en comentarios públicos.`,
@@ -180,9 +227,10 @@ export function LinkedinCarouselPdfModal({
         ...s,
         gradientVariant: styleVariant.gradient,
         accentColor: styleVariant.accent,
+        bgImageUrl: styleVariant.bgImage,
       };
     });
-  }, [item, pillarCfg]);
+  }, [item, pillarCfg, pillarConceptIcon]);
 
   const utmUrl = `https://www.finterasoluciones.co/insights/${item.slug}?utm_source=linkedin&utm_medium=carousel_pdf&utm_campaign=${item.pillar.toLowerCase()}_2026`;
 
@@ -207,16 +255,17 @@ export function LinkedinCarouselPdfModal({
   };
 
   const handlePrintPdfDeck = () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
     const win = window.open("", "_blank", "width=1080,height=900");
     if (!win) return;
 
     const slidesHtml = slides
       .map(
         (s, idx) => `
-      <div class="slide slide-${idx + 1}">
+      <div class="slide slide-${idx + 1}" style="background-image: linear-gradient(180deg, rgba(7, 23, 43, 0.88) 0%, rgba(10, 35, 66, 0.94) 100%), url('${origin}${s.bgImageUrl}');">
         <div class="top-row">
           <div class="brand-brandmark">
-            <img src="/images/shieldlogo.png" alt="FINTERA" class="logo-shield" />
+            <img src="${origin}/images/shieldlogo.png" alt="FINTERA" class="logo-shield" />
             <div>
               <span class="brand-title">FINTERA</span>
               <span class="brand-sub">Banca Hipotecaria & B2B</span>
@@ -229,7 +278,16 @@ export function LinkedinCarouselPdfModal({
         </div>
 
         <div class="middle">
-          <div class="accent-bar" style="background: ${s.accentColor};"></div>
+          ${
+            s.iconImageUrl
+              ? `
+            <div class="icon-container">
+              <img src="${origin}${s.iconImageUrl}" alt="Icono" class="slide-icon" />
+              <div class="accent-bar" style="background: ${s.accentColor};"></div>
+            </div>
+          `
+              : `<div class="accent-bar" style="background: ${s.accentColor};"></div>`
+          }
           <h1>${s.headline}</h1>
           <p>${s.body}</p>
         </div>
@@ -280,34 +338,30 @@ export function LinkedinCarouselPdfModal({
             justify-content: space-between;
             page-break-after: always;
             position: relative;
-            border-bottom: 10px solid #00C4B3;
+            background-size: cover;
+            background-position: center;
+            border-bottom: 12px solid #00C4B3;
           }
-          .slide-1 { background: ${slideGradients[0].printBg}; }
-          .slide-2 { background: ${slideGradients[1].printBg}; }
-          .slide-3 { background: ${slideGradients[2].printBg}; }
-          .slide-4 { background: ${slideGradients[3].printBg}; }
-          .slide-5 { background: ${slideGradients[4].printBg}; }
-          .slide-6 { background: ${slideGradients[5].printBg}; }
 
           .top-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid rgba(255,255,255,0.18);
-            padding-bottom: 32px;
+            border-bottom: 1px solid rgba(255,255,255,0.22);
+            padding-bottom: 34px;
           }
           .brand-brandmark {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 18px;
           }
           .logo-shield {
-            width: 58px;
-            height: 58px;
+            width: 62px;
+            height: 62px;
             object-fit: contain;
           }
           .brand-title {
-            font-size: 28px;
+            font-size: 30px;
             font-weight: 900;
             letter-spacing: 0.12em;
             color: #FFFFFF;
@@ -315,10 +369,10 @@ export function LinkedinCarouselPdfModal({
             line-height: 1;
           }
           .brand-sub {
-            font-size: 15px;
+            font-size: 16px;
             color: #00C4B3;
             letter-spacing: 0.05em;
-            margin-top: 5px;
+            margin-top: 6px;
             display: block;
           }
           .top-meta {
@@ -346,31 +400,49 @@ export function LinkedinCarouselPdfModal({
             margin: auto 0;
             max-width: 900px;
           }
+          .icon-container {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+          }
+          .slide-icon {
+            width: 88px;
+            height: 88px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 196, 179, 0.5);
+            background: rgba(10, 35, 66, 0.9);
+            padding: 8px;
+            object-fit: contain;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+          }
           .accent-bar {
             width: 110px;
             height: 10px;
             border-radius: 999px;
-            margin-bottom: 38px;
+            margin-bottom: 32px;
           }
           h1 {
-            font-size: 56px;
-            line-height: 1.18;
+            font-size: 54px;
+            line-height: 1.2;
             font-weight: 900;
             color: #FFFFFF;
             margin-bottom: 34px;
             letter-spacing: -0.01em;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
           }
           p {
-            font-size: 32px;
-            line-height: 1.52;
-            color: #E2E8F0;
+            font-size: 31px;
+            line-height: 1.55;
+            color: #F1F5F9;
             font-weight: 400;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.4);
           }
           .bottom-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px solid rgba(255,255,255,0.18);
+            border-top: 1px solid rgba(255,255,255,0.22);
             padding-top: 36px;
           }
           .claim {
@@ -381,7 +453,7 @@ export function LinkedinCarouselPdfModal({
           }
           .sub-claim {
             font-size: 16px;
-            color: #94A3B8;
+            color: #CBD5E1;
             margin-top: 6px;
             display: block;
           }
@@ -410,16 +482,16 @@ export function LinkedinCarouselPdfModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="admin-card max-h-[92vh] w-full max-w-5xl overflow-y-auto space-y-5 border border-[#00C4B3]/40 bg-[#081226]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+      <div className="admin-card max-h-[92vh] w-full max-w-5xl overflow-y-auto space-y-5 border border-[#00C4B3]/40 bg-[#081226] text-white">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-slate-700">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-slate-700 shadow-inner">
               <Image
                 src="/images/shieldlogo.png"
-                width={26}
-                height={26}
+                width={28}
+                height={28}
                 alt="FINTERA"
                 unoptimized
                 className="object-contain"
@@ -428,7 +500,7 @@ export function LinkedinCarouselPdfModal({
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#00C4B3] flex items-center gap-1.5">
                 <Layers size={13} />
-                FINTERA LinkedIn Carousel PDF Studio · 1080×1350 (4:5)
+                FINTERA LinkedIn Carousel Studio · Sistema Visual de Marca V1.0 (4:5)
               </span>
               <h2 className="text-base font-extrabold text-white">
                 {item.title}
@@ -440,7 +512,7 @@ export function LinkedinCarouselPdfModal({
             <button
               type="button"
               onClick={handlePrintPdfDeck}
-              className="admin-button admin-button-primary text-xs"
+              className="admin-button admin-button-primary text-xs flex items-center gap-2"
             >
               <FileDown size={15} />
               <span>Exportar PDF 1080×1350 para LinkedIn</span>
@@ -448,7 +520,7 @@ export function LinkedinCarouselPdfModal({
             <button
               type="button"
               onClick={onClose}
-              className="admin-button text-xs"
+              className="admin-button text-xs text-slate-300 hover:text-white flex items-center gap-1.5"
             >
               <X size={15} />
               <span>Cerrar</span>
@@ -484,13 +556,13 @@ export function LinkedinCarouselPdfModal({
           </pre>
         </div>
 
-        {/* 6-Slide Visual Preview Grid with Dynamic Variable Gradients, Logo & High-Contrast Typography */}
+        {/* 6-Slide Visual Preview Grid with Dynamic Real Creative Assets, Logos & High-Contrast Typography */}
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
               <Palette size={15} className="text-[#00C4B3]" />
               <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                Vista Previa de las {slides.length} Láminas · Gradientes Variables FINTERA (#0A2342, #00C4B3, #FFD447)
+                Vista Previa de las {slides.length} Láminas · Arquitectura Creativa FINTERA (#0A2342, #00C4B3, #FFD447)
               </span>
             </div>
             <span className="text-xs text-emerald-400 flex items-center gap-1 font-semibold">
@@ -505,24 +577,29 @@ export function LinkedinCarouselPdfModal({
               return (
                 <div
                   key={s.slideNumber}
-                  className={`flex flex-col justify-between rounded-2xl border border-slate-700/60 bg-gradient-to-br ${s.gradientVariant} p-5 text-white shadow-xl min-h-[300px] transition-transform hover:-translate-y-1 duration-200 relative overflow-hidden`}
+                  className="flex flex-col justify-between rounded-2xl border border-slate-700/80 p-5 text-white shadow-2xl min-h-[340px] transition-transform hover:-translate-y-1 duration-200 relative overflow-hidden group"
+                  style={{
+                    backgroundImage: `linear-gradient(180deg, rgba(7, 23, 43, 0.88) 0%, rgba(10, 35, 66, 0.94) 100%), url('${s.bgImageUrl}')`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
                 >
                   {/* Subtle lighting mesh */}
-                  <div className="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full bg-cyan-400/10 blur-2xl" />
+                  <div className="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full bg-cyan-400/15 blur-2xl" />
 
                   <div className="space-y-3 relative z-10">
-                    {/* Top Row with Logo & Slide Number */}
-                    <div className="flex items-center justify-between border-b border-white/15 pb-2.5">
+                    {/* Top Row with Official Shield Logo & Slide Number */}
+                    <div className="flex items-center justify-between border-b border-white/20 pb-2.5">
                       <div className="flex items-center gap-1.5">
                         <Image
                           src="/images/shieldlogo.png"
-                          width={18}
-                          height={18}
+                          width={20}
+                          height={20}
                           alt="FINTERA"
                           unoptimized
                           className="object-contain shrink-0"
                         />
-                        <span className="font-extrabold text-[11px] tracking-wider text-white">
+                        <span className="font-black text-[12px] tracking-wider text-white">
                           FINTERA
                         </span>
                       </div>
@@ -537,20 +614,40 @@ export function LinkedinCarouselPdfModal({
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#00C4B3] block truncate">
                         {s.eyebrow}
                       </span>
-                      <div
-                        className="h-1 w-10 rounded-full mt-1 mb-2"
-                        style={{ backgroundColor: s.accentColor }}
-                      />
-                      <h3 className="text-sm font-extrabold leading-snug text-white drop-shadow-sm">
+
+                      {/* Concept icon if applicable */}
+                      {s.iconImageUrl ? (
+                        <div className="mt-2 mb-2 flex items-center gap-3">
+                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-[#00C4B3]/50 bg-slate-900/90 p-1 shadow-md">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={s.iconImageUrl}
+                              alt="Icono"
+                              className="h-full w-full object-contain"
+                            />
+                          </div>
+                          <div
+                            className="h-1 w-12 rounded-full"
+                            style={{ backgroundColor: s.accentColor }}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="h-1 w-10 rounded-full mt-1.5 mb-2.5"
+                          style={{ backgroundColor: s.accentColor }}
+                        />
+                      )}
+
+                      <h3 className="text-sm font-extrabold leading-snug text-white drop-shadow-md">
                         {s.headline}
                       </h3>
-                      <p className="mt-2 text-xs leading-relaxed text-slate-100 font-normal">
+                      <p className="mt-2 text-xs leading-relaxed text-slate-100 font-normal drop-shadow-sm line-clamp-5">
                         {s.body}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-2.5 text-[10px] relative z-10">
+                  <div className="mt-4 flex items-center justify-between border-t border-white/20 pt-2.5 text-[10px] relative z-10">
                     <span className="font-semibold text-slate-300 truncate max-w-[190px]">
                       {s.footerTag}
                     </span>

@@ -36,6 +36,11 @@ import type { FinteraContentItem } from "@/lib/blog";
 import { FINTERA_EDITORIAL_COMPLIANCE_RULES } from "@/lib/linkedin-strategy";
 import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
 import { LinkedinCarouselPdfModal } from "@/components/fintera/growth/LinkedinCarouselPdfModal";
+import {
+  FINTERA_BRAND_ASSET_REGISTRY,
+  FinteraBrandAsset,
+  FinteraAssetRole,
+} from "@/lib/brand-assets";
 
 interface ContentHubClientProps {
   initialItems: FinteraContentItem[];
@@ -106,6 +111,12 @@ export function ContentHubClient({ initialItems }: ContentHubClientProps) {
     "1024x1024" | "1280x720" | "720x1280"
   >("1024x1024");
   const [customImageUrl, setCustomImageUrl] = useState("");
+
+  // Brand Asset Catalog Explorer state (FINTERA Brand Blueprint V1.0)
+  const [showAssetExplorer, setShowAssetExplorer] = useState(false);
+  const [catalogRoleFilter, setCatalogRoleFilter] = useState<string>("ALL");
+  const [catalogPillarFilter, setCatalogPillarFilter] = useState<string>("ALL");
+  const [catalogSearch, setCatalogSearch] = useState<string>("");
 
   // Schedule publication modal state
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -1355,39 +1366,59 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     </div>
                   </div>
 
-                  {/* Gallery of Pillar Covers & Generated Creative Assets */}
+                  {/* Gallery of Brand Assets & Generated Creative Assets */}
                   <div className="border-t border-slate-800 pt-3">
-                    <span className="block text-xs font-semibold text-slate-200 mb-2">
-                      Biblioteca de Portadas Institucionales y Activos Generados:
-                    </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                      <span className="block text-xs font-semibold text-slate-200">
+                        Activos de Marca FINTERA Blueprint V1.0 y Generados:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAssetExplorer(true)}
+                        className="admin-button text-xs text-[#00C4B3] border-[#00C4B3]/40 hover:bg-[#00C4B3]/10 flex items-center gap-1.5 font-bold"
+                      >
+                        <Sparkles size={13} />
+                        <span>Abrir Explorador de Marca (22 Activos)</span>
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      {Object.values(FINTERA_CONTENT_PILLARS).map((p) => (
-                        <button
-                          key={p.key}
-                          type="button"
-                          onClick={() =>
-                            handleAttachCustomImage(
-                              p.coverImage,
-                              `Portada institucional ${p.shortLabel}`
-                            )
-                          }
-                          className={`group relative overflow-hidden rounded-lg border text-left ${
-                            activeCoverSrc === p.coverImage
-                              ? "border-sky-500 ring-2 ring-sky-500"
-                              : "border-slate-700"
-                          }`}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={p.coverImage}
-                            alt={p.shortLabel}
-                            className="h-20 w-full object-cover"
-                          />
-                          <div className="bg-slate-950/80 px-2 py-1 text-[10px] font-semibold text-slate-200 truncate">
-                            Pilar {p.number}: {p.shortLabel}
-                          </div>
-                        </button>
-                      ))}
+                      {/* Curated Signatures & Icons from Registry for quick assignment */}
+                      {FINTERA_BRAND_ASSET_REGISTRY.filter(
+                        (a) =>
+                          a.approved &&
+                          (a.role === "SIGNATURE_GRAPHIC" ||
+                            a.role === "BRAND_ICON" ||
+                            a.role === "CAROUSEL_BACKGROUND")
+                      )
+                        .slice(0, 4)
+                        .map((asset) => (
+                          <button
+                            key={asset.id}
+                            type="button"
+                            onClick={() =>
+                              handleAttachCustomImage(
+                                asset.publicUrl,
+                                asset.title
+                              )
+                            }
+                            className={`group relative overflow-hidden rounded-lg border text-left transition ${
+                              activeCoverSrc === asset.publicUrl
+                                ? "border-[#00C4B3] ring-2 ring-[#00C4B3]"
+                                : "border-slate-700 hover:border-slate-500"
+                            }`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={asset.publicUrl}
+                              alt={asset.title}
+                              className="h-20 w-full object-cover"
+                            />
+                            <div className="bg-slate-950/90 px-2 py-1 text-[10px] font-semibold text-cyan-300 truncate">
+                              {asset.title.split("·")[0]}
+                            </div>
+                          </button>
+                        ))}
 
                       {(activeItem.creativeAssets || []).map((asset, idx) => (
                         <button
@@ -2066,6 +2097,165 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
           item={activeItem}
           onClose={() => setShowCarouselPdfModal(false)}
         />
+      )}
+
+      {/* Brand Asset Catalog Explorer Modal (FINTERA Brand Blueprint V1.0) */}
+      {showAssetExplorer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+          <div className="admin-card max-h-[92vh] w-full max-w-6xl overflow-y-auto space-y-4 border border-[#00C4B3]/40 bg-[#081226] text-white">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-[#00C4B3]/40">
+                  <Sparkles size={18} className="text-[#00C4B3]" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#00C4B3]">
+                    Catálogo Unificado de Activos · FINTERA Brand Blueprint V1.0
+                  </span>
+                  <h2 className="text-base font-extrabold text-white">
+                    Explorador de Activos de Marca y Asignación Editorial
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAssetExplorer(false)}
+                className="admin-button text-xs text-slate-300 hover:text-white"
+              >
+                Cerrar Explorador
+              </button>
+            </div>
+
+            {/* Filter controls */}
+            <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+              <input
+                type="text"
+                placeholder="Buscar activo por título, concepto o tag..."
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+                className="admin-input flex-1 min-w-[200px] text-xs"
+              />
+              <select
+                value={catalogRoleFilter}
+                onChange={(e) => setCatalogRoleFilter(e.target.value)}
+                className="admin-input text-xs"
+              >
+                <option value="ALL">Todos los Roles de Activo</option>
+                <option value="SIGNATURE_GRAPHIC">Firmas y Geometría (Rutas y Nodos)</option>
+                <option value="BRAND_ICON">Iconos Conceptuales Financieros</option>
+                <option value="CAROUSEL_BACKGROUND">Láminas de Carrusel (4:5)</option>
+                <option value="PILLAR_COVER">Portadas de Pilares Institucionales</option>
+              </select>
+              <select
+                value={catalogPillarFilter}
+                onChange={(e) => setCatalogPillarFilter(e.target.value)}
+                className="admin-input text-xs"
+              >
+                <option value="ALL">Todos los Pilares</option>
+                <option value="VIVIENDA_B2C">Pilar 1 · Vivienda B2C</option>
+                <option value="FACTORING_B2B">Pilar 2 · Factoring B2B</option>
+                <option value="AUTORIDAD_MERCADO">Pilar 3 · Autoridad y Mercado</option>
+                <option value="CONFIANZA_OPORTUNIDADES">Pilar 4 · Confianza y Conversión</option>
+              </select>
+            </div>
+
+            {/* Asset Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+              {FINTERA_BRAND_ASSET_REGISTRY.filter((asset) => {
+                if (catalogRoleFilter !== "ALL" && asset.role !== catalogRoleFilter) {
+                  return false;
+                }
+                if (
+                  catalogPillarFilter !== "ALL" &&
+                  !asset.pillars.includes(catalogPillarFilter as FinteraContentPillarKey)
+                ) {
+                  return false;
+                }
+                if (catalogSearch.trim()) {
+                  const q = catalogSearch.toLowerCase();
+                  const match =
+                    asset.title.toLowerCase().includes(q) ||
+                    asset.description.toLowerCase().includes(q) ||
+                    asset.tags.some((t) => t.toLowerCase().includes(q));
+                  if (!match) return false;
+                }
+                return true;
+              }).map((asset) => {
+                const isSelected = activeCoverSrc === asset.publicUrl;
+                const isPillarCover = asset.role === "PILLAR_COVER";
+                return (
+                  <div
+                    key={asset.id}
+                    className={`flex flex-col justify-between rounded-xl border bg-slate-900/80 p-3 transition hover:border-[#00C4B3]/60 ${
+                      isSelected
+                        ? "border-[#00C4B3] ring-2 ring-[#00C4B3]"
+                        : "border-slate-800"
+                    }`}
+                  >
+                    <div>
+                      <div className="relative h-32 w-full overflow-hidden rounded-lg bg-slate-950">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={asset.publicUrl}
+                          alt={asset.title}
+                          className="h-full w-full object-cover"
+                        />
+                        <span className="absolute top-1.5 left-1.5 rounded bg-slate-950/80 px-1.5 py-0.5 text-[9px] font-bold text-cyan-300 border border-cyan-500/30">
+                          {asset.dimensions.width}×{asset.dimensions.height}
+                        </span>
+                        <span className="absolute top-1.5 right-1.5 rounded bg-slate-950/80 px-1.5 py-0.5 text-[9px] font-bold text-[#FFD447]">
+                          {asset.role}
+                        </span>
+                      </div>
+
+                      <div className="mt-2.5">
+                        <h4 className="text-xs font-bold text-white line-clamp-1">
+                          {asset.title}
+                        </h4>
+                        <p className="mt-1 text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                          {asset.description}
+                        </p>
+
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {asset.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] text-slate-400"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                      {isPillarCover && (
+                        <span className="text-[10px] text-amber-400 font-semibold truncate" title="Reservado para cabecera del pilar">
+                          Cabecera Pilar
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleAttachCustomImage(asset.publicUrl, asset.title);
+                          setShowAssetExplorer(false);
+                        }}
+                        className={`admin-button text-xs w-full py-1.5 justify-center ${
+                          isSelected
+                            ? "bg-emerald-600 text-white font-bold"
+                            : "admin-button-primary"
+                        }`}
+                      >
+                        {isSelected ? "Activo Asignado ✔" : "Asignar a Artículo"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

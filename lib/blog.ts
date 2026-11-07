@@ -149,8 +149,12 @@ export function resolveArticleCoverImage(
   slug: string,
   candidateCover?: string | null
 ): string {
-  // Never allow Pillar category cover images (/images/pillars/*) to be recycled on articles
-  if (candidateCover && !candidateCover.startsWith("/images/pillars/")) {
+  // Never allow Pillar category cover images (/images/pillars/* or /images/brand-system/pillars/*) to be recycled on articles
+  if (
+    candidateCover &&
+    !candidateCover.startsWith("/images/pillars/") &&
+    !candidateCover.startsWith("/images/brand-system/pillars/")
+  ) {
     return candidateCover;
   }
   const directMatch = `/images/insights/${id}.png`;

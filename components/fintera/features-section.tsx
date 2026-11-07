@@ -18,36 +18,40 @@ const features = [
     title: "Crédito de Vivienda y Leasing (B2C)",
     description:
       "Acompañamos la compra de tu vivienda VIS o No VIS mediante comparación multibanco en Pesos y UVR, evaluando capacidad de endeudamiento, seguros y costos reales.",
-    gradient: "from-fintera-500 to-gradient-via",
+    gradient: "from-[#0A2342] to-[#00C4B3]",
     delay: 0.1,
-    image: "/images/credito-vivienda.jpg",
+    image: "/images/brand-system/pillars/pilar-1-vivienda-b2c.webp",
+    brandIcon: "/images/brand-system/icons/icon-01-credito-vivienda.webp",
   },
   {
     icon: BuildingOfficeIcon,
     title: "Liquidez Empresarial y Factoring (B2B)",
     description:
       "Diagnóstico de capital de trabajo para empresas que venden a crédito (30–90 días), validación de eventos en RADIAN (DIAN) y estructuración de operaciones con aliados.",
-    gradient: "from-gradient-from to-fintera-500",
+    gradient: "from-[#00C4B3] to-[#0A2342]",
     delay: 0.2,
-    image: "/images/credito-empresarial.jpg",
+    image: "/images/brand-system/pillars/pilar-2-factoring-b2b.webp",
+    brandIcon: "/images/brand-system/icons/icon-07-liquidez-factoring.webp",
   },
   {
     icon: BanknotesIcon,
-    title: "Crédito Personal y Libre Inversión",
+    title: "Autoridad e Inteligencia de Mercado",
     description:
-      "Conectamos tu perfil con alternativas de financiación personal en entidades vigiladas, priorizando sostenibilidad en la cuota mensual y claridad en las condiciones.",
-    gradient: "from-gradient-via to-gradient-to",
+      "Análisis riguroso de tasas de interés (SFC), inflación (BanRep), desembolsos y estadísticas sectoriales con fuentes oficiales verificables para decisiones claras.",
+    gradient: "from-[#0A2342] to-[#FFD447]",
     delay: 0.3,
-    image: "/images/credito-libre-inversion.jpg",
+    image: "/images/brand-system/pillars/pilar-3-autoridad-mercado.webp",
+    brandIcon: "/images/brand-system/icons/icon-08-inteligencia-analitica.webp",
   },
   {
     icon: ShieldCheckIcon,
-    title: "Criterio Financiero y Transparencia",
+    title: "Acompañamiento Humano y Transparencia",
     description:
       "Orientación paso a paso en preparación documental, protección de datos (Ley 1581 Habeas Data) y evaluación objetiva sin promesas de aprobación sin estudio previo.",
-    gradient: "from-fintera-600 to-gradient-from",
+    gradient: "from-[#00C4B3] to-[#FFD447]",
     delay: 0.4,
-    image: "/images/proceso-rapido.jpg",
+    image: "/images/brand-system/pillars/pilar-4-confianza-oportunidades.webp",
+    brandIcon: "/images/brand-system/icons/icon-04-acompanamiento-humano-v1.webp",
   },
 ];
 
@@ -137,17 +141,25 @@ export default function FeaturesSection() {
               transition={{ duration: 0.6, delay: feature.delay }}
             >
               <Card className="group h-full hover:shadow-xl transition-all duration-300 border-fintera-100/50 bg-white/80 backdrop-blur-sm overflow-hidden flex flex-col">
-                <div className="relative h-48 w-full overflow-hidden bg-slate-100">
-                  {/* The user will drop their images in public/images folder, so if missing it falls back gracefully layout-wise */}
-                  <Image src={feature.image} alt={feature.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-80" />
+                <div className="relative h-48 w-full overflow-hidden bg-[#0A2342]">
+                  <Image
+                    src={feature.image}
+                    alt={feature.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A2342]/90 via-[#0A2342]/20 to-transparent" />
                   <motion.div
-                    className={`absolute bottom-4 left-4 w-12 h-12 rounded-2xl bg-gradient-to-r ${feature.gradient} p-0.5 group-hover:scale-110 transition-transform duration-300 z-10 shadow-lg`}
-                    whileHover={{ rotate: 5 }}
+                    className="absolute bottom-3 left-3 h-12 w-12 rounded-xl bg-[#0A2342]/90 border border-[#00C4B3]/60 p-1 shadow-xl z-10 backdrop-blur-md"
+                    whileHover={{ rotate: 5, scale: 1.1 }}
                   >
-                    <div className="w-full h-full bg-white rounded-2xl flex items-center justify-center">
-                      <feature.icon className={`h-6 w-6 bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`} />
-                    </div>
+                    <Image
+                      src={feature.brandIcon}
+                      alt={feature.title}
+                      width={44}
+                      height={44}
+                      className="h-full w-full object-contain"
+                    />
                   </motion.div>
                 </div>
                 <CardHeader className="pb-2 pt-6">
