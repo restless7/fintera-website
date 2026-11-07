@@ -25,6 +25,7 @@ export function Navbar() {
     { name: "Créditos", href: "/creditos" },
     { name: "Portafolio", href: "/portafolio" },
     { name: "Insights", href: "/insights" },
+    { name: "Aliados", href: "/aliados" },
     { name: "Nosotros", href: "/nosotros" },
     { name: "Contacto", href: "/contacto" },
   ];

@@ -33,6 +33,7 @@ import {
 import type { FinteraContentItem } from "@/lib/blog";
 import { FINTERA_EDITORIAL_COMPLIANCE_RULES } from "@/lib/linkedin-strategy";
 import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
+import { LinkedinCarouselPdfModal } from "@/components/fintera/growth/LinkedinCarouselPdfModal";
 
 interface ContentHubClientProps {
   initialItems: FinteraContentItem[];
@@ -51,6 +52,7 @@ export function ContentHubClient({ initialItems }: ContentHubClientProps) {
   );
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>("PREVIEW");
   const [showRawMarkdown, setShowRawMarkdown] = useState(false);
+  const [showCarouselPdfModal, setShowCarouselPdfModal] = useState(false);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRemediating, setIsRemediating] = useState(false);
@@ -895,6 +897,15 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     {copiedLinkedin ? "¡Copiado!" : "Copy LinkedIn"}
                   </span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowCarouselPdfModal(true)}
+                  className="admin-button text-xs border-[#FFD447]/60 text-[#FFD447]"
+                >
+                  <FileText size={13} />
+                  <span>Carrusel PDF LinkedIn (1080×1350)</span>
+                </button>
               </div>
 
               {/* 8-Dimension QA Gate Scorecard */}
@@ -1498,6 +1509,13 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
             </div>
           </div>
         </div>
+      )}
+
+      {showCarouselPdfModal && activeItem && (
+        <LinkedinCarouselPdfModal
+          item={activeItem}
+          onClose={() => setShowCarouselPdfModal(false)}
+        />
       )}
     </div>
   );

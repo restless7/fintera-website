@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ClipboardCopy,
   ExternalLink,
+  FileDown,
   Share2,
   ShieldAlert,
   Sparkles,
@@ -24,6 +25,7 @@ import {
   LinkedinCalendarPostSpec,
 } from "@/lib/linkedin-strategy";
 import type { FinteraContentItem } from "@/lib/blog";
+import { LinkedinCarouselPdfModal } from "@/components/fintera/growth/LinkedinCarouselPdfModal";
 
 interface LinkedinPlanClientProps {
   existingItems: FinteraContentItem[];
@@ -41,6 +43,8 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
   const [utmCampaign, setUtmCampaign] = useState("vivienda_oct2026");
   const [utmTarget, setUtmTarget] = useState("/simulador");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [carouselModalItem, setCarouselModalItem] =
+    useState<FinteraContentItem | null>(null);
 
   const weekPosts = FINTERA_MONTH_1_CALENDAR.filter(
     (p) => p.week === selectedWeek
@@ -391,21 +395,51 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
                         <ExternalLink size={12} />
                         <span>Ver publicación generada</span>
                       </Link>
+                      <button
+                        type="button"
+                        onClick={() => setCarouselModalItem(generatedItem)}
+                        className="admin-button w-full justify-center text-xs border-[#FFD447]/60 text-[#FFD447]"
+                      >
+                        <FileDown size={12} />
+                        <span>Exportar Carrusel PDF (1080×1350)</span>
+                      </button>
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      disabled={isDeveloping}
-                      onClick={() => handleDevelopCalendarPost(slot)}
-                      className="admin-button admin-button-primary w-full justify-center text-xs"
-                    >
-                      <Sparkles size={13} />
-                      <span>
-                        {isDeveloping
-                          ? "Desarrollando..."
-                          : "Desarrollar esta publicación"}
-                      </span>
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        disabled={isDeveloping}
+                        onClick={() => handleDevelopCalendarPost(slot)}
+                        className="admin-button admin-button-primary w-full justify-center text-xs"
+                      >
+                        <Sparkles size={13} />
+                        <span>
+                          {isDeveloping
+                            ? "Desarrollando..."
+                            : "Desarrollar esta publicación"}
+                        </span>
+                      </button>
+                      {existingItems[0] && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCarouselModalItem({
+                              ...existingItems[0],
+                              title: slot.title,
+                              subtitle: slot.objective,
+                              excerpt: slot.objective,
+                              pillar: slot.pillar,
+                              contentType: slot.contentType,
+                              content: slot.draftOutlineMarkdown,
+                            })
+                          }
+                          className="admin-button w-full justify-center text-xs"
+                        >
+                          <FileDown size={12} />
+                          <span>Vista Previa Carrusel PDF</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -476,21 +510,33 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
                 value={utmTarget}
                 onChange={(e) => setUtmTarget(e.target.value)}
                 aria-label="Página de destino"
-                className="admin-input text-xs"
+                className="admin-select text-xs bg-[#0a192f] text-white"
               >
-                <option value="/simulador">/simulador (Vivienda B2C)</option>
-                <option value="/credit-request">
+                <option value="/simulador" className="bg-[#0A2342] text-white">
+                  /simulador (Vivienda B2C + Factoring B2B)
+                </option>
+                <option value="/aliados" className="bg-[#0A2342] text-white">
+                  /aliados (Portal de Aliados B2B2C)
+                </option>
+                <option
+                  value="/credit-request"
+                  className="bg-[#0A2342] text-white"
+                >
                   /credit-request (Solicitud Crédito)
                 </option>
-                <option value="/contacto">/contacto (Empresas / B2B)</option>
-                <option value="/insights">/insights (FINTERA Insights)</option>
+                <option value="/contacto" className="bg-[#0A2342] text-white">
+                  /contacto (Empresas / B2B)
+                </option>
+                <option value="/insights" className="bg-[#0A2342] text-white">
+                  /insights (FINTERA Insights)
+                </option>
               </select>
               <input
                 type="text"
                 value={utmCampaign}
                 onChange={(e) => setUtmCampaign(e.target.value)}
                 placeholder="utm_campaign"
-                className="admin-input text-xs"
+                className="admin-input text-xs bg-[#0a192f] text-white"
               />
             </div>
             <div className="flex items-center justify-between gap-2 rounded border border-slate-800 bg-slate-900 p-2 text-[11px] text-sky-300">
@@ -568,6 +614,13 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
           ))}
         </div>
       </div>
+
+      {carouselModalItem && (
+        <LinkedinCarouselPdfModal
+          item={carouselModalItem}
+          onClose={() => setCarouselModalItem(null)}
+        />
+      )}
     </div>
   );
 }

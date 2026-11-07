@@ -49,25 +49,73 @@ interface BiOverviewData {
   lastRefreshedAt: string;
 }
 
+interface GrowthLeadSummaryItem {
+  id: string;
+  trackingCode: string;
+  channel: string;
+  pillar: string;
+  stageProgress: number;
+  clientName: string;
+  companyName?: string;
+  amountCOP: number;
+  productLabel: string;
+  partnerName?: string;
+  utmSource?: string;
+  utmCampaign?: string;
+  sourceArticleTitle?: string;
+}
+
+interface GrowthSummaryData {
+  totalLeads: number;
+  totalPipelineCOP: number;
+  b2bFactoringCount: number;
+  b2bVolumeCOP: number;
+  partnerReferralsCount: number;
+  partnerVolumeCOP: number;
+  recentLeads: GrowthLeadSummaryItem[];
+}
+
 async function readBiOverview(signal?: AbortSignal): Promise<BiOverviewData> {
   const response = await fetch("/api/admin/crm/bi/overview", { signal });
   if (!response.ok) throw new Error("No se pudo cargar la analítica comercial.");
   return response.json();
 }
 
+async function readGrowthSummary(
+  signal?: AbortSignal
+): Promise<GrowthSummaryData | null> {
+  try {
+    const res = await fetch("/api/growth/leads", { signal });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.summary || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function BiDashboardPage() {
   const [data, setData] = useState<BiOverviewData | null>(null);
+  const [growthData, setGrowthData] = useState<GrowthSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadBiData = useCallback(async (signal?: AbortSignal) => {
     try {
-      const json = await readBiOverview(signal);
+      const [json, growth] = await Promise.all([
+        readBiOverview(signal),
+        readGrowthSummary(signal),
+      ]);
       if (signal?.aborted) return;
       setData(json);
+      setGrowthData(growth);
       setError(null);
-    } catch (err: any) {
-      if (!signal?.aborted) setError(err.message || "Error cargando métricas");
+    } catch (err: unknown) {
+      if (!signal?.aborted) {
+        setError(
+          err instanceof Error ? err.message : "Error cargando métricas"
+        );
+      }
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
@@ -75,10 +123,24 @@ export default function BiDashboardPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    readBiOverview(controller.signal)
-      .then((json) => { if (!controller.signal.aborted) { setData(json); setError(null); } })
-      .catch((err: Error) => { if (!controller.signal.aborted) setError(err.message || "Error cargando métricas"); })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    Promise.all([
+      readBiOverview(controller.signal),
+      readGrowthSummary(controller.signal),
+    ])
+      .then(([json, growth]) => {
+        if (!controller.signal.aborted) {
+          setData(json);
+          setGrowthData(growth);
+          setError(null);
+        }
+      })
+      .catch((err: Error) => {
+        if (!controller.signal.aborted)
+          setError(err.message || "Error cargando métricas");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
     return () => controller.abort();
   }, []);
 
@@ -323,6 +385,119 @@ export default function BiDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Atribución de Crecimiento: FINTERA Insights, UTMs de LinkedIn, Factoring B2B y Red de Aliados */}
+      {growthData && (
+        <Card className="admin-card !p-0">
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base font-bold text-white">
+                  Atribución de Crecimiento: FINTERA Insights, Factoring B2B y Red de Aliados
+                </CardTitle>
+                <CardDescription className="text-xs text-slate-400">
+                  Trazabilidad de prospectos originados desde la Calculadora Factoring RADIAN (/simulador), el Portal de Aliados (/aliados) y campañas UTM de LinkedIn.
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/aliados" target="_blank" className="admin-button text-xs">
+                  Ver Portal de Aliados
+                </Link>
+                <Link href="/simulador" target="_blank" className="admin-button text-xs">
+                  Ver Calculadora Factoring B2B
+                </Link>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-lg bg-slate-950 border border-slate-800">
+                <span className="text-xs text-slate-400 block">
+                  Pipeline Total Atribuido (B2C + B2B)
+                </span>
+                <span className="text-xl font-bold text-[#00C4B3] tabular-nums">
+                  {formatCOP(growthData.totalPipelineCOP)}
+                </span>
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  {growthData.totalLeads} operaciones en seguimiento
+                </span>
+              </div>
+
+              <div className="p-4 rounded-lg bg-slate-950 border border-slate-800">
+                <span className="text-xs text-slate-400 block">
+                  Diagnósticos Factoring RADIAN (B2B)
+                </span>
+                <span className="text-xl font-bold text-[#FFD447] tabular-nums">
+                  {formatCOP(growthData.b2bVolumeCOP)}
+                </span>
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  {growthData.b2bFactoringCount} paquetes de facturas evaluados
+                </span>
+              </div>
+
+              <div className="p-4 rounded-lg bg-slate-950 border border-slate-800">
+                <span className="text-xs text-slate-400 block">
+                  Originación por Red de Aliados (/aliados)
+                </span>
+                <span className="text-xl font-bold text-white tabular-nums">
+                  {formatCOP(growthData.partnerVolumeCOP)}
+                </span>
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  {growthData.partnerReferralsCount} referidos de inmobiliarias y contadores
+                </span>
+              </div>
+            </div>
+
+            <div
+              className="overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label="Tabla de atribución de crecimiento y referidos"
+            >
+              <table className="w-full min-w-[680px] text-left text-xs tabular-nums">
+                <thead className="bg-slate-950 text-slate-300 font-semibold border-b border-slate-800">
+                  <tr>
+                    <th scope="col" className="py-2.5 px-3">Código</th>
+                    <th scope="col" className="py-2.5 px-3">Cliente / Empresa</th>
+                    <th scope="col" className="py-2.5 px-3">Línea y Producto</th>
+                    <th scope="col" className="py-2.5 px-3">Monto COP</th>
+                    <th scope="col" className="py-2.5 px-3">Origen / Aliado / UTM</th>
+                    <th scope="col" className="py-2.5 px-3">Avance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {growthData.recentLeads.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-slate-950">
+                      <td className="py-2.5 px-3 font-mono font-bold text-[#FFD447]">
+                        {lead.trackingCode}
+                      </td>
+                      <td className="py-2.5 px-3 text-white font-medium">
+                        {lead.companyName || lead.clientName}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-300">
+                        {lead.productLabel}
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold text-[#00C4B3]">
+                        {formatCOP(lead.amountCOP)}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-300">
+                        {lead.partnerName
+                          ? `Aliado: ${lead.partnerName}`
+                          : `${lead.utmSource || "directo"} / ${lead.utmCampaign || "insights"}`}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300">
+                          {lead.stageProgress}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       </>}
       {/* Fecha de la respuesta autorizada */}
