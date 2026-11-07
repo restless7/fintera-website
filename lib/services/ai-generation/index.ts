@@ -22,6 +22,8 @@ import {
 import {
   FinteraContentItem,
   getFinteraContentByIdOrSlug,
+  resolveArticleCoverImage,
+  stripCalendarPrefixFromText,
   upsertFinteraContent,
 } from "../../blog";
 import { FINTERA_MONTH_1_CALENDAR } from "../../linkedin-strategy";
@@ -272,14 +274,15 @@ export async function generateFinteraContentDraft(
   const contentType: ContentTypeKey =
     calendarSlot?.contentType || input.contentType || "BLOG_POST";
 
-  const title =
+  const rawTitle =
     calendarSlot?.title ||
     input.topic ||
     signal?.title ||
     "Análisis FINTERA: Cómo evaluar alternativas de financiación en Colombia con criterio financiero";
+  const title = stripCalendarPrefixFromText(rawTitle);
 
   const subtitle = calendarSlot
-    ? `Plan Editorial LinkedIn · Semana ${calendarSlot.week} (${calendarSlot.day}) · Formato: ${calendarSlot.format}`
+    ? `Análisis estratégico y criterio financiero FINTERA · Formato: ${calendarSlot.format}`
     : `Análisis técnico respaldado en fuentes oficiales de Colombia (${pillarCfg.shortLabel})`;
 
   const systemPrompt = `Eres el Director de Criterio Financiero de FINTERA Soluciones Financieras (https://www.finterasoluciones.co/) en Colombia.
@@ -289,7 +292,8 @@ Escribe en español profesional, claro y ejecutivo siguiendo estrictamente la Re
 3. Separa el dato publicado por las fuentes oficiales de la interpretación y criterio financiero de FINTERA.
 4. Si incluyes cifras o ejemplos numéricos, aclara que son simulaciones ilustrativas con supuestos transparentes y no resultados garantizados.
 5. NUNCA prometas "aprobación garantizada", "liquidez garantizada" ni pidas datos confidenciales en comentarios públicos.
-6. Refuerza los 3 atributos de FINTERA: criterio financiero, acompañamiento y transparencia.`;
+6. Refuerza los 3 atributos de FINTERA: criterio financiero, acompañamiento y transparencia.
+7. NUNCA incluyas etiquetas de calendario interno como "Semana 1", "Semana 2", "Lunes:", "Viernes:" ni referencias al cronograma interno en el título, subtítulos ni cuerpo del artículo.`;
 
   const userPrompt = `Desarrolla una pieza completa tipo ${contentType} titulada: "${title}".
 Pilar: ${pillarCfg.label}.
@@ -339,7 +343,7 @@ Estructura el documento en Markdown limpio (sin bloques de código JSON envolven
     });
   }
 
-  const item = await upsertFinteraContent({
+  let item = await upsertFinteraContent({
     title,
     subtitle,
     content: generatedMarkdown,
@@ -380,6 +384,20 @@ Estructura el documento en Markdown limpio (sin bloques de código JSON envolven
             "Colombia",
           ],
   });
+
+  // Dedicated Creative Pipeline: Automatically generate a bespoke cover image for every newly created article
+  try {
+    const creativeRes = await generateFinteraCreativeImage({
+      idOrSlug: item.id,
+      setAsCover: true,
+      size: "1280x720",
+    });
+    if (creativeRes.item) {
+      item = creativeRes.item;
+    }
+  } catch {
+    // Non-blocking fallback if image API is temporarily unreachable
+  }
 
   return {
     item,
@@ -716,10 +734,11 @@ export async function generateFinteraCreativeImage(
   }
 
   if (!finalImageUrl) {
-    const pillarCfg =
-      FINTERA_CONTENT_PILLARS[existing?.pillar || "VIVIENDA_B2C"];
-    finalImageUrl = pillarCfg.coverImage;
-    modelUsed = "fintera-brand-pillar-cover";
+    finalImageUrl = resolveArticleCoverImage(
+      existing?.id || "fintera_creative",
+      existing?.slug || "fintera-creative"
+    );
+    modelUsed = "fintera-article-creative-pool";
   }
 
   let updatedItem: FinteraContentItem | undefined;

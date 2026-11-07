@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
-import { getAllFinteraContent } from "@/lib/blog";
+import { getAllFinteraContent, resolveArticleCoverImage } from "@/lib/blog";
 import {
   CONTENT_TYPES,
   FINTERA_BRAND_BLUEPRINT,
@@ -137,7 +137,7 @@ export default async function FinteraInsightsPublicPage({
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0A2342] via-[#0A2342]/35 to-transparent" />
                         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
                           <span className="rounded-full bg-[#0A2342]/90 border border-[#00C4B3]/40 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#00C4B3]">
-                            Pilar {pillar.number} · {pillar.targetPercentage}%
+                            Pilar {pillar.number}
                           </span>
                           <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-bold text-[#0A2342]">
                             {pillar.audience === "B2C_VIVIENDA"
@@ -197,7 +197,11 @@ export default async function FinteraInsightsPublicPage({
                     FINTERA_CONTENT_PILLARS[
                       item.pillar as FinteraContentPillarKey
                     ] || FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
-                  const coverSrc = item.coverImage || pillarCfg.coverImage;
+                  const coverSrc = resolveArticleCoverImage(
+                    item.id,
+                    item.slug,
+                    item.coverImage
+                  );
                   return (
                     <Link
                       key={item.id}
@@ -300,7 +304,11 @@ export default async function FinteraInsightsPublicPage({
                   FINTERA_CONTENT_PILLARS[
                     item.pillar as FinteraContentPillarKey
                   ] || FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
-                const coverSrc = item.coverImage || pillarCfg.coverImage;
+                const coverSrc = resolveArticleCoverImage(
+                  item.id,
+                  item.slug,
+                  item.coverImage
+                );
                 return (
                   <Link
                     key={item.id}

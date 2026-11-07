@@ -231,8 +231,7 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
             </span>
             <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
               <p className="text-xs font-bold text-sky-300">
-                Línea 1 · Crédito de vivienda para personas (Audiencia B2C —
-                35%)
+                Línea 1 · Crédito de vivienda para personas (Audiencia B2C)
               </p>
               <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs text-slate-300">
                 {FINTERA_TARGET_NETWORK.b2cVivienda.map((item) => (
@@ -243,7 +242,7 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
 
             <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
               <p className="text-xs font-bold text-teal-300">
-                Línea 2 · Liquidez empresarial y factoring (Audiencia B2B — 30%)
+                Línea 2 · Liquidez empresarial y factoring (Audiencia B2B)
               </p>
               <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs text-slate-300">
                 {FINTERA_TARGET_NETWORK.b2bFactoring.map((item) => (

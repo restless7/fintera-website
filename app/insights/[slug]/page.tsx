@@ -1,9 +1,13 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
 import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
-import { getAllFinteraContent, getFinteraContentByIdOrSlug } from "@/lib/blog";
+import {
+  getAllFinteraContent,
+  getFinteraContentByIdOrSlug,
+  resolveArticleCoverImage,
+} from "@/lib/blog";
 import {
   CaseStudyMetadata,
   CONTENT_TYPES,
@@ -26,6 +30,9 @@ export default async function FinteraInsightDetailPage({
   const item = getFinteraContentByIdOrSlug(slug);
   if (!item) {
     notFound();
+  }
+  if (slug !== item.slug && slug !== item.id) {
+    redirect(`/insights/${item.slug}`);
   }
 
   const typeCfg = CONTENT_TYPES[item.contentType];
@@ -59,7 +66,11 @@ export default async function FinteraInsightDetailPage({
       ? (item.typeMetadata as unknown as TutorialMetadata)
       : null;
 
-  const coverSrc = item.coverImage || pillarCfg.coverImage;
+  const coverSrc = resolveArticleCoverImage(
+    item.id,
+    item.slug,
+    item.coverImage
+  );
 
   return (
     <>

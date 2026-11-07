@@ -15,7 +15,7 @@ export class ResearchDeskRegistry {
   private desks: ResearchDeskConfig[] = [
     {
       id: "desk_vivienda_b2c",
-      name: "Mesa 1 · Vivienda y Financiación Personal (35%)",
+      name: "Mesa 1 · Vivienda y Financiación Personal",
       slug: "vivienda-financiacion-personal",
       pillar: "VIVIENDA_B2C",
       targetSharePct: 35,
@@ -50,7 +50,7 @@ export class ResearchDeskRegistry {
     },
     {
       id: "desk_factoring_b2b",
-      name: "Mesa 2 · Liquidez Empresarial y Factoring (30%)",
+      name: "Mesa 2 · Liquidez Empresarial y Factoring",
       slug: "liquidez-empresarial-factoring",
       pillar: "FACTORING_B2B",
       targetSharePct: 30,
@@ -94,7 +94,7 @@ export class ResearchDeskRegistry {
     },
     {
       id: "desk_autoridad_mercado",
-      name: "Mesa 3 · Autoridad y Análisis del Mercado (20%)",
+      name: "Mesa 3 · Autoridad y Análisis del Mercado",
       slug: "autoridad-analisis-mercado",
       pillar: "AUTORIDAD_MERCADO",
       targetSharePct: 20,
@@ -126,7 +126,7 @@ export class ResearchDeskRegistry {
     },
     {
       id: "desk_confianza_conversion",
-      name: "Mesa 4 · Confianza y Generación de Oportunidades (15%)",
+      name: "Mesa 4 · Confianza y Generación de Oportunidades",
       slug: "confianza-oportunidades-fintera",
       pillar: "CONFIANZA_OPORTUNIDADES",
       targetSharePct: 15,

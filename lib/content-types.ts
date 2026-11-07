@@ -46,7 +46,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     key: "VIVIENDA_B2C",
     number: 1,
     label: "Pilar 1 · Vivienda y financiación personal",
-    shortLabel: "Vivienda B2C (35%)",
+    shortLabel: "Vivienda B2C",
     targetPercentage: 35,
     audience: "B2C_VIVIENDA",
     color: "#0A2342", // Azul profundo FINTERA
@@ -71,7 +71,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     key: "FACTORING_B2B",
     number: 2,
     label: "Pilar 2 · Liquidez empresarial y factoring",
-    shortLabel: "Factoring B2B (30%)",
+    shortLabel: "Factoring B2B",
     targetPercentage: 30,
     audience: "B2B_EMPRESAS",
     color: "#00C4B3", // Turquesa digital FINTERA
@@ -96,7 +96,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     key: "AUTORIDAD_MERCADO",
     number: 3,
     label: "Pilar 3 · Autoridad y análisis del mercado",
-    shortLabel: "Autoridad y Mercado (20%)",
+    shortLabel: "Autoridad y Mercado",
     targetPercentage: 20,
     audience: "HIBRIDO_ALIADOS",
     color: "#0A2342", // Azul profundo FINTERA
@@ -120,7 +120,7 @@ export const FINTERA_CONTENT_PILLARS: Record<
     key: "CONFIANZA_OPORTUNIDADES",
     number: 4,
     label: "Pilar 4 · Confianza y generación de oportunidades",
-    shortLabel: "Confianza y Conversión (15%)",
+    shortLabel: "Confianza y Conversión",
     targetPercentage: 15,
     audience: "HIBRIDO_ALIADOS",
     color: "#00C4B3", // Turquesa digital FINTERA

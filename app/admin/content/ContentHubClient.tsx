@@ -428,7 +428,6 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
     }
   };
 
-  const totalCount = items.length || 1;
   const activePillarCfg = activeItem
     ? FINTERA_CONTENT_PILLARS[activeItem.pillar] ||
       FINTERA_CONTENT_PILLARS.VIVIENDA_B2C
@@ -501,7 +500,6 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-5">
         {Object.values(FINTERA_CONTENT_PILLARS).map((pillar) => {
           const count = items.filter((i) => i.pillar === pillar.key).length;
-          const actualPct = Math.round((count / totalCount) * 100);
           const isSelected = selectedPillar === pillar.key;
           return (
             <button
@@ -527,10 +525,10 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0A2342] via-[#0A2342]/40 to-transparent" />
                   <div className="absolute top-2.5 left-3 right-3 flex items-center justify-between">
                     <span className="rounded-full bg-[#0A2342]/90 border border-[#00C4B3]/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#00C4B3]">
-                      Pilar {pillar.number} · Meta {pillar.targetPercentage}%
+                      Pilar {pillar.number}
                     </span>
                     <span className="rounded-full bg-sky-600/90 px-2.5 py-0.5 text-[10px] font-bold text-white">
-                      {count} piezas ({actualPct}%)
+                      {count} piezas
                     </span>
                   </div>
                   <div className="absolute bottom-2 left-3 right-3">

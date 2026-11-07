@@ -72,18 +72,86 @@ export interface FinteraContentItem {
 const CACHE_DIR = path.join(process.cwd(), ".cache");
 const POSTS_CACHE_FILE = path.join(CACHE_DIR, "fintera_insights_posts.json");
 
+const ARTICLE_EDITORIAL_COVERS: string[] = [
+  "/images/insights/fintera_wp_01_vivienda.png",
+  "/images/insights/fintera_wp_02_factoring.png",
+  "/images/insights/fintera_webinar_01_vivienda.png",
+  "/images/insights/fintera_webinar_02_factoring.png",
+  "/images/insights/fintera_case_01_costo_esperar_facturas.png",
+  "/images/insights/fintera_guide_01_cinco_variables_hipotecarias.png",
+  "/images/insights/fintera_post_01_vender_mas_vs_liquidez.png",
+  "/images/insights/fintera_tutorial_01_que_hace_fintera_carrusel.png",
+  "/images/insights/fintera_post_02_tasas_sfc_vis_no_vis_pesos_uvr.png",
+  "/images/insights/fintera_post_03_lineamientos_radian_dian_factoring.png",
+  "/images/insights/fintera_social_01_evaluando_vivienda_o_flujo_caja.png",
+  "/images/insights/fintera_post_04_que_mirar_ademas_de_la_tasa.png",
+];
+
+export function stripCalendarPrefixFromText(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(
+      /^Semana\s*\d+\s*[·\-:|]?\s*(?:Lunes|Martes|Mi[eé]rcoles|Jueves|Viernes|S[aá]bado|Domingo)?\s*[:·\-|]?\s*/gi,
+      ""
+    )
+    .replace(/\s*\(\s*Semana\s*\d+[^)]*\)/gi, "")
+    .replace(
+      /Plan Editorial LinkedIn\s*·\s*Semana\s*\d+\s*\([^)]*\)\s*·\s*/gi,
+      "Análisis estratégico FINTERA · "
+    )
+    .trim();
+}
+
+export function stripCalendarPrefixFromSlug(slug: string): string {
+  if (!slug) return slug;
+  return slug
+    .replace(
+      /^semana-\d+-(?:lunes-|martes-|miercoles-|jueves-|viernes-|sabado-|domingo-)?/i,
+      ""
+    )
+    .replace(/(^-|-$)/g, "");
+}
+
+export function resolveArticleCoverImage(
+  id: string,
+  slug: string,
+  candidateCover?: string | null
+): string {
+  // Never allow Pillar category cover images (/images/pillars/*) to be recycled on articles
+  if (candidateCover && !candidateCover.startsWith("/images/pillars/")) {
+    return candidateCover;
+  }
+  const directMatch = `/images/insights/${id}.png`;
+  if (ARTICLE_EDITORIAL_COVERS.includes(directMatch)) {
+    return directMatch;
+  }
+  const key = `${id}:${slug}`;
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  }
+  return ARTICLE_EDITORIAL_COVERS[hash % ARTICLE_EDITORIAL_COVERS.length];
+}
+
 function buildSeededItem(
   partial: Omit<
     FinteraContentItem,
     "qaStatus" | "qaScore" | "qaApprovalHash" | "qaReport" | "wordCount"
   >
 ): FinteraContentItem {
+  const cleanTitle = stripCalendarPrefixFromText(partial.title);
+  const cleanSlug = stripCalendarPrefixFromSlug(partial.slug);
+  const cleanSubtitle = partial.subtitle
+    ? stripCalendarPrefixFromText(partial.subtitle)
+    : null;
+  const cleanContent = stripCalendarPrefixFromText(partial.content);
+
   const qa = ContentQaGate.evaluate({
     postId: partial.id,
-    title: partial.title,
-    slug: partial.slug,
+    title: cleanTitle,
+    slug: cleanSlug,
     excerpt: partial.excerpt,
-    content: partial.content,
+    content: cleanContent,
     metaTitle: partial.seoTitle,
     metaDescription: partial.seoDescription,
     tags: partial.tags,
@@ -92,18 +160,23 @@ function buildSeededItem(
     cutoffDate: partial.cutoffDate,
   });
 
-  const wordCount = partial.content.trim().split(/\s+/).filter(Boolean).length;
-  const pillarCfg =
-    FINTERA_CONTENT_PILLARS[partial.pillar] ||
-    FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
+  const wordCount = cleanContent.trim().split(/\s+/).filter(Boolean).length;
 
   return {
     ...partial,
-    coverImage: partial.coverImage || pillarCfg.coverImage,
+    title: cleanTitle,
+    slug: cleanSlug,
+    subtitle: cleanSubtitle,
+    content: cleanContent,
+    coverImage: resolveArticleCoverImage(
+      partial.id,
+      cleanSlug,
+      partial.coverImage
+    ),
     imagePrompt:
       partial.imagePrompt ||
       buildFinteraBrandImagePrompt({
-        title: partial.title,
+        title: cleanTitle,
         pillar: partial.pillar,
         contentType: partial.contentType,
       }),
@@ -811,19 +884,19 @@ En FINTERA conectamos personas y empresas con soluciones financieras mediante or
     updatedAt: "2026-11-02T10:00:00Z",
   }),
 
-  // 8. TUTORIAL / CARRUSEL LINKEDIN — Semana 1 Lunes: ¿Qué hace FINTERA?
+  // 8. TUTORIAL / CARRUSEL LINKEDIN — ¿Qué hace FINTERA?
   buildSeededItem({
     id: "fintera_tutorial_01_que_hace_fintera_carrusel",
     title:
-      "Carrusel Institucional (Semana 1 · Lunes): ¿Qué hace FINTERA y cómo acompañamos las decisiones de financiación?",
+      "Carrusel Institucional: ¿Qué hace FINTERA y cómo acompañamos las decisiones de financiación?",
     slug: "carrusel-linkedin-que-hace-fintera-acompanamiento-financiacion",
     subtitle:
-      "Pieza inaugural del Plan de Posicionamiento de 90 días en LinkedIn: Criterio financiero, acompañamiento y transparencia",
+      "Pieza institucional de posicionamiento estratégico: Criterio financiero, acompañamiento y transparencia",
     excerpt:
       "Estructura lámina por lámina del carrusel institucional de presentación de FINTERA en LinkedIn: posicionamiento como aliado estratégico en crédito de vivienda y soluciones empresariales.",
-    content: `## Propósito de la Publicación (Semana 1 · Lunes)
+    content: `## Propósito de la Publicación
 
-Esta pieza inaugura el calendario editorial de 90 días de **FINTERA Soluciones Financieras** en LinkedIn. Su objetivo es establecer desde el primer día nuestra propuesta de valor: **no somos una marca que simplemente vende créditos; somos un aliado estratégico que conecta necesidades de financiación con alternativas adecuadas**, bajo los estándares regulatorios del mercado colombiano (**Superintendencia Financiera de Colombia**, **DIAN / RADIAN**, **Superintendencia de Sociedades**, *Corte: Octubre 2026*).
+Esta pieza presenta la propuesta de valor institucional de **FINTERA Soluciones Financieras** en Colombia: **no somos una marca que simplemente vende créditos; somos un aliado estratégico que conecta necesidades de financiación con alternativas adecuadas**, bajo los estándares regulatorios del mercado colombiano (**Superintendencia Financiera de Colombia**, **DIAN / RADIAN**, **Superintendencia de Sociedades**, *Corte: Octubre 2026*).
 
 ## Estructura del Carrusel para LinkedIn (6 Láminas)
 
@@ -1071,14 +1144,14 @@ En **FINTERA Soluciones Financieras** conectamos personas y empresas con alterna
     updatedAt: "2026-11-05T08:00:00Z",
   }),
 
-  // 11. SOCIAL_POST — Semana 1 Viernes: Conversación y conversión consultiva
+  // 11. GUIDE — Conversación y conversión consultiva
   buildSeededItem({
     id: "fintera_social_01_evaluando_vivienda_o_flujo_caja",
     title:
-      "Semana 1 · Viernes: ¿Estás evaluando comprar vivienda o mejorar el flujo de caja de tu empresa? Preguntas clave antes de iniciar",
-    slug: "semana-1-viernes-evaluando-comprar-vivienda-o-mejorar-flujo-de-caja-empresa",
+      "¿Estás evaluando comprar vivienda o mejorar el flujo de caja de tu empresa? Preguntas clave antes de iniciar",
+    slug: "evaluando-comprar-vivienda-o-mejorar-flujo-de-caja-empresa",
     subtitle:
-      "Publicación de conversación y conversión consultiva del Plan de 90 Días en LinkedIn: orientación sin promesas vacías (Corte: Octubre 2026)",
+      "Guía de autodiagnóstico financiero y conversión consultiva: orientación sin promesas vacías (Corte: Octubre 2026)",
     excerpt:
       "Las 4 preguntas de autodiagnóstico que toda familia compradora de vivienda y todo gerente financiero de pyme en Colombia deberían responder antes de radicar una solicitud.",
     content: `## Diagnóstico Previo: El Primer Paso de una Decisión Financiera Sólida
@@ -1241,29 +1314,37 @@ En **FINTERA Soluciones Financieras** te acompañamos a comparar opciones reales
 
 function loadCachedPosts(): FinteraContentItem[] {
   const enrichItem = (item: FinteraContentItem): FinteraContentItem => {
-    const pillarCfg =
-      FINTERA_CONTENT_PILLARS[item.pillar] ||
-      FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
     const meta = (item.typeMetadata || {}) as Record<string, unknown>;
+    const cleanTitle = stripCalendarPrefixFromText(item.title);
+    const cleanSlug = stripCalendarPrefixFromSlug(item.slug);
+    const cleanSubtitle = item.subtitle
+      ? stripCalendarPrefixFromText(item.subtitle)
+      : null;
+    const cleanContent = stripCalendarPrefixFromText(item.content);
+    const rawCover =
+      item.coverImage ||
+      (typeof meta.coverImage === "string" ? meta.coverImage : null);
+
     return {
       ...item,
-      coverImage:
-        item.coverImage ||
-        (typeof meta.coverImage === "string" ? meta.coverImage : null) ||
-        pillarCfg.coverImage,
+      title: cleanTitle,
+      slug: cleanSlug,
+      subtitle: cleanSubtitle,
+      content: cleanContent,
+      coverImage: resolveArticleCoverImage(item.id, cleanSlug, rawCover),
       imagePrompt:
         item.imagePrompt ||
         (typeof meta.imagePrompt === "string" ? meta.imagePrompt : null) ||
         buildFinteraBrandImagePrompt({
-          title: item.title,
+          title: cleanTitle,
           pillar: item.pillar,
           contentType: item.contentType,
         }),
       creativeAssets: Array.isArray(item.creativeAssets)
         ? item.creativeAssets
         : Array.isArray(meta.creativeAssets)
-        ? (meta.creativeAssets as FinteraCreativeAsset[])
-        : [],
+          ? (meta.creativeAssets as FinteraCreativeAsset[])
+          : [],
     };
   };
 
@@ -1272,24 +1353,29 @@ function loadCachedPosts(): FinteraContentItem[] {
       const raw = fs.readFileSync(POSTS_CACHE_FILE, "utf8");
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const bySlug = new Map<string, FinteraContentItem>();
+        const byId = new Map<string, FinteraContentItem>();
         for (const item of parsed as FinteraContentItem[]) {
-          if (item && item.slug) {
-            bySlug.set(item.slug, enrichItem(item));
+          if (item && (item.id || item.slug)) {
+            const enriched = enrichItem(item);
+            byId.set(enriched.id, enriched);
           }
         }
         for (const seeded of SEEDED_FINTERA_INSIGHTS) {
-          if (!bySlug.has(seeded.slug)) {
-            bySlug.set(seeded.slug, enrichItem(seeded));
+          const enrichedSeeded = enrichItem(seeded);
+          if (!byId.has(enrichedSeeded.id)) {
+            byId.set(enrichedSeeded.id, enrichedSeeded);
           } else {
-            const current = bySlug.get(seeded.slug)!;
+            const current = byId.get(enrichedSeeded.id)!;
             // Promote seeded flagship pieces if cached copy was still DRAFT
-            if (seeded.status === "PUBLISHED" && current.status === "DRAFT") {
-              bySlug.set(seeded.slug, enrichItem(seeded));
+            if (
+              enrichedSeeded.status === "PUBLISHED" &&
+              current.status === "DRAFT"
+            ) {
+              byId.set(enrichedSeeded.id, enrichedSeeded);
             }
           }
         }
-        return Array.from(bySlug.values());
+        return Array.from(byId.values());
       }
     }
   } catch {
@@ -1339,33 +1425,53 @@ export function getFinteraContentByIdOrSlug(
   idOrSlug: string
 ): FinteraContentItem | undefined {
   const items = loadCachedPosts();
-  return items.find((i) => i.id === idOrSlug || i.slug === idOrSlug);
+  const normalizedTarget = stripCalendarPrefixFromSlug(idOrSlug);
+  return items.find(
+    (i) =>
+      i.id === idOrSlug ||
+      i.slug === idOrSlug ||
+      i.slug === normalizedTarget
+  );
 }
 
 export async function upsertFinteraContent(
   input: Partial<FinteraContentItem> & { title: string; content: string }
 ): Promise<FinteraContentItem> {
   const items = loadCachedPosts();
+  const cleanTitle = stripCalendarPrefixFromText(input.title);
+  const cleanContent = stripCalendarPrefixFromText(input.content);
+  const cleanSubtitle =
+    input.subtitle !== undefined
+      ? input.subtitle
+        ? stripCalendarPrefixFromText(input.subtitle)
+        : null
+      : undefined;
+
   const existingIndex = items.findIndex(
-    (i) => (input.id && i.id === input.id) || (input.slug && i.slug === input.slug)
+    (i) =>
+      (input.id && i.id === input.id) ||
+      (input.slug &&
+        (i.slug === input.slug ||
+          i.slug === stripCalendarPrefixFromSlug(input.slug)))
   );
   const existing = existingIndex >= 0 ? items[existingIndex] : undefined;
 
-  const slug =
+  const rawSlug =
     input.slug ||
     existing?.slug ||
-    input.title
+    cleanTitle
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
+  const slug = stripCalendarPrefixFromSlug(rawSlug);
 
   const id = input.id || existing?.id || `fintera_${Date.now()}`;
   const excerpt =
     input.excerpt ??
     existing?.excerpt ??
-    input.content.replace(/[#>*_`-]/g, "").slice(0, 220).trim();
+    cleanContent.replace(/[#>*_`-]/g, "").slice(0, 220).trim();
   const cutoffDate = input.cutoffDate || existing?.cutoffDate || "Octubre 2026";
   const pillar: FinteraContentPillarKey =
     input.pillar || existing?.pillar || "VIVIENDA_B2C";
@@ -1374,10 +1480,10 @@ export async function upsertFinteraContent(
 
   const qa = ContentQaGate.evaluate({
     postId: id,
-    title: input.title,
+    title: cleanTitle,
     slug,
     excerpt,
-    content: input.content,
+    content: cleanContent,
     metaTitle: input.seoTitle ?? existing?.seoTitle,
     metaDescription: input.seoDescription ?? existing?.seoDescription,
     tags: input.tags ?? existing?.tags ?? [],
@@ -1386,19 +1492,20 @@ export async function upsertFinteraContent(
     cutoffDate,
   });
 
-  const wordCount = input.content.trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = cleanContent.trim().split(/\s+/).filter(Boolean).length;
   const readingTime =
     input.readingTime || Math.max(3, Math.ceil(wordCount / 180));
 
-  const pillarCfg =
-    FINTERA_CONTENT_PILLARS[pillar] || FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
-  const coverImage =
-    input.coverImage ?? existing?.coverImage ?? pillarCfg.coverImage;
+  const coverImage = resolveArticleCoverImage(
+    id,
+    slug,
+    input.coverImage ?? existing?.coverImage
+  );
   const imagePrompt =
     input.imagePrompt ??
     existing?.imagePrompt ??
     buildFinteraBrandImagePrompt({
-      title: input.title,
+      title: cleanTitle,
       pillar,
       contentType,
     });
@@ -1414,11 +1521,16 @@ export async function upsertFinteraContent(
 
   const updatedItem: FinteraContentItem = {
     id,
-    title: input.title,
+    title: cleanTitle,
     slug,
-    subtitle: input.subtitle ?? existing?.subtitle ?? null,
+    subtitle:
+      cleanSubtitle !== undefined
+        ? cleanSubtitle
+        : existing?.subtitle
+        ? stripCalendarPrefixFromText(existing.subtitle)
+        : null,
     excerpt,
-    content: input.content,
+    content: cleanContent,
     status: input.status || existing?.status || "DRAFT",
     contentType,
     pillar,
@@ -1428,8 +1540,8 @@ export async function upsertFinteraContent(
       (pillar === "VIVIENDA_B2C"
         ? "B2C_VIVIENDA"
         : pillar === "FACTORING_B2B"
-        ? "B2B_EMPRESAS"
-        : "HIBRIDO_ALIADOS"),
+          ? "B2B_EMPRESAS"
+          : "HIBRIDO_ALIADOS"),
     cutoffDate,
     featured: input.featured ?? existing?.featured ?? false,
     gated: input.gated ?? existing?.gated ?? false,
@@ -1466,10 +1578,10 @@ export async function upsertFinteraContent(
       (pillar === "VIVIENDA_B2C"
         ? "Vivienda y Financiación Personal"
         : pillar === "FACTORING_B2B"
-        ? "Liquidez Empresarial y Factoring"
-        : pillar === "AUTORIDAD_MERCADO"
-        ? "Autoridad y Análisis del Mercado"
-        : "Confianza y Generación de Oportunidades"),
+          ? "Liquidez Empresarial y Factoring"
+          : pillar === "AUTORIDAD_MERCADO"
+            ? "Autoridad y Análisis del Mercado"
+            : "Confianza y Generación de Oportunidades"),
     categorySlug:
       input.categorySlug ||
       existing?.categorySlug ||

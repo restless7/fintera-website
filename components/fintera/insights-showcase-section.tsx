@@ -53,7 +53,7 @@ export default function InsightsShowcaseSection() {
             >
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold uppercase tracking-wider text-sky-400">
-                  Pilar {pillar.number} · {pillar.targetPercentage}%
+                  Pilar {pillar.number}
                 </span>
                 <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] text-slate-300">
                   {pillar.audience === "B2C_VIVIENDA"
