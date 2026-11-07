@@ -138,16 +138,24 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (status) {
-      // Governance check: Require QA pass before publishing unless bypassed
-      if (status === "PUBLISHED" && existing.qaScore < 80) {
+      const scheduledAt = body.scheduledAt
+        ? new Date(body.scheduledAt).toISOString()
+        : status === "SCHEDULED"
+        ? existing.scheduledAt ||
+          new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+        : null;
+
+      // Governance check: Require QA pass before publishing or scheduling unless bypassed
+      if ((status === "PUBLISHED" || status === "SCHEDULED") && existing.qaScore < 80) {
         const remediated = await remediateFinteraContent(id);
-        const published = await upsertFinteraContent({
+        const updated = await upsertFinteraContent({
           ...remediated.item,
-          status: "PUBLISHED",
+          status,
+          scheduledAt,
         });
         return NextResponse.json({
           success: true,
-          item: published,
+          item: updated,
           autoRemediated: true,
         });
       }
@@ -155,6 +163,7 @@ export async function PATCH(req: NextRequest) {
       const updated = await upsertFinteraContent({
         ...existing,
         status,
+        scheduledAt,
       });
       return NextResponse.json({ success: true, item: updated });
     }

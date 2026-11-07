@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   BookOpen,
+  CalendarClock,
   CheckCircle2,
   ClipboardCopy,
+  Clock,
   Code2,
   Edit3,
   Eye,
@@ -105,6 +107,10 @@ export function ContentHubClient({ initialItems }: ContentHubClientProps) {
   >("1024x1024");
   const [customImageUrl, setCustomImageUrl] = useState("");
 
+  // Schedule publication modal state
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduledDateTime, setScheduledDateTime] = useState("");
+
   // Create / Quick-generate modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -160,6 +166,20 @@ export function ContentHubClient({ initialItems }: ContentHubClientProps) {
           contentType: item.contentType,
         })
     );
+    if (item.scheduledAt) {
+      try {
+        const d = new Date(item.scheduledAt);
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const formatted = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+          d.getDate()
+        )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        setScheduledDateTime(formatted);
+      } catch {
+        setScheduledDateTime("");
+      }
+    } else {
+      setScheduledDateTime("");
+    }
     setInspectorTab(tab);
   };
 
@@ -524,7 +544,8 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
 
   const handleStatusChange = async (
     id: string,
-    status: FinteraContentItem["status"]
+    status: FinteraContentItem["status"],
+    scheduledAtDate?: string
   ) => {
     setIsSaving(true);
     setFeedbackBanner(null);
@@ -532,7 +553,11 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
       const res = await fetch("/api/admin/content", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify({
+          id,
+          status,
+          scheduledAt: scheduledAtDate || undefined,
+        }),
       });
       const data = await res.json();
       if (data.success && data.item) {
@@ -540,12 +565,23 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
           prev.map((i) => (i.id === data.item.id ? data.item : i))
         );
         setActiveItem(data.item);
-        setFeedbackBanner(
-          `Estado actualizado a ${data.item.status} para "${data.item.title}".`
-        );
+        if (data.item.status === "SCHEDULED" && data.item.scheduledAt) {
+          const dateStr = new Date(data.item.scheduledAt).toLocaleString(
+            "es-CO",
+            { dateStyle: "short", timeStyle: "short" }
+          );
+          setFeedbackBanner(
+            `Publicación programada exitosamente para el ${dateStr}: "${data.item.title}".`
+          );
+        } else {
+          setFeedbackBanner(
+            `Estado actualizado a ${data.item.status} para "${data.item.title}".`
+          );
+        }
       }
     } finally {
       setIsSaving(false);
+      setShowScheduleModal(false);
     }
   };
 
@@ -842,11 +878,23 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 px-4 py-2.5 text-xs text-slate-300">
-                  <span>
-                    Fecha de corte oficial:{" "}
-                    <strong className="text-white">{activeItem.cutoffDate}</strong>{" "}
-                    · Autor: {activeItem.authorName}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>
+                      Fecha de corte oficial:{" "}
+                      <strong className="text-white">{activeItem.cutoffDate}</strong>{" "}
+                      · Autor: {activeItem.authorName}
+                    </span>
+                    {activeItem.status === "SCHEDULED" && activeItem.scheduledAt && (
+                      <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-300 inline-flex items-center gap-1">
+                        <Clock size={11} />
+                        Programado para:{" "}
+                        {new Date(activeItem.scheduledAt).toLocaleString("es-CO", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                    )}
+                  </div>
                   {activeItem.aiModel && (
                     <span className="text-sky-400 font-semibold">
                       Motor: {activeItem.aiModel}
@@ -962,26 +1010,58 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                 </button>
 
                 {activeItem.status !== "PUBLISHED" ? (
-                  <button
-                    type="button"
-                    disabled={isSaving}
-                    onClick={() =>
-                      handleStatusChange(activeItem.id, "PUBLISHED")
-                    }
-                    className="admin-button admin-button-primary text-xs"
-                  >
-                    <CheckCircle2 size={14} />
-                    <span>Publicar</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() =>
+                        handleStatusChange(activeItem.id, "PUBLISHED")
+                      }
+                      className="admin-button admin-button-primary text-xs"
+                    >
+                      <CheckCircle2 size={14} />
+                      <span>Publicar Inmediato</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => setShowScheduleModal(true)}
+                      className={`admin-button text-xs ${
+                        activeItem.status === "SCHEDULED"
+                          ? "border-amber-500/50 text-amber-300 bg-amber-950/20"
+                          : ""
+                      }`}
+                    >
+                      <CalendarClock size={14} />
+                      <span>
+                        {activeItem.status === "SCHEDULED"
+                          ? "Reprogramar Fecha"
+                          : "Programar Publicación"}
+                      </span>
+                    </button>
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    disabled={isSaving}
-                    onClick={() => handleStatusChange(activeItem.id, "DRAFT")}
-                    className="admin-button text-xs"
-                  >
-                    <span>Pasar a Borrador</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => handleStatusChange(activeItem.id, "DRAFT")}
+                      className="admin-button text-xs"
+                    >
+                      <span>Pasar a Borrador</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => setShowScheduleModal(true)}
+                      className="admin-button text-xs"
+                    >
+                      <CalendarClock size={14} />
+                      <span>Cambiar a Programado</span>
+                    </button>
+                  </>
                 )}
 
                 <button
@@ -1739,11 +1819,20 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                           className={`admin-status ${
                             item.status === "PUBLISHED"
                               ? "admin-status-success"
+                              : item.status === "SCHEDULED"
+                              ? "admin-status-warning"
                               : "admin-status-neutral"
                           }`}
                         >
                           {item.status === "PUBLISHED"
                             ? "Publicado"
+                            : item.status === "SCHEDULED"
+                            ? item.scheduledAt
+                              ? `Prog. ${new Date(item.scheduledAt).toLocaleDateString("es-CO", {
+                                  day: "2-digit",
+                                  month: "short",
+                                })}`
+                              : "Programado"
                             : item.status === "DRAFT"
                             ? "Borrador"
                             : item.status}
@@ -1778,6 +1867,82 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
           ))}
         </div>
       </div>
+
+      {/* Modal for Scheduling Publication Date & Time */}
+      {showScheduleModal && activeItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
+          <div className="admin-card w-full max-w-md space-y-4 border-slate-700 bg-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <CalendarClock size={18} className="text-amber-400" />
+                <h3 className="text-base font-bold text-white">
+                  Programar Fecha de Publicación
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowScheduleModal(false)}
+                className="text-xs text-slate-300 hover:text-white"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div>
+              <p className="text-xs text-slate-300">
+                Selecciona la fecha y hora exacta en la que deseas que la pieza{" "}
+                <strong className="text-white">&ldquo;{activeItem.title}&rdquo;</strong> se active automáticamente en el portal público de FINTERA Insights.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-white mb-1.5">
+                Fecha y Hora de Publicación (Hora Colombia COT)
+              </label>
+              <input
+                type="datetime-local"
+                value={scheduledDateTime}
+                onChange={(e) => setScheduledDateTime(e.target.value)}
+                className="admin-input w-full text-xs font-medium"
+              />
+            </div>
+
+            <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
+              <span className="font-semibold text-slate-200 block mb-1">
+                Gobernanza Editorial FINTERA:
+              </span>
+              El artículo permanecerá en estado <strong>SCHEDULED</strong> y pasará a <strong>PUBLISHED</strong> automáticamente al cumplirse la fecha programada.
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowScheduleModal(false)}
+                className="admin-button text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isSaving || !scheduledDateTime}
+                onClick={() =>
+                  handleStatusChange(
+                    activeItem.id,
+                    "SCHEDULED",
+                    new Date(scheduledDateTime).toISOString()
+                  )
+                }
+                className="admin-button admin-button-primary text-xs !bg-amber-600 hover:!bg-amber-500 !border-amber-500 text-white"
+              >
+                <CalendarClock size={14} />
+                <span>
+                  {isSaving ? "Guardando..." : "Confirmar Programación"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal for Creating / Generating a New Piece */}
       {showCreateModal && (

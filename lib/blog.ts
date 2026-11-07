@@ -1543,6 +1543,19 @@ function saveCachedPosts(posts: FinteraContentItem[]): void {
   }
 }
 
+export function isFinteraContentPublished(item: FinteraContentItem): boolean {
+  if (item.status === "PUBLISHED") {
+    return true;
+  }
+  if (item.status === "SCHEDULED" && item.scheduledAt) {
+    const scheduledTime = new Date(item.scheduledAt).getTime();
+    if (!Number.isNaN(scheduledTime) && scheduledTime <= Date.now()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function getAllFinteraContent(options?: {
   status?: FinteraContentItem["status"];
   contentType?: ContentTypeKey;
@@ -1550,8 +1563,30 @@ export function getAllFinteraContent(options?: {
   audience?: FinteraAudienceKey;
 }): FinteraContentItem[] {
   let items = loadCachedPosts();
+
+  // Auto-promote any SCHEDULED post whose scheduledAt time has arrived
+  let cacheModified = false;
+  const now = Date.now();
+  for (const item of items) {
+    if (item.status === "SCHEDULED" && item.scheduledAt) {
+      const scheduledTime = new Date(item.scheduledAt).getTime();
+      if (!Number.isNaN(scheduledTime) && scheduledTime <= now) {
+        item.status = "PUBLISHED";
+        item.publishedAt = item.scheduledAt;
+        cacheModified = true;
+      }
+    }
+  }
+  if (cacheModified) {
+    saveCachedPosts(items);
+  }
+
   if (options?.status) {
-    items = items.filter((item) => item.status === options.status);
+    if (options.status === "PUBLISHED") {
+      items = items.filter(isFinteraContentPublished);
+    } else {
+      items = items.filter((item) => item.status === options.status);
+    }
   }
   if (options?.contentType) {
     items = items.filter((item) => item.contentType === options.contentType);
@@ -1774,7 +1809,12 @@ export async function upsertFinteraContent(
       input.status === "PUBLISHED"
         ? existing?.publishedAt || new Date().toISOString()
         : input.publishedAt ?? existing?.publishedAt ?? null,
-    scheduledAt: input.scheduledAt ?? existing?.scheduledAt ?? null,
+    scheduledAt:
+      input.status === "SCHEDULED"
+        ? input.scheduledAt ||
+          existing?.scheduledAt ||
+          new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+        : input.scheduledAt ?? existing?.scheduledAt ?? null,
     createdAt: existing?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
