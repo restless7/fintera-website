@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { getAdminLanding } from "@/lib/auth/admin-landing";
@@ -30,15 +31,25 @@ export default async function AdminAccessPage() {
       : "Tu cuenta está creada; falta el acceso al equipo";
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-12 text-slate-100 flex items-center justify-center">
-      <section className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8" aria-labelledby="access-title">
-        <div className="mb-8 flex items-center justify-between gap-4">
-          <Link href="/" className="font-semibold tracking-wide text-white">FINTERA</Link>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/40 to-blue-50/50 px-4 py-12 text-slate-900 flex items-center justify-center">
+      <section
+        className="w-full max-w-lg rounded-2xl border border-sky-200/80 bg-white/85 backdrop-blur-xl p-6 sm:p-8 shadow-xl"
+        aria-labelledby="access-title"
+      >
+        <div className="mb-8 flex items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+          <Link href="/" className="flex items-center gap-2.5 font-extrabold tracking-wider text-slate-900">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-200 bg-sky-50">
+              <Image src="/images/shieldlogo.png" width={26} height={26} alt="" unoptimized />
+            </span>
+            <span>FINTERA</span>
+          </Link>
           <div aria-label="Opciones de tu cuenta"><UserButton /></div>
         </div>
-        <p className="mb-3 text-sm font-medium text-emerald-300">Acceso al equipo</p>
-        <h1 id="access-title" className="text-2xl font-semibold leading-tight text-white">{title}</h1>
-        <div className="mt-4 space-y-3 text-sm leading-6 text-slate-300" role="status">
+        <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-700">
+          Acceso al equipo
+        </p>
+        <h1 id="access-title" className="text-2xl font-extrabold leading-tight text-slate-900">{title}</h1>
+        <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600" role="status">
           {unavailable ? (
             <p>No podemos verificar el acceso interno ahora. Intenta de nuevo más tarde. No necesitas crear otra cuenta.</p>
           ) : (
@@ -49,10 +60,10 @@ export default async function AdminAccessPage() {
           )}
         </div>
         <div className="mt-7 flex flex-wrap gap-3">
-          {unavailable && <Link href="/admin" prefetch={false} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300">Volver a intentar</Link>}
-          <Link href="/" className="rounded-lg border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-100 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-300">Volver al sitio</Link>
+          {unavailable && <Link href="/admin" prefetch={false} className="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500">Volver a intentar</Link>}
+          <Link href="/" className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-sky-50 hover:border-sky-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-500">Volver al sitio</Link>
         </div>
-        <p className="mt-6 text-xs leading-5 text-slate-400">Puedes cambiar de cuenta o cerrar sesión desde el menú de tu cuenta.</p>
+        <p className="mt-6 text-xs leading-5 text-slate-500">Puedes cambiar de cuenta o cerrar sesión desde el menú de tu cuenta.</p>
       </section>
     </main>
   );

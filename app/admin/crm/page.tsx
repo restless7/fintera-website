@@ -1,6 +1,7 @@
 import { requireAdminPermission } from "@/lib/auth/admin-session";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { DashboardService, DashboardMetrics } from "@/lib/crm/dashboard-service";
 
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -233,7 +234,7 @@ export default async function CrmDashboardPage() {
                       <td className="py-3.5 px-4 text-right">
                         <Link
                           href={`/admin/crm/applications/${app.id}`}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-white transition-colors"
+                          className="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-xs font-semibold text-white shadow-sm transition-colors keep-white-text"
                         >
                           Abrir Caso
                         </Link>
@@ -249,81 +250,140 @@ export default async function CrmDashboardPage() {
         {/* FINTERA Insights & Posicionamiento LinkedIn (90 Días) Executive Strip */}
         <div className="admin-card p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-sky-400">
-                FINTERA INSIGHTS & MARCA · MOTOR DE AUTORIDAD Y GENERACIÓN DE DEMANDA
-              </span>
-              <h2 className="mt-1 text-lg font-bold text-white">
-                Posicionamiento en LinkedIn (90 Días) e Inteligencia Financiera
-              </h2>
-              <p className="mt-0.5 text-xs text-slate-400">
-                Conecta la generación de contenido respaldado en 14 fuentes oficiales (SFC, BanRep, DANE, DIAN/RADIAN, OCDE) con la captación de prospectos B2C (Vivienda) y B2B (Factoring).
-              </p>
+            <div className="flex items-start gap-3.5">
+              <div className="hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-sky-500/30 bg-sky-500/10">
+                <Image
+                  src="/images/shieldlogo.png"
+                  width={26}
+                  height={26}
+                  alt=""
+                  unoptimized
+                />
+              </div>
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                  FINTERA INSIGHTS &amp; MARCA · MOTOR DE AUTORIDAD Y GENERACIÓN DE DEMANDA
+                </span>
+                <h2 className="mt-1 text-lg font-bold text-white">
+                  Posicionamiento en LinkedIn (90 Días) e Inteligencia Financiera
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Conecta la generación de contenido respaldado en 14 fuentes oficiales (SFC, BanRep, DANE, DIAN/RADIAN, OCDE) con la captación de prospectos B2C (Vivienda) y B2B (Factoring).
+                </p>
+              </div>
             </div>
             <Link href="/insights" target="_blank" className="admin-button text-xs">
               Ver Portal Público (/insights) ↗
             </Link>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Link
               href="/admin/content"
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+              className="group overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 transition hover:border-sky-500/60 hover:shadow-md"
             >
-              <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                Centro Editorial
-              </span>
-              <p className="mt-1 text-sm font-semibold text-white">
-                Artículos, Whitepapers, Webinars y Casos
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Gobernanza QA Gate de 8 dimensiones y copy listo para LinkedIn.
-              </p>
+              <div className="relative h-24 w-full overflow-hidden">
+                <Image
+                  src="/images/pillars/pilar-1-vivienda-b2c.png"
+                  alt="Centro Editorial FINTERA"
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent" />
+                <span className="keep-white-text absolute bottom-2 left-3 rounded-full bg-sky-600/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Centro Editorial
+                </span>
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-bold text-white">
+                  Artículos, Whitepapers, Webinars y Casos
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Gobernanza QA Gate de 8 dimensiones y copy listo para LinkedIn.
+                </p>
+              </div>
             </Link>
 
             <Link
               href="/admin/research"
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+              className="group overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 transition hover:border-sky-500/60 hover:shadow-md"
             >
-              <span className="text-xs font-bold uppercase tracking-wider text-teal-400">
-                14 Fuentes Autorizadas
-              </span>
-              <p className="mt-1 text-sm font-semibold text-white">
-                Monitor SFC, BanRep, DIAN y OCDE
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                4 Mesas de investigación con fecha de corte y separación Hecho vs. Criterio.
-              </p>
+              <div className="relative h-24 w-full overflow-hidden">
+                <Image
+                  src="/images/pillars/pilar-3-autoridad-mercado.png"
+                  alt="14 Fuentes Autorizadas"
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent" />
+                <span className="keep-white-text absolute bottom-2 left-3 rounded-full bg-blue-600/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  14 Fuentes Autorizadas
+                </span>
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-bold text-white">
+                  Monitor SFC, BanRep, DIAN y OCDE
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  4 Mesas de investigación con fecha de corte y separación Hecho vs. Criterio.
+                </p>
+              </div>
             </Link>
 
             <Link
               href="/admin/linkedin"
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+              className="group overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 transition hover:border-sky-500/60 hover:shadow-md"
             >
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                Plan LinkedIn 90 Días
-              </span>
-              <p className="mt-1 text-sm font-semibold text-white">
-                Calendario Mensual y Constructor UTM
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                4 publicaciones semanales (Lun–Jue), rutina semanal y embudo B2C/B2B.
-              </p>
+              <div className="relative h-24 w-full overflow-hidden">
+                <Image
+                  src="/images/pillars/pilar-4-confianza-oportunidades.png"
+                  alt="Plan LinkedIn 90 Días"
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent" />
+                <span className="keep-white-text absolute bottom-2 left-3 rounded-full bg-indigo-600/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Plan LinkedIn 90 Días
+                </span>
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-bold text-white">
+                  Calendario Mensual y Constructor UTM
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  4 publicaciones semanales (Lun–Jue), rutina semanal y embudo B2C/B2B.
+                </p>
+              </div>
             </Link>
 
             <Link
               href="/admin/content/pipeline"
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/60"
+              className="group overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 transition hover:border-sky-500/60 hover:shadow-md"
             >
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                Motor IA y Scraping
-              </span>
-              <p className="mt-1 text-sm font-semibold text-white">
-                Agentes Autónomos FINTERA
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Ejecuta barridos en tiempo real y redacción multiformato asistida.
-              </p>
+              <div className="relative h-24 w-full overflow-hidden">
+                <Image
+                  src="/images/pillars/pilar-2-factoring-b2b.png"
+                  alt="Motor IA y Scraping"
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent" />
+                <span className="keep-white-text absolute bottom-2 left-3 rounded-full bg-cyan-600/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Motor IA y Scraping
+                </span>
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-bold text-white">
+                  Agentes Autónomos FINTERA
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Ejecuta barridos en tiempo real y redacción multiformato asistida.
+                </p>
+              </div>
             </Link>
           </div>
         </div>

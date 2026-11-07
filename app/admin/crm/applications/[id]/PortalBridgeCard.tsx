@@ -208,7 +208,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
   const stageEntries = Object.entries(CANONICAL_PUBLIC_STAGE_MAP);
 
   return (
-    <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-6 space-y-5">
+    <div className="admin-card p-6 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div>
           <h2 className="text-base font-bold text-white">
@@ -218,7 +218,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
             Enlace mágico HMAC-SHA256, publicación de hitos en 1 clic y chat en vivo con el titular.
           </p>
         </div>
-        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
           Canal 256-bit Activo
         </span>
       </div>
@@ -226,7 +226,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
       {statusFeedback && (
         <div
           role="status"
-          className="p-3 rounded-lg bg-emerald-950/60 border border-emerald-700/60 text-emerald-300 text-xs"
+          className="p-3 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-medium"
         >
           {statusFeedback}
         </div>
@@ -241,7 +241,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
           <button
             type="button"
             onClick={() => handleCopy(bridge.documentsMagicUrl, "docs")}
-            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition"
+            className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold transition keep-white-text"
           >
             {copiedLabel === "docs" ? "✓ Link Bóveda Copiado" : "Copiar Link Bóveda Documental"}
           </button>
@@ -256,7 +256,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
             href={whatsappShareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 rounded-lg bg-emerald-900/60 hover:bg-emerald-800 text-emerald-300 border border-emerald-700/50 text-xs font-semibold transition"
+            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition keep-white-text"
           >
             Enviar por WhatsApp
           </a>
@@ -264,7 +264,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
             type="button"
             disabled={sendingResendLink}
             onClick={handleResendWelcomeEmail}
-            className="px-3 py-1.5 rounded-lg bg-blue-950 hover:bg-blue-900 text-blue-300 border border-blue-800/60 text-xs font-semibold transition disabled:opacity-50"
+            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition disabled:opacity-50 keep-white-text"
           >
             {sendingResendLink ? "Enviando..." : "Enviar Magic Link por Correo (Resend)"}
           </button>
@@ -344,7 +344,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
             <button
               type="submit"
               disabled={publishingEvent}
-              className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition disabled:opacity-50"
+              className="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition disabled:opacity-50 keep-white-text"
             >
               {publishingEvent ? "Publicando..." : "Publicar Hito y Notificar por Resend"}
             </button>
@@ -372,7 +372,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
                 key={m.id}
                 className={`p-2.5 rounded-lg text-xs ${
                   m.senderType === "ADVISOR"
-                    ? "bg-emerald-950/50 border border-emerald-800/50 text-emerald-100 ml-4"
+                    ? "bg-sky-500/15 border border-sky-500/30 text-slate-100 ml-4"
                     : "bg-slate-900 border border-slate-800 text-slate-200 mr-4"
                 }`}
               >
@@ -401,7 +401,7 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
           <button
             type="submit"
             disabled={sendingMsg || !replyText.trim()}
-            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold disabled:opacity-50"
+            className="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold disabled:opacity-50 keep-white-text"
           >
             {sendingMsg ? "..." : "Enviar"}
           </button>
@@ -426,10 +426,10 @@ export default function PortalBridgeCard({ applicationId }: { applicationId: str
                 <span
                   className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                     item.status === "PUBLISHED"
-                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                      ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                       : item.status === "PENDING"
-                      ? "bg-amber-950 text-amber-300 border border-amber-800"
-                      : "bg-rose-950 text-rose-300 border border-rose-800"
+                      ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                      : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                   }`}
                 >
                   {item.status === "PUBLISHED"

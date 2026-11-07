@@ -249,14 +249,10 @@ export function PipelineClient({
                   onChange={(e) =>
                     setSelectedPillar(e.target.value as FinteraContentPillarKey)
                   }
-                  className="admin-select mt-1 w-full bg-[#0a192f] text-white"
+                  className="admin-select mt-1 w-full"
                 >
                   {Object.values(FINTERA_CONTENT_PILLARS).map((p) => (
-                    <option
-                      key={p.key}
-                      value={p.key}
-                      className="bg-[#0A2342] text-white"
-                    >
+                    <option key={p.key} value={p.key}>
                       {p.label}
                     </option>
                   ))}
@@ -272,14 +268,10 @@ export function PipelineClient({
                   onChange={(e) =>
                     setSelectedFormat(e.target.value as ContentTypeKey)
                   }
-                  className="admin-select mt-1 w-full bg-[#0a192f] text-white"
+                  className="admin-select mt-1 w-full"
                 >
                   {Object.values(CONTENT_TYPES).map((t) => (
-                    <option
-                      key={t.key}
-                      value={t.key}
-                      className="bg-[#0A2342] text-white"
-                    >
+                    <option key={t.key} value={t.key}>
                       {t.label}
                     </option>
                   ))}
@@ -288,15 +280,15 @@ export function PipelineClient({
             </div>
 
             {/* Active Pillar Brand Identity Preview */}
-            <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-[#0A2342]/60 p-2.5">
+            <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={FINTERA_CONTENT_PILLARS[selectedPillar].coverImage}
                 alt={FINTERA_CONTENT_PILLARS[selectedPillar].shortLabel}
-                className="h-12 w-20 shrink-0 rounded border border-slate-700 object-cover"
+                className="h-12 w-20 shrink-0 rounded-lg border border-slate-700 object-cover"
               />
               <div className="min-w-0">
-                <p className="text-xs font-bold text-[#00C4B3]">
+                <p className="text-xs font-bold text-sky-400">
                   {FINTERA_CONTENT_PILLARS[selectedPillar].brandClaim}
                 </p>
                 <p className="truncate text-[11px] text-slate-300">
@@ -314,7 +306,7 @@ export function PipelineClient({
                 value={customTopic}
                 onChange={(e) => setCustomTopic(e.target.value)}
                 placeholder="Ej. Cómo funciona RADIAN en la DIAN y qué papel cumple en la circulación de facturas"
-                className="admin-input mt-1 w-full bg-[#0a192f] text-white"
+                className="admin-input mt-1 w-full"
               />
             </div>
 

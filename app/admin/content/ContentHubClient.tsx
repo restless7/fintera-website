@@ -510,14 +510,14 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
               onClick={() =>
                 setSelectedPillar(isSelected ? "ALL" : pillar.key)
               }
-              className={`group overflow-hidden rounded-xl border text-left transition flex flex-col justify-between ${
+              className={`group admin-card !p-0 overflow-hidden text-left transition flex flex-col justify-between ${
                 isSelected
-                  ? "border-[#00C4B3] bg-[#0A2342] ring-2 ring-[#00C4B3]"
-                  : "border-slate-800 bg-[#0d182c] hover:border-[#00C4B3]/60"
+                  ? "ring-2 ring-sky-500 border-sky-500"
+                  : ""
               }`}
             >
               <div>
-                <div className="relative h-32 w-full overflow-hidden bg-[#0A2342]">
+                <div className="relative h-32 w-full overflow-hidden bg-[#0A2342] keep-white-text">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={pillar.coverImage}
@@ -529,7 +529,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     <span className="rounded-full bg-[#0A2342]/90 border border-[#00C4B3]/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#00C4B3]">
                       Pilar {pillar.number} · Meta {pillar.targetPercentage}%
                     </span>
-                    <span className="admin-status admin-status-info">
+                    <span className="rounded-full bg-sky-600/90 px-2.5 py-0.5 text-[10px] font-bold text-white">
                       {count} piezas ({actualPct}%)
                     </span>
                   </div>
@@ -663,7 +663,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                       onClick={() => selectItemForInspection(item, "PREVIEW")}
                       className={`cursor-pointer transition ${
                         isSelected
-                          ? "bg-[#0A2342] border-l-2 border-l-[#00C4B3]"
+                          ? "bg-sky-500/15 border-l-4 border-l-sky-600"
                           : "hover:bg-slate-900/60"
                       }`}
                     >
@@ -735,8 +735,8 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
           {activeItem ? (
             <div className="space-y-4">
               {/* Article Cover Banner & Header */}
-              <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#0A2342]">
-                <div className="relative h-36 w-full overflow-hidden">
+              <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60">
+                <div className="relative h-36 w-full overflow-hidden keep-white-text">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={activeCoverSrc}
@@ -752,7 +752,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     <Link
                       href={`/insights/${activeItem.slug}`}
                       target="_blank"
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-bold text-[#0A2342] shadow hover:bg-white"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-bold text-white shadow hover:bg-sky-700"
                     >
                       <ExternalLink size={13} />
                       <span>Abrir en /insights</span>
@@ -767,13 +767,13 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     </h3>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-3.5 py-2 text-[11px] text-slate-300">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 px-3.5 py-2 text-[11px] text-slate-300">
                   <span>
                     Fecha de corte oficial: <strong className="text-white">{activeItem.cutoffDate}</strong> · Autor:{" "}
                     {activeItem.authorName}
                   </span>
                   {activeItem.aiModel && (
-                    <span className="text-[#00C4B3] font-medium">
+                    <span className="text-sky-400 font-semibold">
                       Motor: {activeItem.aiModel}
                     </span>
                   )}
@@ -786,9 +786,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                   type="button"
                   onClick={() => setInspectorTab("PREVIEW")}
                   className={`admin-button text-xs ${
-                    inspectorTab === "PREVIEW"
-                      ? "border-[#00C4B3] bg-[#0A2342] text-[#00C4B3]"
-                      : ""
+                    inspectorTab === "PREVIEW" ? "admin-button-primary" : ""
                   }`}
                 >
                   <Eye size={14} />
@@ -802,9 +800,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     setInspectorTab("AI_REWRITE");
                   }}
                   className={`admin-button text-xs ${
-                    inspectorTab === "AI_REWRITE"
-                      ? "border-[#00C4B3] bg-[#00C4B3] text-[#0A2342] font-bold"
-                      : "border-[#00C4B3]/50 text-[#00C4B3]"
+                    inspectorTab === "AI_REWRITE" ? "admin-button-primary" : ""
                   }`}
                 >
                   <Wand2 size={14} />
@@ -825,9 +821,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     setInspectorTab("CREATIVE_IMAGE");
                   }}
                   className={`admin-button text-xs ${
-                    inspectorTab === "CREATIVE_IMAGE"
-                      ? "border-[#FFD447] bg-[#0A2342] text-[#FFD447] font-bold"
-                      : ""
+                    inspectorTab === "CREATIVE_IMAGE" ? "admin-button-primary" : ""
                   }`}
                 >
                   <ImageIcon size={14} />
@@ -843,9 +837,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     setInspectorTab("MANUAL_EDIT");
                   }}
                   className={`admin-button text-xs ${
-                    inspectorTab === "MANUAL_EDIT"
-                      ? "border-sky-400 bg-sky-950/60 text-white"
-                      : ""
+                    inspectorTab === "MANUAL_EDIT" ? "admin-button-primary" : ""
                   }`}
                 >
                   <Edit3 size={13} />

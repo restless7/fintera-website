@@ -383,7 +383,7 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
                 }`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/30 transition-all"
+                className="admin-button text-xs font-bold"
               >
                 📦 Descargar Dossier Bancario (PDF)
               </a>
@@ -448,14 +448,14 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
         )}
 
         {/* Selector de Banco y Solicitante */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 admin-card p-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-slate-400 mr-2">Entidad Bancaria:</span>
             <button
               onClick={() => setSelectedBankAppId("ALL")}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 selectedBankAppId === "ALL"
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-sky-600 text-white keep-white-text"
                   : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
@@ -467,7 +467,7 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
                 onClick={() => setSelectedBankAppId(bankApp.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   selectedBankAppId === bankApp.id
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-sky-600 text-white keep-white-text"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >

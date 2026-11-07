@@ -99,24 +99,30 @@ export default async function CrmApplicationsListPage({ searchParams }: PageProp
         <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
           <Link
             href={queueQuery({ scope: "all", page: 1 })}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              scope === "all" ? "bg-emerald-600 text-white" : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              scope === "all"
+                ? "bg-sky-600 text-white shadow-sm keep-white-text"
+                : "bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800"
             }`}
           >
             Toda la cartera
           </Link>
           <Link
             href={queueQuery({ scope: "my_cases", page: 1 })}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              scope === "my_cases" ? "bg-emerald-600 text-white" : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              scope === "my_cases"
+                ? "bg-sky-600 text-white shadow-sm keep-white-text"
+                : "bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800"
             }`}
           >
             Mis Asignados
           </Link>
           <Link
             href={queueQuery({ scope: "follow_up", page: 1 })}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              scope === "follow_up" ? "bg-rose-600 text-white" : "bg-slate-900 text-slate-400 hover:bg-slate-800"
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              scope === "follow_up"
+                ? "bg-rose-600 text-white shadow-sm keep-white-text"
+                : "bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800"
             }`}
           >
             Seguimiento Hoy / Vencido
@@ -124,7 +130,7 @@ export default async function CrmApplicationsListPage({ searchParams }: PageProp
         </div>
 
         {/* Buscador */}
-        <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+        <div className="admin-card p-4">
           <form method="GET" action="/admin/crm/applications" className="flex flex-col sm:flex-row gap-3">
             <input type="hidden" name="scope" value={scope} />
             <label className="sr-only" htmlFor="application-search">Buscar solicitudes</label>
@@ -134,7 +140,7 @@ export default async function CrmApplicationsListPage({ searchParams }: PageProp
               name="search"
               defaultValue={search || ""}
               placeholder="Buscar por cédula, nombre, correo o radicado (FNT-2026-XXXX)..."
-              className="min-w-0 flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+              className="min-w-0 flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-sky-500"
             />
             <label className="sr-only" htmlFor="application-status">Estado de la solicitud</label>
             <select id="application-status" name="status" defaultValue={statusFilter || ""} className="min-w-0 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 sm:max-w-[210px]">
@@ -143,14 +149,14 @@ export default async function CrmApplicationsListPage({ searchParams }: PageProp
             </select>
             <button
               type="submit"
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="admin-button admin-button-primary px-5 py-2 text-sm font-semibold"
             >
               Buscar
             </button>
             {search && (
               <Link
                 href={queueQuery({ search: undefined, status: undefined, page: 1 })}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                className="admin-button px-4 py-2 text-sm font-medium"
               >
                 Limpiar
               </Link>
@@ -159,7 +165,7 @@ export default async function CrmApplicationsListPage({ searchParams }: PageProp
         </div>
 
         {/* Tabla Principal */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="admin-card p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table aria-label="Solicitudes hipotecarias" className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-950 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
@@ -241,7 +247,7 @@ export default async function CrmApplicationsListPage({ searchParams }: PageProp
                       <td className="py-3.5 px-4 text-right">
                         <Link
                           href={`/admin/crm/applications/${app.id}?returnTo=${encodeURIComponent(returnTo)}`}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-medium transition-colors"
+                          className="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-sm transition-colors keep-white-text"
                         >
                           Gestionar
                         </Link>
