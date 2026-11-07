@@ -344,6 +344,8 @@ export interface ResearchBrief {
   timeWindow: "24h" | "7d" | "30d";
   status: "DRAFT" | "IN_REVIEW" | "APPROVED" | "PUBLISHED";
   cutoffDate: string;
+  editionPeriod?: string;
+  versionNumber?: number;
   executiveSummary: string;
   sections: ResearchBriefSection[];
   metrics: {
@@ -360,7 +362,8 @@ export interface ResearchBrief {
 
 export const CreateBriefInputSchema = z.object({
   deskSlug: z.string().min(1),
-  timeWindow: z.enum(["24h", "7d", "30d"]).default("7d"),
+  timeWindow: z.enum(["24h", "7d", "30d"]).default("30d"),
+  editionPeriod: z.string().max(60).optional(),
   customTitle: z.string().max(180).optional(),
 });
 

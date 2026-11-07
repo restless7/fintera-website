@@ -490,4 +490,131 @@ export class ResendNotificationService {
       },
     });
   }
+
+  /**
+   * 5. Suscripción al Boletín Ejecutivo de Inteligencia Financiera FINTERA (Newsletter vía Resend)
+   */
+  public static async sendNewsletterSubscriptionConfirmation(params: {
+    email: string;
+    fullName?: string;
+    segment: "B2C_VIVIENDA" | "B2B_EMPRESAS" | "ALL_PILLARS";
+    sourceArticleSlug?: string;
+    sourceArticleTitle?: string;
+  }): Promise<ResendEmailDispatchResult> {
+    const baseUrl = getAppBaseUrl();
+    const segmentLabel =
+      params.segment === "B2C_VIVIENDA"
+        ? "Crédito de Vivienda, UVR vs. Pesos y Finanzas Personales (B2C)"
+        : params.segment === "B2B_EMPRESAS"
+        ? "Liquidez Empresarial, Registro RADIAN (DIAN) y Factoring (B2B)"
+        : "4 Pilares Estratégicos de Inteligencia Financiera FINTERA";
+
+    const html = buildInstitutionalEmailHtml({
+      eyebrow: "FINTERA INSIGHTS · BOLETÍN DE INTELIGENCIA FINANCIERA",
+      title: "Tu suscripción al Boletín Ejecutivo FINTERA está activa",
+      greeting: `Hola ${params.fullName || "Lector de FINTERA Insights"},`,
+      bodyHtml: `
+        <p>Gracias por suscribirte al <strong>Boletín Mensual de Inteligencia Financiera de FINTERA</strong> respaldado en las 14 fuentes oficiales colombianas y multilaterales (Superfinanciera, Banco de la República, DANE, DIAN/RADIAN, Camacol y OCDE).</p>
+        <div style="margin:16px 0;padding:14px 18px;background-color:#F8FAFC;border-left:4px solid #00C4B3;border-radius:8px;">
+          <p style="margin:0 0 6px 0;font-size:13px;color:#0F172A;"><strong>Mesa de interés seleccionada:</strong> ${segmentLabel}</p>
+          <p style="margin:0;font-size:12px;color:#475569;">Recibirás nuestros Dossiers Oficiales con fecha de corte mensual, comparativas de tasas E.A. y análisis verificados por especialistas humanos (E-E-A-T).</p>
+        </div>
+        ${
+          params.sourceArticleTitle
+            ? `<p style="font-size:13px;color:#334155;">Te suscribiste desde el análisis: <em>&ldquo;${params.sourceArticleTitle}&rdquo;</em>.</p>`
+            : ""
+        }
+      `,
+      ctaLabel: "Explorar Biblioteca FINTERA Insights",
+      ctaUrl: `${baseUrl}/insights`,
+      fileNumber: `FNT-NEWS-${params.segment}`,
+    });
+
+    return this.dispatchEmail({
+      to: params.email,
+      subject: "📊 Bienvenido al Boletín de Inteligencia Financiera FINTERA",
+      html,
+      eventType: "RESEND_NEWSLETTER_WELCOME",
+      aggregateId: `sub_${params.email.toLowerCase()}`,
+      metadata: {
+        segment: params.segment,
+        sourceArticleSlug: params.sourceArticleSlug || null,
+      },
+    });
+  }
+
+  /**
+   * 6. Despacho de Edición Ejecutiva (Artículo o Dossier Mensual) vía Resend
+   */
+  public static async sendArticleOrDossierDigest(params: {
+    recipientEmails: string[];
+    title: string;
+    subtitle?: string | null;
+    excerpt: string;
+    cutoffDate: string;
+    pillarLabel: string;
+    reviewerName: string;
+    urlPath: string;
+  }): Promise<{
+    totalTargeted: number;
+    dispatchedCount: number;
+    queuedInOutboxCount: number;
+    results: ResendEmailDispatchResult[];
+  }> {
+    const baseUrl = getAppBaseUrl();
+    const targetUrl = params.urlPath.startsWith("http")
+      ? params.urlPath
+      : `${baseUrl}${params.urlPath}`;
+
+    const results: ResendEmailDispatchResult[] = [];
+    let dispatchedCount = 0;
+    let queuedInOutboxCount = 0;
+
+    for (const recipient of params.recipientEmails) {
+      const html = buildInstitutionalEmailHtml({
+        eyebrow: `EDICIÓN VERIFICADA · ${params.pillarLabel.toUpperCase()}`,
+        title: params.title,
+        greeting: "Estimado lector de FINTERA Insights,",
+        bodyHtml: `
+          ${
+            params.subtitle
+              ? `<p style="font-size:15px;font-weight:600;color:#0F172A;margin-top:0;">${params.subtitle}</p>`
+              : ""
+          }
+          <p>${params.excerpt}</p>
+          <div style="margin:16px 0;padding:14px 18px;background-color:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;color:#334155;">
+            <p style="margin:0 0 4px 0;"><strong>Fecha de corte oficial:</strong> ${params.cutoffDate}</p>
+            <p style="margin:0;"><strong>Revisión Humana E-E-A-T:</strong> ${params.reviewerName}</p>
+          </div>
+          <p style="font-size:13px;color:#475569;">Consulta el informe completo con tablas comparativas, citas primarias verificadas (SFC, BanRep, DANE, DIAN/RADIAN) y nota de criterio experto en mesa.</p>
+        `,
+        ctaLabel: "Leer Análisis Completo en FINTERA Insights",
+        ctaUrl: targetUrl,
+        fileNumber: `FNT-DIGEST-${params.cutoffDate.replace(/\s+/g, "-").toUpperCase()}`,
+      });
+
+      const res = await this.dispatchEmail({
+        to: recipient,
+        subject: `📘 [FINTERA Insights] ${params.title}`,
+        html,
+        eventType: "RESEND_EDITORIAL_DIGEST",
+        aggregateId: params.urlPath,
+        metadata: {
+          title: params.title,
+          cutoffDate: params.cutoffDate,
+          reviewerName: params.reviewerName,
+        },
+      });
+      results.push(res);
+      if (res.dispatched) dispatchedCount += 1;
+      if (res.queuedInOutbox) queuedInOutboxCount += 1;
+    }
+
+    return {
+      totalTargeted: params.recipientEmails.length,
+      dispatchedCount,
+      queuedInOutboxCount,
+      results,
+    };
+  }
 }

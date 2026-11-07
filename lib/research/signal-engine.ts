@@ -388,15 +388,50 @@ export class ResearchSignalEngine {
     return FINTERA_AUTHORITATIVE_SOURCES;
   }
 
+  public async updateSignalStatus(
+    signalId: string,
+    status: ResearchSignal["processingStatus"]
+  ): Promise<ResearchSignal | null> {
+    await this.syncFromDatabase();
+    const idx = this.signals.findIndex((s) => s.id === signalId);
+    if (idx < 0) return null;
+
+    this.signals[idx] = {
+      ...this.signals[idx],
+      processingStatus: status,
+    };
+    this.saveSignals();
+
+    try {
+      await prisma.trendSignal.updateMany({
+        where: { sourceId: signalId },
+        data: {
+          status:
+            status === "DECOMPOSED"
+              ? "PROCESSED"
+              : status === "ARCHIVED"
+              ? "ARCHIVED"
+              : "PENDING",
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
+
+    return this.signals[idx];
+  }
+
   /**
    * Executes a live RSS/web discovery sweep across Colombian financial news & regulatory feeds,
    * scores relevance against FINTERA's 4 pillars, and syncs to Prisma TrendSignal + local cache.
+   * Accepts an optional targetSourceId to run a surgical single-source sweep.
    */
-  public async runSignalDiscoverySweep(): Promise<{
+  public async runSignalDiscoverySweep(targetSourceId?: string): Promise<{
     discoveredCount: number;
     totalActiveSignals: number;
     syncedToDatabase: boolean;
     sourcesChecked: number;
+    targetSourceId?: string;
   }> {
     await this.syncFromDatabase();
 
@@ -404,7 +439,7 @@ export class ResearchSignalEngine {
     try {
       const runRec = await prisma.pipelineRun.create({
         data: {
-          pipelineType: "SCRAPER",
+          pipelineType: targetSourceId ? `SCRAPER_${targetSourceId.toUpperCase()}` : "SCRAPER",
           status: "RUNNING",
         },
       });
@@ -413,12 +448,12 @@ export class ResearchSignalEngine {
       // Optional pipeline run tracking
     }
 
-    const liveFeeds = [
+    const allFeeds = [
       {
-        name: "Google News · Crédito Hipotecario y Tasas Colombia (SFC / BanRep)",
+        name: "Google News · Crédito Hipotecario y Tasas Colombia (SFC)",
         sourceId: "sfc",
         pillar: "VIVIENDA_B2C" as FinteraContentPillarKey,
-        url: "https://news.google.com/rss/search?q=credito+hipotecario+tasas+vivienda+Colombia+Superfinanciera+OR+Banrep&hl=es-419&gl=CO&ceid=CO:es-419",
+        url: "https://news.google.com/rss/search?q=Superfinanciera+tasas+vivienda+credito+hipotecario+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
       },
       {
         name: "Google News · Factoring RADIAN DIAN Liquidez Empresas Colombia",
@@ -427,18 +462,82 @@ export class ResearchSignalEngine {
         url: "https://news.google.com/rss/search?q=factoring+RADIAN+DIAN+factura+electronica+liquidez+empresas+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
       },
       {
-        name: "Google News · Banco de la República Inflación UVR Vivienda DANE",
+        name: "Google News · Banco de la República Inflación UVR Vivienda",
         sourceId: "banrep",
         pillar: "AUTORIDAD_MERCADO" as FinteraContentPillarKey,
-        url: "https://news.google.com/rss/search?q=Banco+de+la+Republica+inflacion+UVR+DANE+vivienda+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+        url: "https://news.google.com/rss/search?q=Banco+de+la+Republica+tasa+intervencion+inflacion+UVR+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
       },
       {
-        name: "Google News · Camacol Asobancaria FNA Leasing Habitacional Colombia",
+        name: "Google News · DANE Indicadores Vivienda e IPC Colombia",
+        sourceId: "dane",
+        pillar: "AUTORIDAD_MERCADO" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=DANE+vivienda+licencias+construccion+IPC+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Fondo Nacional del Ahorro FNA Vivienda y Cesantías",
+        sourceId: "fna",
+        pillar: "VIVIENDA_B2C" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=%22Fondo+Nacional+del+Ahorro%22+credito+vivienda+cesantias+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Supersociedades Factoring e Insolvencia Empresarial",
+        sourceId: "supersociedades",
+        pillar: "FACTORING_B2B" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=Supersociedades+empresas+liquidez+factoring+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Asobancaria Cartera Hipotecaria y Banca Colombia",
+        sourceId: "asobancaria",
+        pillar: "VIVIENDA_B2C" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=Asobancaria+credito+vivienda+bancos+tasas+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Camacol Coordenada Urbana Venta de Vivienda",
         sourceId: "camacol",
         pillar: "CONFIANZA_OPORTUNIDADES" as FinteraContentPillarKey,
-        url: "https://news.google.com/rss/search?q=Camacol+OR+Asobancaria+OR+FNA+vivienda+leasing+habitacional+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+        url: "https://news.google.com/rss/search?q=Camacol+vivienda+nueva+construccion+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Confecámaras Tejido Empresarial y Mipymes",
+        sourceId: "confecamaras",
+        pillar: "FACTORING_B2B" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=Confecamaras+empresas+mipymes+crecimiento+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Bancóldex Crédito Empresarial y Capital de Trabajo",
+        sourceId: "bancoldex",
+        pillar: "FACTORING_B2B" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=Bancoldex+liquidez+empresas+pymes+credito+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · IFC Corporación Financiera Internacional Pymes Colombia",
+        sourceId: "ifc",
+        pillar: "FACTORING_B2B" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=IFC+%22Banco+Mundial%22+financiacion+pymes+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · OCDE Perspectivas Económicas y Pymes Colombia",
+        sourceId: "oecd",
+        pillar: "AUTORIDAD_MERCADO" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=OCDE+economia+tasas+credito+pymes+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Banco Mundial Inclusión Financiera Colombia",
+        sourceId: "worldbank",
+        pillar: "AUTORIDAD_MERCADO" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=%22Banco+Mundial%22+credito+vivienda+empresas+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Factoring Internacional y Cadena de Suministro (FCI)",
+        sourceId: "fci",
+        pillar: "FACTORING_B2B" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=factoring+electronico+facturas+liquidez+Latinoamerica+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
       },
     ];
+
+    const liveFeeds = targetSourceId
+      ? allFeeds.filter((f) => f.sourceId === targetSourceId)
+      : allFeeds.slice(0, 6);
 
     let discoveredCount = 0;
 
@@ -458,7 +557,7 @@ export class ResearchSignalEngine {
         const xml = await res.text();
         const itemMatches = Array.from(
           xml.matchAll(/<item>([\s\S]*?)<\/item>/g)
-        ).slice(0, 3);
+        ).slice(0, targetSourceId ? 3 : 2);
 
         for (const match of itemMatches) {
           const itemXml = match[1] || "";
@@ -484,7 +583,7 @@ export class ResearchSignalEngine {
             FINTERA_AUTHORITATIVE_SOURCES[0];
 
           const newSignal: ResearchSignal = {
-            id: `sig_live_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            id: `sig_live_${feed.sourceId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
             sourceId: sourceMeta.id,
             sourceName: sourceMeta.shortName,
             sourceTier: sourceMeta.tier,
@@ -495,7 +594,7 @@ export class ResearchSignalEngine {
               ? new Date(pubDateMatch[1]).toISOString()
               : new Date().toISOString(),
             discoveredAt: new Date().toISOString(),
-            cutoffDate: "Octubre–Noviembre 2026",
+            cutoffDate: "Noviembre 2026",
             summary: `Señal capturada por el monitor de inteligencia financiera de FINTERA sobre ${sourceMeta.shortName}: "${rawTitle}". Requiere separación entre dato publicado e interpretación de FINTERA antes de publicar.`,
             pillar: feed.pillar,
             topicHints:
@@ -505,9 +604,9 @@ export class ResearchSignalEngine {
                 ? ["Factoring", "RADIAN", "Liquidez Empresarial"]
                 : ["Política Monetaria", "Macroeconomía Colombia", "UVR"],
             entityHints: [sourceMeta.shortName, "Colombia", "FINTERA"],
-            noveltyScore: 0.85,
-            velocityScore: 82,
-            velocityStatus: "EMERGING",
+            noveltyScore: 0.88,
+            velocityScore: 84,
+            velocityStatus: "HIGH_VELOCITY",
             primaryTheme:
               feed.pillar === "VIVIENDA_B2C"
                 ? "Crédito de Vivienda y Tasas Hipotecarias"
@@ -550,7 +649,7 @@ export class ResearchSignalEngine {
             relevanceScore: sig.noveltyScore,
             extractedTheme: sig.primaryTheme,
             pillar: sig.pillar,
-            status: "PENDING",
+            status: sig.processingStatus === "DECOMPOSED" ? "PROCESSED" : "PENDING",
           },
         });
       }
@@ -574,7 +673,8 @@ export class ResearchSignalEngine {
       discoveredCount,
       totalActiveSignals: this.signals.length,
       syncedToDatabase,
-      sourcesChecked: FINTERA_AUTHORITATIVE_SOURCES.length,
+      sourcesChecked: targetSourceId ? 1 : FINTERA_AUTHORITATIVE_SOURCES.length,
+      targetSourceId,
     };
   }
 }

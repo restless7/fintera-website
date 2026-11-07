@@ -12,3 +12,4 @@ echo "[$(date -Iseconds)] 🚀 Starting FINTERA Autonomous Content & Image Gener
 /home/jauria/.local/bin/npx prisma generate
 /home/jauria/.local/bin/npx tsx scripts/fintera-blog-generator.ts
 echo "[$(date -Iseconds)] ✅ FINTERA Autonomous Content & Image Generator finished."
+

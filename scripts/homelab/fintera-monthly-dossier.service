@@ -1,0 +1,14 @@
+[Unit]
+Description=FINTERA Monthly Executive Dossier Synthesizer (4 Mesas de Investigación + E-E-A-T Sync)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=jauria
+WorkingDirectory=/home/jauria/planmaestro-ecosystem/packages/fintera-website
+ExecStart=/home/jauria/scripts/run-fintera-monthly-dossier.sh
+StandardOutput=append:/var/log/planmaestro/fintera-monthly-dossier.log
+StandardError=append:/var/log/planmaestro/fintera-monthly-dossier.log
+TimeoutStartSec=600
+

@@ -11,3 +11,4 @@ ExecStart=/home/jauria/scripts/run-fintera-blog-generator.sh
 StandardOutput=append:/var/log/planmaestro/fintera-blog-generator.log
 StandardError=append:/var/log/planmaestro/fintera-blog-generator.log
 TimeoutStartSec=600
+

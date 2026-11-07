@@ -15,7 +15,7 @@ export default async function FinteraAdminResearchPage() {
   const sources = FINTERA_AUTHORITATIVE_SOURCES;
   const initialSignals = await researchSignalEngine.getSignalsWithDb();
   const desks = researchDeskRegistry.getDesks();
-  const initialBriefs = researchBriefGenerator.getBriefs();
+  const initialBriefs = await researchBriefGenerator.getBriefsWithDb();
 
   return (
     <ResearchHubClient

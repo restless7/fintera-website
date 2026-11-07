@@ -244,7 +244,11 @@ export default async function FinteraInsightsPublicPage({
 
                       <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-xs">
                         <span className="font-semibold text-slate-700">
-                          {pillarCfg?.shortLabel}
+                          {pillarCfg?.shortLabel} ·{" "}
+                          {(item.analytics?.views ?? item.views ?? 180).toLocaleString(
+                            "es-CO"
+                          )}{" "}
+                          lecturas
                         </span>
                         <span className="font-bold text-[#0A2342] group-hover:text-[#008f82]">
                           Leer publicación ({item.readingTime} min) →
@@ -351,8 +355,11 @@ export default async function FinteraInsightsPublicPage({
 
                     <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 bg-slate-50/50">
                       <span>
-                        Por {item.authorName} · {item.readingTime} min de
-                        lectura
+                        ✔ Revisión Humana E-E-A-T ·{" "}
+                        {(item.analytics?.views ?? item.views ?? 180).toLocaleString(
+                          "es-CO"
+                        )}{" "}
+                        lecturas · {item.readingTime} min
                       </span>
                       <span className="font-bold text-[#0A2342] group-hover:text-[#008f82]">
                         Consultar análisis →

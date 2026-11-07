@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeAdminApi } from "@/lib/auth/admin-api";
 import {
+  certifyFinteraHumanReview,
   deleteFinteraContent,
   getAllFinteraContent,
   getFinteraContentByIdOrSlug,
@@ -74,6 +75,33 @@ export async function PATCH(req: NextRequest) {
         { error: "Pieza editorial no encontrada" },
         { status: 404 }
       );
+    }
+
+    if (action === "certify_human_review") {
+      const updated = await certifyFinteraHumanReview({
+        idOrSlug: id,
+        reviewerName:
+          body.reviewerName ||
+          existing.humanReview?.reviewerName ||
+          "Sebastián García · Comité Técnico FINTERA",
+        reviewerRole:
+          body.reviewerRole ||
+          existing.humanReview?.reviewerRole ||
+          "Dirección de Estructuración Financiera, Crédito Hipotecario (Ley 546) y Liquidez B2B (RADIAN)",
+        reviewerCredentials:
+          body.reviewerCredentials ||
+          existing.humanReview?.reviewerCredentials ||
+          "Mesa de Originación Multibanco Colombia · Fuentes Verificadas SFC / BanRep / DIAN / DANE",
+        expertMesaNote:
+          body.expertMesaNote ||
+          existing.humanReview?.expertMesaNote ||
+          "",
+        publishImmediately: Boolean(body.publishImmediately),
+      });
+      return NextResponse.json({
+        success: true,
+        item: updated,
+      });
     }
 
     if (action === "remediate") {

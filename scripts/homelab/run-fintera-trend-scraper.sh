@@ -12,3 +12,4 @@ echo "[$(date -Iseconds)] 🚀 Starting FINTERA Financial Trend Scraper..."
 /home/jauria/.local/bin/npx prisma generate
 /home/jauria/.local/bin/npx tsx scripts/fintera-trend-scraper.ts
 echo "[$(date -Iseconds)] ✅ FINTERA Financial Trend Scraper finished."
+

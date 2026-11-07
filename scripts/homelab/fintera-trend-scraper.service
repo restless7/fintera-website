@@ -11,3 +11,4 @@ ExecStart=/home/jauria/scripts/run-fintera-trend-scraper.sh
 StandardOutput=append:/var/log/planmaestro/fintera-trend-scraper.log
 StandardError=append:/var/log/planmaestro/fintera-trend-scraper.log
 TimeoutStartSec=300
+

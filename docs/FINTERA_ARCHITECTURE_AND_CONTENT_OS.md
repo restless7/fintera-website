@@ -170,3 +170,50 @@ Para aplicar adiciones al esquema de Prisma en Neon sin alterar datos existentes
 npx prisma migrate diff --from-url "$FNT_NEXT_DATABASE_URL_UNPOOLED" --to-schema-datamodel prisma/schema.prisma --script
 ```
 Execute las sentencias aditivas en `prisma/schema.prisma` asegurando nunca ejecutar sentencias destructivas (`DROP TABLE` / `DROP COLUMN`).
+
+---
+
+## 7. Dossiers Mensuales Automatizados y Expansión Enterprise de `/admin/research`
+
+La consola `/admin/research` opera bajo tres módulos integrados con persistencia en Neon PostgreSQL:
+
+1. **Tab 1 · 14 Fuentes Autorizadas (`SOURCES_14`)**:
+   - Buscador instantáneo + filtro por pilar estratégico y por nivel institucional (Oficiales Colombia, Gremiales, Multilaterales).
+   - Telemetría en vivo por fuente (`X señales capturadas`, estado `Monitor Activo · TLS 200 OK`), botón de barrido quirúrgico individual (**"Barrer Fuente Ahora"**) y acceso directo (**"Ver Señales de esta Fuente"**).
+2. **Tab 2 · Señales y Tendencias Capturadas (`SIGNALS_FEED`)**:
+   - Barra multifiltro por fuente oficial, pilar, velocidad (`HIGH_VELOCITY >= 85`, `EMERGING`, `STABLE`), estado (`RAW` vs `DECOMPOSED`) y búsqueda libre.
+   - Selector de formato editorial (`BLOG_POST`, `WHITEPAPER`, `CASE_STUDY`, `GUIDE`) integrado junto al botón **"Desarrollar Pieza FINTERA"**.
+3. **Tab 3 · 4 Mesas de Investigación y Dossiers Mensuales (`DESKS_AND_BRIEFS`)**:
+   - Títulos inequívocos con periodo de edición y versión (`[Noviembre 2026 · v2] Mesa 2: ...`) persistidos en `fintera_pipeline_runs` (`pipelineType = "MONTHLY_DOSSIER"`).
+   - **Programador Mensual en Homelab (`fintera-monthly-dossier.timer`)**: Ejecuta `scripts/fintera-monthly-dossier.ts` el día 1 de cada mes a las `06:00 COT` en `jauria@192.168.1.24`.
+   - Acciones ejecutivas por Dossier: **Publicar como Whitepaper en `/insights`**, **Enviar por Boletín Ejecutivo (Resend)** y **Descargar Dossier (`.md`)**.
+
+---
+
+## 8. Motor de Analítica Editorial, Contador de Lecturas y Difusión Social (OpenGraph + UTM)
+
+Cada artículo publicado en `/insights/[slug]` incorpora telemetría en tiempo real y atribución multicanal:
+
+- **Endpoint de Telemetría (`/api/insights/telemetry`)**:
+  - Registra visualizaciones deduplicadas por sesión (`VIEW`), votos de utilidad (`HELPFUL`), clics en CTAs (`CTA_CLICK`) y compartidos por canal (`SHARE`: `whatsapp`, `linkedin`, `x`, `email`, `copy`).
+  - Sincroniza atómicamente en Neon PostgreSQL (`fintera_blog_posts.complianceJson`).
+- **Barra de Difusión Social (`components/fintera/article-engagement-bar.tsx`)**:
+  - Botones nativos para **WhatsApp**, **LinkedIn**, **X (Twitter)**, **Correo** y **Copiar Enlace** con parámetros `utm_source`, `utm_medium=social_share` y `utm_campaign`.
+- **Metadatos OpenGraph y Twitter Cards (`generateMetadata`)**:
+  - Cada artículo expone `og:type = article`, `twitter:card = summary_large_image`, URL canónica y la imagen única generada por Qwen Image 3.0 para previsualizaciones enriquecidas en LinkedIn, WhatsApp y Meta.
+
+---
+
+## 9. Gobernanza Google E-E-A-T (YMYL) y Boletín Ejecutivo vía Resend
+
+Para proteger y potenciar el posicionamiento orgánico en Google frente a las políticas de *Scaled Content Abuse* en temas financieros (**YMYL — Your Money or Your Life**):
+
+1. **Compuerta de Curaduría Humana y `Nota de Criterio Experto en Mesa` (`humanReview`)**:
+   - Cada artículo incluye una **Nota de Criterio Experto en Mesa** redactada/validada por especialistas de FINTERA (Comité de Crédito Hipotecario Ley 546 y Mesa de Estructuración RADIAN/Factoring), aportando *Information Gain* real que un LLM genérico no posee.
+   - En `/admin/content` (pestaña **`Sello Humano E-E-A-T & Analítica`**), el equipo puede editar la nota experta, certificar el revisor humano y emitir un hash de verificación (`FNT-EEAT-...`).
+2. **Datos Estructurados `Schema.org AnalysisNewsArticle` (`application/ld+json`)**:
+   - Inyectados automáticamente en `/insights/[slug]` con `author`, `reviewedBy` (revisor humano certificado), `citation` (las fuentes primarias oficiales SFC, BanRep, DANE, DIAN, OCDE), `publishingPrinciples` y `interactionStatistic`.
+3. **Boletín Ejecutivo FINTERA Insights vía Resend (`/api/insights/newsletter`)**:
+   - Captura suscriptores desde cada artículo (segmentados en Vivienda B2C, Liquidez B2B o Ejecutivos) y despacha boletines ejecutivos y Dossiers Mensuales mediante `ResendNotificationService` con respaldo en el Outbox Transaccional (`domain_outbox_events`).
+
+

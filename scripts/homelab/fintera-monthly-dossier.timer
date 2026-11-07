@@ -1,0 +1,11 @@
+[Unit]
+Description=Run FINTERA Monthly Executive Dossier Synthesizer on the 1st of Every Month at 06:00 COT
+
+[Timer]
+OnCalendar=*-*-01 06:00:00
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target
+
