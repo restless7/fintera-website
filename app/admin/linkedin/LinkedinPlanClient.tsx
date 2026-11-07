@@ -26,6 +26,7 @@ import {
 } from "@/lib/linkedin-strategy";
 import type { FinteraContentItem } from "@/lib/blog";
 import { LinkedinCarouselPdfModal } from "@/components/fintera/growth/LinkedinCarouselPdfModal";
+import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
 
 interface LinkedinPlanClientProps {
   existingItems: FinteraContentItem[];
@@ -203,9 +204,12 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               Descripción sugerida de la página corporativa
             </span>
-            <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-relaxed text-slate-300">
-              {FINTERA_LINKEDIN_PROFILE_SPEC.companyDescription}
-            </pre>
+            <div className="mt-2">
+              <MarkdownRenderer
+                content={FINTERA_LINKEDIN_PROFILE_SPEC.companyDescription}
+                variant="dark"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">

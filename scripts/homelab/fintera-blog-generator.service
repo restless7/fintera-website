@@ -1,0 +1,13 @@
+[Unit]
+Description=FINTERA Autonomous Content & Qwen Image 3.0 Generator Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=jauria
+WorkingDirectory=/home/jauria/planmaestro-ecosystem/packages/fintera-website
+ExecStart=/home/jauria/scripts/run-fintera-blog-generator.sh
+StandardOutput=append:/var/log/planmaestro/fintera-blog-generator.log
+StandardError=append:/var/log/planmaestro/fintera-blog-generator.log
+TimeoutStartSec=600

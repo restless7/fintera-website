@@ -13,8 +13,8 @@ export default async function FinteraAdminResearchPage() {
   await requireAdminPermission("crm:application:read");
 
   const sources = FINTERA_AUTHORITATIVE_SOURCES;
+  const initialSignals = await researchSignalEngine.getSignalsWithDb();
   const desks = researchDeskRegistry.getDesks();
-  const initialSignals = researchSignalEngine.getSignals();
   const initialBriefs = researchBriefGenerator.getBriefs();
 
   return (

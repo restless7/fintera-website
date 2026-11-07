@@ -12,7 +12,7 @@ export async function GET() {
   const authorization = await authorizeAdminApi("crm:application:read");
   if (authorization.response) return authorization.response;
 
-  const signals = researchSignalEngine.getSignals();
+  const signals = await researchSignalEngine.getSignalsWithDb();
   const themes = researchThemeEngine.getActiveThemes();
   const sources = FINTERA_AUTHORITATIVE_SOURCES;
 
@@ -30,7 +30,7 @@ export async function POST() {
 
   try {
     const sweepResult = await researchSignalEngine.runSignalDiscoverySweep();
-    const signals = researchSignalEngine.getSignals();
+    const signals = await researchSignalEngine.getSignalsWithDb();
     return NextResponse.json({
       success: true,
       sweepResult,

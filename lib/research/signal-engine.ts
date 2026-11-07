@@ -226,13 +226,27 @@ export class ResearchSignalEngine {
     this.loadSignals();
   }
 
+  private mergeSignalLists(
+    primary: ResearchSignal[],
+    secondary: ResearchSignal[]
+  ): ResearchSignal[] {
+    const byKey = new Map<string, ResearchSignal>();
+    for (const s of [...primary, ...secondary]) {
+      const key = s.id || s.url || s.title.toLowerCase();
+      if (!byKey.has(key)) {
+        byKey.set(key, s);
+      }
+    }
+    return Array.from(byKey.values());
+  }
+
   private loadSignals(): void {
     try {
       if (fs.existsSync(SIGNALS_CACHE_FILE)) {
         const raw = fs.readFileSync(SIGNALS_CACHE_FILE, "utf8");
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          this.signals = parsed;
+          this.signals = this.mergeSignalLists(parsed, INITIAL_CURATED_SIGNALS);
           return;
         }
       }
@@ -257,6 +271,91 @@ export class ResearchSignalEngine {
     }
   }
 
+  /**
+   * Hydrates in-memory signals from the Neon PostgreSQL fintera_trend_signals table
+   * so live sweeps and Homelab scraper runs persist permanently across Vercel deploys.
+   */
+  public async syncFromDatabase(): Promise<void> {
+    try {
+      const rows = await prisma.trendSignal.findMany({
+        orderBy: { scrapedAt: "desc" },
+        take: 60,
+      });
+      if (rows.length > 0) {
+        const dbSignals: ResearchSignal[] = rows.map((row) => {
+          const sourceMeta =
+            FINTERA_AUTHORITATIVE_SOURCES.find((s) => s.id === row.source) ||
+            FINTERA_AUTHORITATIVE_SOURCES[0];
+          const curatedMatch = INITIAL_CURATED_SIGNALS.find(
+            (c) => c.id === row.sourceId || c.title === row.title
+          );
+          if (curatedMatch) return curatedMatch;
+
+          let rawText = row.rawContent || "";
+          if (rawText.trim().startsWith("{")) {
+            try {
+              const parsed = JSON.parse(rawText);
+              rawText = `${parsed.summary || ""}\n\nÁngulo FINTERA: ${parsed.finteraAngle || ""}\nFecha de corte: ${parsed.cutoffDate || "Octubre–Noviembre 2026"}`;
+            } catch {
+              // Ignore
+            }
+          }
+          const parts = rawText.split(/\n\nÁngulo FINTERA:\s*/);
+          const summary =
+            parts[0]?.trim() ||
+            `Señal capturada por el monitor de inteligencia financiera de FINTERA sobre ${sourceMeta.shortName}: "${row.title}".`;
+          const angleAndCutoff = (parts[1] || "").split(/\nFecha de corte:\s*/);
+          const finteraAngle =
+            angleAndCutoff[0]?.trim() || sourceMeta.howFinteraUsesIt;
+          const cutoffDate =
+            angleAndCutoff[1]?.trim() || "Octubre–Noviembre 2026";
+          const pillar =
+            (row.pillar as FinteraContentPillarKey) || "VIVIENDA_B2C";
+
+          return {
+            id: row.sourceId,
+            sourceId: sourceMeta.id,
+            sourceName: sourceMeta.shortName,
+            sourceTier: sourceMeta.tier,
+            sourceCredibility: sourceMeta.credibilityScore,
+            title: row.title,
+            url: row.url || sourceMeta.url,
+            publishedAt: row.scrapedAt.toISOString(),
+            discoveredAt: row.scrapedAt.toISOString(),
+            cutoffDate,
+            summary,
+            pillar,
+            topicHints:
+              pillar === "VIVIENDA_B2C"
+                ? ["Crédito de Vivienda", "Tasas Hipotecarias", "Colombia"]
+                : pillar === "FACTORING_B2B"
+                ? ["Factoring", "RADIAN", "Liquidez Empresarial"]
+                : ["Política Monetaria", "Macroeconomía Colombia", "UVR"],
+            entityHints: [sourceMeta.shortName, "Colombia", "FINTERA"],
+            noveltyScore: row.relevanceScore ?? 0.85,
+            velocityScore: row.score || 82,
+            velocityStatus: row.score >= 85 ? "HIGH_VELOCITY" : "EMERGING",
+            primaryTheme:
+              row.extractedTheme ||
+              (pillar === "VIVIENDA_B2C"
+                ? "Crédito de Vivienda y Tasas Hipotecarias"
+                : pillar === "FACTORING_B2B"
+                ? "Liquidez Empresarial, RADIAN y Factoring"
+                : "Macroeconomía y Costo del Crédito en Colombia"),
+            finteraAngle,
+            processingStatus:
+              row.status === "PROCESSED" ? "DECOMPOSED" : "RAW",
+          };
+        });
+
+        this.signals = this.mergeSignalLists(dbSignals, this.signals);
+        this.saveSignals();
+      }
+    } catch {
+      // Safe fallback if DB is temporarily unreachable
+    }
+  }
+
   public getSignals(options?: {
     pillar?: FinteraContentPillarKey;
     sourceId?: string;
@@ -276,6 +375,15 @@ export class ResearchSignalEngine {
     return list;
   }
 
+  public async getSignalsWithDb(options?: {
+    pillar?: FinteraContentPillarKey;
+    sourceId?: string;
+    limit?: number;
+  }): Promise<ResearchSignal[]> {
+    await this.syncFromDatabase();
+    return this.getSignals(options);
+  }
+
   public getAuthoritativeSources() {
     return FINTERA_AUTHORITATIVE_SOURCES;
   }
@@ -290,6 +398,21 @@ export class ResearchSignalEngine {
     syncedToDatabase: boolean;
     sourcesChecked: number;
   }> {
+    await this.syncFromDatabase();
+
+    let runRecordId: string | null = null;
+    try {
+      const runRec = await prisma.pipelineRun.create({
+        data: {
+          pipelineType: "SCRAPER",
+          status: "RUNNING",
+        },
+      });
+      runRecordId = runRec.id;
+    } catch {
+      // Optional pipeline run tracking
+    }
+
     const liveFeeds = [
       {
         name: "Google News · Crédito Hipotecario y Tasas Colombia (SFC / BanRep)",
@@ -308,6 +431,12 @@ export class ResearchSignalEngine {
         sourceId: "banrep",
         pillar: "AUTORIDAD_MERCADO" as FinteraContentPillarKey,
         url: "https://news.google.com/rss/search?q=Banco+de+la+Republica+inflacion+UVR+DANE+vivienda+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
+      },
+      {
+        name: "Google News · Camacol Asobancaria FNA Leasing Habitacional Colombia",
+        sourceId: "camacol",
+        pillar: "CONFIANZA_OPORTUNIDADES" as FinteraContentPillarKey,
+        url: "https://news.google.com/rss/search?q=Camacol+OR+Asobancaria+OR+FNA+vivienda+leasing+habitacional+Colombia&hl=es-419&gl=CO&ceid=CO:es-419",
       },
     ];
 
@@ -399,10 +528,10 @@ export class ResearchSignalEngine {
 
     this.saveSignals();
 
-    // Sync signals to Prisma TrendSignal table if database is available
+    // Sync ALL signals to Prisma TrendSignal table in Neon PostgreSQL
     let syncedToDatabase = false;
     try {
-      for (const sig of this.signals.slice(0, 14)) {
+      for (const sig of this.signals) {
         await prisma.trendSignal.upsert({
           where: { sourceId: sig.id },
           update: {
@@ -425,9 +554,20 @@ export class ResearchSignalEngine {
           },
         });
       }
+      if (runRecordId) {
+        await prisma.pipelineRun.update({
+          where: { id: runRecordId },
+          data: {
+            status: "SUCCESS",
+            completedAt: new Date(),
+            signalsFound: discoveredCount,
+            signalsRelevant: this.signals.length,
+          },
+        });
+      }
       syncedToDatabase = true;
     } catch {
-      // Database table may not be migrated yet in offline/local preview; cache file handles persistence
+      // Cache file handles fallback persistence
     }
 
     return {

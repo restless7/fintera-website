@@ -1,0 +1,13 @@
+[Unit]
+Description=FINTERA Financial Intelligence Trend Scraper Service (14 Fuentes Oficiales + RSS)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=jauria
+WorkingDirectory=/home/jauria/planmaestro-ecosystem/packages/fintera-website
+ExecStart=/home/jauria/scripts/run-fintera-trend-scraper.sh
+StandardOutput=append:/var/log/planmaestro/fintera-trend-scraper.log
+StandardError=append:/var/log/planmaestro/fintera-trend-scraper.log
+TimeoutStartSec=300

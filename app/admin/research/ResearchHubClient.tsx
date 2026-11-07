@@ -21,6 +21,7 @@ import type {
   ResearchSignal,
 } from "@/lib/research";
 import { FINTERA_CONTENT_PILLARS } from "@/lib/content-types";
+import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
 
 interface ResearchHubClientProps {
   sources: AuthoritativeSourceDefinition[];
@@ -420,7 +421,7 @@ export function ResearchHubClient({
               <div key={desk.id} className="admin-card space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wider text-sky-400">
-                    Participación Objetivo: {desk.targetSharePct}%
+                    Mesa Estratégica FINTERA
                   </span>
                   <span className="admin-status admin-status-success">
                     {desk.activeSignalsCount} señales activas
@@ -490,14 +491,17 @@ export function ResearchHubClient({
                   {selectedBrief.sections.map((sec) => (
                     <div
                       key={sec.id}
-                      className="rounded-lg border border-slate-800 bg-slate-950/60 p-3"
+                      className="rounded-lg border border-slate-800 bg-slate-950/60 p-4"
                     >
                       <h3 className="text-xs font-bold uppercase tracking-wider text-sky-300">
                         {sec.title}
                       </h3>
-                      <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-relaxed text-slate-300">
-                        {sec.contentMarkdown}
-                      </pre>
+                      <div className="mt-2">
+                        <MarkdownRenderer
+                          content={sec.contentMarkdown}
+                          variant="dark"
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>

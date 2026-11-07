@@ -943,9 +943,14 @@
   .bg-\[\#0a1628\],
   .bg-\[\#060d1a\],
   .bg-\[\#081226\],
-  .bg-\[\#0d1829\]
+  .bg-\[\#0d1829\],
+  .bg-\[\#0a192f\]:not(.keep-white-text, .keep-white-text *),
+  .bg-\[\#0A2342\]:not(.keep-white-text, .keep-white-text *),
+  .bg-\[\#0A2342\]\/95:not(.keep-white-text, .keep-white-text *),
+  .bg-\[\#0A2342\]\/90:not(.keep-white-text, .keep-white-text *),
+  .bg-\[\#0A2342\]\/80:not(.keep-white-text, .keep-white-text *)
 ) {
-  background-color: rgba(248, 250, 252, 0.92) !important;
+  background-color: rgba(248, 250, 252, 0.94) !important;
 }
 
 .admin-shell.theme-light :is(

@@ -12,7 +12,7 @@ export default async function FinteraAdminPipelinePage() {
   await requireAdminPermission("crm:application:read");
 
   const items = getAllFinteraContent();
-  const signals = researchSignalEngine.getSignals();
+  const signals = await researchSignalEngine.getSignalsWithDb();
   const sources = FINTERA_AUTHORITATIVE_SOURCES;
 
   return (

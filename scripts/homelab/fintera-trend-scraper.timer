@@ -1,0 +1,10 @@
+[Unit]
+Description=Run FINTERA Financial Trend Scraper every 6 hours
+
+[Timer]
+OnCalendar=*-*-* 00/6:15:00
+Persistent=true
+RandomizedDelaySec=180
+
+[Install]
+WantedBy=timers.target

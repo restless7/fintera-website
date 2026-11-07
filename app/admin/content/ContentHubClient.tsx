@@ -481,7 +481,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
       </div>
 
       {feedbackBanner && (
-        <div className="admin-card mb-4 flex items-center justify-between border-[#00C4B3]/50 bg-[#0A2342]/80 px-4 py-3 text-sm text-white">
+        <div className="admin-card mb-4 flex items-center justify-between border-[#00C4B3]/50 bg-slate-900/80 px-4 py-3 text-sm text-white">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={16} className="text-[#00C4B3]" />
             <span>{feedbackBanner}</span>
@@ -558,17 +558,13 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
             aria-label="Filtrar por formato"
-            className="admin-input w-auto bg-[#0a192f] text-white"
+            className="admin-input w-auto"
           >
-            <option value="ALL" className="bg-[#0A2342] text-white">
+            <option value="ALL">
               Todos los formatos ({items.length})
             </option>
             {Object.values(CONTENT_TYPES).map((t) => (
-              <option
-                key={t.key}
-                value={t.key}
-                className="bg-[#0A2342] text-white"
-              >
+              <option key={t.key} value={t.key}>
                 {t.pluralLabel}
               </option>
             ))}
@@ -578,17 +574,13 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
             value={selectedPillar}
             onChange={(e) => setSelectedPillar(e.target.value)}
             aria-label="Filtrar por pilar editorial"
-            className="admin-input w-auto bg-[#0a192f] text-white"
+            className="admin-input w-auto"
           >
-            <option value="ALL" className="bg-[#0A2342] text-white">
+            <option value="ALL">
               Todos los pilares estratégicos
             </option>
             {Object.values(FINTERA_CONTENT_PILLARS).map((p) => (
-              <option
-                key={p.key}
-                value={p.key}
-                className="bg-[#0A2342] text-white"
-              >
+              <option key={p.key} value={p.key}>
                 {p.label}
               </option>
             ))}
@@ -598,18 +590,18 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
             aria-label="Filtrar por estado"
-            className="admin-input w-auto bg-[#0a192f] text-white"
+            className="admin-input w-auto"
           >
-            <option value="ALL" className="bg-[#0A2342] text-white">
+            <option value="ALL">
               Todos los estados
             </option>
-            <option value="PUBLISHED" className="bg-[#0A2342] text-white">
+            <option value="PUBLISHED">
               Publicados (PUBLISHED)
             </option>
-            <option value="DRAFT" className="bg-[#0A2342] text-white">
+            <option value="DRAFT">
               Borradores (DRAFT)
             </option>
-            <option value="SCHEDULED" className="bg-[#0A2342] text-white">
+            <option value="SCHEDULED">
               Programados (SCHEDULED)
             </option>
           </select>
@@ -620,121 +612,21 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar por título, RADIAN, UVR, Superfinanciera..."
-          className="admin-input max-w-xs bg-[#0a192f] text-white"
+          className="admin-input max-w-xs"
         />
       </div>
 
-      {/* Master-Detail Split: Content Table + QA Gate & Content/AI Studio Inspector */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 mb-6">
-        <div className="admin-card lg:col-span-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">
-              Repositorio FINTERA Insights ({filteredItems.length})
-            </h2>
-            <span className="text-xs text-slate-400">
-              Selecciona una pieza para editar con IA, adjuntar imagen o auditar QA
-            </span>
-          </div>
-
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Pieza Editorial</th>
-                  <th>Formato</th>
-                  <th>Pilar</th>
-                  <th>QA Gate</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.map((item) => {
-                  const typeCfg = CONTENT_TYPES[item.contentType];
-                  const pillarCfg =
-                    FINTERA_CONTENT_PILLARS[item.pillar] ||
-                    FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
-                  const isSelected = activeItem?.id === item.id;
-                  const thumbSrc = item.coverImage || pillarCfg.coverImage;
-                  return (
-                    <tr
-                      key={item.id}
-                      onClick={() => selectItemForInspection(item, "PREVIEW")}
-                      className={`cursor-pointer transition ${
-                        isSelected
-                          ? "bg-sky-500/15 border-l-4 border-l-sky-600"
-                          : "hover:bg-slate-900/60"
-                      }`}
-                    >
-                      <td>
-                        <div className="flex items-center gap-3">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={thumbSrc}
-                            alt={item.title}
-                            className="h-11 w-14 shrink-0 rounded-lg object-cover border border-slate-700"
-                          />
-                          <div>
-                            <div className="font-semibold text-white leading-snug">
-                              {item.title}
-                            </div>
-                            <div className="mt-0.5 text-xs text-slate-400">
-                              Corte: {item.cutoffDate} · {item.readingTime} min ·{" "}
-                              {item.wordCount} palabras
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="admin-status admin-status-info">
-                          {typeCfg?.label || item.contentType}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="text-xs text-slate-200">
-                          {pillarCfg?.shortLabel || item.pillar}
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className={`admin-status ${
-                            item.qaScore >= 85
-                              ? "admin-status-success"
-                              : "admin-status-warning"
-                          }`}
-                        >
-                          {item.qaScore}/100
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className={`admin-status ${
-                            item.status === "PUBLISHED"
-                              ? "admin-status-success"
-                              : "admin-status-neutral"
-                          }`}
-                        >
-                          {item.status === "PUBLISHED"
-                            ? "Publicado"
-                            : item.status === "DRAFT"
-                            ? "Borrador"
-                            : item.status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Right Column: QA Gate 8-Dimension Inspector, AI Editorial Rewriter, Creative Studio & Formatted Preview */}
-        <div className="admin-card lg:col-span-6">
+      {/* Full-Width 2-Space Stacked Workspace:
+          1) Top (lg:col-span-12): Active Article Inspector, QA Gate & AI/Creative Studio
+          2) Bottom (lg:col-span-12): Repositorio FINTERA Insights Full Table */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 mb-6">
+        {/* Top Full-Width Container (2 horizontal spaces): Active Piece Inspector & Studio */}
+        <div className="admin-card lg:col-span-12">
           {activeItem ? (
             <div className="space-y-4">
               {/* Article Cover Banner & Header */}
               <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60">
-                <div className="relative h-36 w-full overflow-hidden keep-white-text">
+                <div className="relative h-44 w-full overflow-hidden keep-white-text">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={activeCoverSrc}
@@ -742,7 +634,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0A2342] via-[#0A2342]/65 to-transparent" />
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                  <div className="absolute top-3.5 left-4 right-4 flex items-center justify-between gap-2">
                     <span className="rounded-full bg-[#0A2342]/90 border border-[#00C4B3]/50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#00C4B3]">
                       {CONTENT_TYPES[activeItem.contentType]?.label} ·{" "}
                       {activePillarCfg.shortLabel}
@@ -750,25 +642,26 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     <Link
                       href={`/insights/${activeItem.slug}`}
                       target="_blank"
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-bold text-white shadow hover:bg-sky-700"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1.5 text-xs font-bold text-white shadow hover:bg-sky-700"
                     >
                       <ExternalLink size={13} />
                       <span>Abrir en /insights</span>
                     </Link>
                   </div>
-                  <div className="absolute bottom-2.5 left-3.5 right-3.5">
-                    <p className="text-[11px] font-semibold text-[#FFD447]">
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <p className="text-xs font-semibold text-[#FFD447]">
                       “{activePillarCfg.brandClaim}”
                     </p>
-                    <h3 className="text-base font-bold text-white leading-snug">
+                    <h3 className="text-lg font-bold text-white leading-snug">
                       {activeItem.title}
                     </h3>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 px-3.5 py-2 text-[11px] text-slate-300">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 px-4 py-2.5 text-xs text-slate-300">
                   <span>
-                    Fecha de corte oficial: <strong className="text-white">{activeItem.cutoffDate}</strong> · Autor:{" "}
-                    {activeItem.authorName}
+                    Fecha de corte oficial:{" "}
+                    <strong className="text-white">{activeItem.cutoffDate}</strong>{" "}
+                    · Autor: {activeItem.authorName}
                   </span>
                   {activeItem.aiModel && (
                     <span className="text-sky-400 font-semibold">
@@ -891,7 +784,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                 <button
                   type="button"
                   onClick={() => setShowCarouselPdfModal(true)}
-                  className="admin-button text-xs border-[#FFD447]/60 text-[#FFD447]"
+                  className="admin-button text-xs border-sky-500/40 text-sky-400"
                 >
                   <FileText size={13} />
                   <span>Carrusel PDF LinkedIn (1080×1350)</span>
@@ -899,7 +792,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
               </div>
 
               {/* 8-Dimension QA Gate Scorecard */}
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <ShieldCheck size={16} className="text-[#00C4B3]" />
@@ -916,11 +809,11 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                 </p>
 
                 {activeItem.qaReport?.dimensions && (
-                  <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                     {Object.values(activeItem.qaReport.dimensions).map((dim) => (
                       <div
                         key={dim.name}
-                        className="rounded-lg border border-slate-800 bg-[#0a192f] px-2.5 py-1.5"
+                        className="rounded-lg border border-slate-800 bg-slate-900/60 px-2.5 py-1.5"
                       >
                         <div className="flex items-center justify-between text-[11px]">
                           <span className="font-medium text-slate-200 truncate pr-1">
@@ -929,7 +822,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                           <span
                             className={
                               dim.passed
-                                ? "font-bold text-[#00C4B3]"
+                                ? "font-bold text-emerald-400"
                                 : "font-bold text-amber-400"
                             }
                           >
@@ -944,10 +837,10 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
 
               {/* TAB 1: SENIOR AI EDITORIAL REWRITE SERVICE */}
               {inspectorTab === "AI_REWRITE" && (
-                <div className="space-y-4 rounded-xl border border-[#00C4B3]/50 bg-[#0A2342]/90 p-4 text-white">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                <div className="space-y-4 rounded-xl border border-sky-500/30 bg-slate-900/60 p-4 text-white">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
                     <div className="flex items-center gap-2">
-                      <Wand2 size={16} className="text-[#00C4B3]" />
+                      <Wand2 size={16} className="text-sky-400" />
                       <div>
                         <h4 className="text-sm font-bold text-white">
                           Servicio de Reescritura Editorial con IA (Brand Blueprint V1.0)
@@ -971,7 +864,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                           onClick={() =>
                             setAiRewriteInstructions(preset.instruction)
                           }
-                          className="rounded-lg border border-[#00C4B3]/40 bg-[#0a192f] px-2.5 py-1.5 text-[11px] font-medium text-[#00C4B3] transition hover:bg-[#00C4B3] hover:text-[#0A2342]"
+                          className="rounded-lg border border-sky-500/30 bg-slate-950/60 px-2.5 py-1.5 text-[11px] font-medium text-sky-400 transition hover:bg-sky-600 hover:text-white"
                         >
                           {preset.label}
                         </button>
@@ -987,7 +880,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                       type="text"
                       value={aiRewriteTitle}
                       onChange={(e) => setAiRewriteTitle(e.target.value)}
-                      className="admin-input mt-1 w-full bg-[#071120] text-white"
+                      className="admin-input mt-1 w-full"
                     />
                   </div>
 
@@ -1002,7 +895,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                         setAiRewriteInstructions(e.target.value)
                       }
                       placeholder="Ej. Reescribe la introducción aplicando el principio 'Primero la respuesta', agrega una tabla comparativa entre Crédito en Pesos y UVR con cifras ilustrativas transparentes, y refuerza el tono del Sabio Estratega..."
-                      className="admin-input mt-1 w-full bg-[#071120] text-white text-xs"
+                      className="admin-input mt-1 w-full text-xs"
                     />
                   </div>
 
@@ -1018,7 +911,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                       type="button"
                       disabled={isRewritingAi || !aiRewriteInstructions.trim()}
                       onClick={handleAiRewriteSubmit}
-                      className="inline-flex items-center gap-2 rounded-lg bg-[#00C4B3] px-4 py-2.5 text-xs font-bold text-[#0A2342] shadow-lg transition hover:bg-[#00b0a0] disabled:opacity-50"
+                      className="admin-button admin-button-primary text-xs"
                     >
                       <RefreshCw
                         size={14}
@@ -1036,19 +929,19 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
 
               {/* TAB 2: CREATIVE PICTURE ATTACHMENT & QWEN IMAGE 3.0 GENERATOR MODULE */}
               {inspectorTab === "CREATIVE_IMAGE" && (
-                <div className="space-y-4 rounded-xl border border-[#FFD447]/40 bg-[#0A2342]/95 p-4 text-white">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                <div className="space-y-4 rounded-xl border border-sky-500/30 bg-slate-900/60 p-4 text-white">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
                     <div className="flex items-center gap-2">
-                      <ImageIcon size={16} className="text-[#FFD447]" />
+                      <ImageIcon size={16} className="text-sky-400" />
                       <div>
                         <h4 className="text-sm font-bold text-white">
                           Estudio de Pieza Gráfica y Portada (Qwen Image 3.0 + Adjuntos)
                         </h4>
                         <p className="text-[11px] text-slate-300">
                           Concepto maestro: <em>“Señales de claridad”</em> · Paleta{" "}
-                          <code className="text-[#00C4B3]">#0A2342</code>,{" "}
-                          <code className="text-[#00C4B3]">#00C4B3</code> y acento{" "}
-                          <code className="text-[#FFD447]">#FFD447</code>.
+                          <code className="text-sky-400">#0A2342</code>,{" "}
+                          <code className="text-sky-400">#00C4B3</code> y acento{" "}
+                          <code className="text-amber-400">#FFD447</code>.
                         </p>
                       </div>
                     </div>
@@ -1071,7 +964,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                             })
                           )
                         }
-                        className="text-[11px] font-semibold text-[#00C4B3] hover:underline"
+                        className="text-[11px] font-semibold text-sky-400 hover:underline"
                       >
                         Restaurar prompt sugerido del Manual de Marca
                       </button>
@@ -1080,7 +973,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                       rows={4}
                       value={creativePrompt}
                       onChange={(e) => setCreativePrompt(e.target.value)}
-                      className="admin-input mt-1 w-full bg-[#071120] text-white text-xs"
+                      className="admin-input mt-1 w-full text-xs"
                     />
                     <p className="mt-1 text-[11px] text-slate-400">
                       Restricción activa (Sección 08 Brand Blueprint): {FINTERA_BRAND_BLUEPRINT.prohibitedVisuals}
@@ -1102,15 +995,15 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                               | "720x1280"
                           )
                         }
-                        className="admin-input w-auto bg-[#071120] text-white text-xs"
+                        className="admin-input w-auto text-xs"
                       >
-                        <option value="1024x1024" className="bg-[#0A2342] text-white">
+                        <option value="1024x1024">
                           Cuadrado LinkedIn / Feed (1024×1024)
                         </option>
-                        <option value="1280x720" className="bg-[#0A2342] text-white">
+                        <option value="1280x720">
                           Horizontal Portada Editorial (1280×720)
                         </option>
-                        <option value="720x1280" className="bg-[#0A2342] text-white">
+                        <option value="720x1280">
                           Vertical Historia / Reel (720×1280)
                         </option>
                       </select>
@@ -1120,7 +1013,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                       type="button"
                       disabled={isGeneratingImage}
                       onClick={handleGenerateCreativeImage}
-                      className="inline-flex items-center gap-2 rounded-lg bg-[#00C4B3] px-4 py-2.5 text-xs font-bold text-[#0A2342] shadow-lg transition hover:bg-[#00b0a0] disabled:opacity-50"
+                      className="admin-button admin-button-primary text-xs"
                     >
                       <Sparkles
                         size={14}
@@ -1135,7 +1028,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                   </div>
 
                   {/* Manual Attachment: Upload Local File or Paste External URL */}
-                  <div className="border-t border-white/10 pt-3 space-y-2.5">
+                  <div className="border-t border-slate-800 pt-3 space-y-2.5">
                     <span className="block text-xs font-semibold text-slate-200">
                       Adjuntar Pieza Creativa Propia (Subir Archivo o Pegar URL):
                     </span>
@@ -1145,7 +1038,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                         value={customImageUrl}
                         onChange={(e) => setCustomImageUrl(e.target.value)}
                         placeholder="https://... o /images/..."
-                        className="admin-input flex-1 bg-[#071120] text-white text-xs"
+                        className="admin-input flex-1 text-xs"
                       />
                       <button
                         type="button"
@@ -1169,7 +1062,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                   </div>
 
                   {/* Gallery of Pillar Covers & Generated Creative Assets */}
-                  <div className="border-t border-white/10 pt-3">
+                  <div className="border-t border-slate-800 pt-3">
                     <span className="block text-xs font-semibold text-slate-200 mb-2">
                       Biblioteca de Portadas Institucionales y Activos Generados:
                     </span>
@@ -1186,7 +1079,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                           }
                           className={`group relative overflow-hidden rounded-lg border text-left ${
                             activeCoverSrc === p.coverImage
-                              ? "border-[#00C4B3] ring-2 ring-[#00C4B3]"
+                              ? "border-sky-500 ring-2 ring-sky-500"
                               : "border-slate-700"
                           }`}
                         >
@@ -1196,7 +1089,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                             alt={p.shortLabel}
                             className="h-20 w-full object-cover"
                           />
-                          <div className="bg-[#071120] px-2 py-1 text-[10px] font-semibold text-slate-200 truncate">
+                          <div className="bg-slate-950/80 px-2 py-1 text-[10px] font-semibold text-slate-200 truncate">
                             Pilar {p.number}: {p.shortLabel}
                           </div>
                         </button>
@@ -1211,7 +1104,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                           }
                           className={`group relative overflow-hidden rounded-lg border text-left ${
                             activeCoverSrc === asset.url
-                              ? "border-[#FFD447] ring-2 ring-[#FFD447]"
+                              ? "border-amber-400 ring-2 ring-amber-400"
                               : "border-slate-700"
                           }`}
                         >
@@ -1221,7 +1114,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                             alt={asset.model}
                             className="h-20 w-full object-cover"
                           />
-                          <div className="bg-[#071120] px-2 py-1 text-[10px] font-semibold text-[#FFD447] truncate">
+                          <div className="bg-slate-950/80 px-2 py-1 text-[10px] font-semibold text-amber-400 truncate">
                             IA · {asset.model}
                           </div>
                         </button>
@@ -1233,7 +1126,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
 
               {/* TAB 3: MANUAL MARKDOWN EDITOR (HIGH CONTRAST) */}
               {inspectorTab === "MANUAL_EDIT" && (
-                <div className="space-y-3 rounded-xl border border-sky-400/50 bg-[#0a192f] p-4 text-white">
+                <div className="space-y-3 rounded-xl border border-sky-400/50 bg-slate-900/60 p-4 text-white">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-semibold text-white">
@@ -1243,7 +1136,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                         type="text"
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
-                        className="admin-input mt-1 w-full bg-[#071120] text-white text-xs"
+                        className="admin-input mt-1 w-full text-xs"
                       />
                     </div>
                     <div>
@@ -1254,7 +1147,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                         type="text"
                         value={editCutoffDate}
                         onChange={(e) => setEditCutoffDate(e.target.value)}
-                        className="admin-input mt-1 w-full bg-[#071120] text-white text-xs"
+                        className="admin-input mt-1 w-full text-xs"
                       />
                     </div>
                   </div>
@@ -1266,7 +1159,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                       rows={14}
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="admin-input mt-1 w-full bg-[#071120] font-mono text-xs text-white leading-relaxed"
+                      className="admin-input mt-1 w-full font-mono text-xs leading-relaxed"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
@@ -1322,7 +1215,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                         <button
                           type="button"
                           onClick={() => handleCopyLinkedinPost(activeItem)}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#00C4B3] hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-sky-400 hover:underline"
                         >
                           <ClipboardCopy size={12} />
                           <span>Copiar Post para LinkedIn</span>
@@ -1331,11 +1224,11 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                     </div>
 
                     {showRawMarkdown ? (
-                      <pre className="max-h-96 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-800 bg-[#071120] p-4 font-mono text-xs leading-relaxed text-slate-200">
+                      <pre className="max-h-96 overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950/60 p-4 font-mono text-xs leading-relaxed text-slate-200">
                         {activeItem.content}
                       </pre>
                     ) : (
-                      <div className="max-h-[460px] overflow-y-auto rounded-xl border border-slate-800 bg-[#071120] p-5">
+                      <div className="max-h-[520px] overflow-y-auto rounded-xl border border-slate-800 bg-slate-950/60 p-6">
                         <MarkdownRenderer
                           content={activeItem.content}
                           variant="dark"
@@ -1353,12 +1246,115 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
             </div>
           )}
         </div>
+
+        {/* Bottom Full-Width Container (2 horizontal spaces): Repositorio FINTERA Insights Table */}
+        <div className="admin-card lg:col-span-12">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-white">
+              Repositorio FINTERA Insights ({filteredItems.length})
+            </h2>
+            <span className="text-xs text-slate-400">
+              Selecciona una pieza para inspeccionarla arriba, editar con IA, adjuntar imagen o auditar QA
+            </span>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Pieza Editorial</th>
+                  <th>Formato</th>
+                  <th>Pilar</th>
+                  <th>QA Gate</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.map((item) => {
+                  const typeCfg = CONTENT_TYPES[item.contentType];
+                  const pillarCfg =
+                    FINTERA_CONTENT_PILLARS[item.pillar] ||
+                    FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
+                  const isSelected = activeItem?.id === item.id;
+                  const thumbSrc = item.coverImage || pillarCfg.coverImage;
+                  return (
+                    <tr
+                      key={item.id}
+                      onClick={() => selectItemForInspection(item, "PREVIEW")}
+                      className={`cursor-pointer transition ${
+                        isSelected
+                          ? "bg-sky-500/15 border-l-4 border-l-sky-600"
+                          : "hover:bg-slate-900/60"
+                      }`}
+                    >
+                      <td>
+                        <div className="flex items-center gap-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={thumbSrc}
+                            alt={item.title}
+                            className="h-11 w-16 shrink-0 rounded-lg object-cover border border-slate-700"
+                          />
+                          <div>
+                            <div className="font-semibold text-white leading-snug">
+                              {item.title}
+                            </div>
+                            <div className="mt-0.5 text-xs text-slate-400">
+                              Corte: {item.cutoffDate} · {item.readingTime} min ·{" "}
+                              {item.wordCount} palabras
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="admin-status admin-status-info">
+                          {typeCfg?.label || item.contentType}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="text-xs font-medium text-slate-200">
+                          {pillarCfg?.shortLabel || item.pillar}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`admin-status ${
+                            item.qaScore >= 85
+                              ? "admin-status-success"
+                              : "admin-status-warning"
+                          }`}
+                        >
+                          {item.qaScore}/100
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`admin-status ${
+                            item.status === "PUBLISHED"
+                              ? "admin-status-success"
+                              : "admin-status-neutral"
+                          }`}
+                        >
+                          {item.status === "PUBLISHED"
+                            ? "Publicado"
+                            : item.status === "DRAFT"
+                            ? "Borrador"
+                            : item.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Regla Editorial de FINTERA Banner */}
       <div className="admin-card">
         <div className="flex items-center gap-2">
-          <BookOpen size={16} className="text-[#00C4B3]" />
+          <BookOpen size={16} className="text-sky-400" />
           <h2 className="text-sm font-semibold text-white">
             La Regla Editorial y Gobernanza de Marca de FINTERA (Verificación Automática en cada Publicación)
           </h2>
@@ -1367,9 +1363,9 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
           {FINTERA_EDITORIAL_COMPLIANCE_RULES.map((rule) => (
             <div
               key={rule.id}
-              className="rounded-lg border border-slate-800 bg-[#0a192f] p-3"
+              className="rounded-lg border border-slate-800 bg-slate-900/60 p-3.5"
             >
-              <p className="text-xs font-semibold text-[#00C4B3]">{rule.title}</p>
+              <p className="text-xs font-semibold text-sky-400">{rule.title}</p>
               <p className="mt-1 text-xs text-slate-300">{rule.description}</p>
             </div>
           ))}
@@ -1379,10 +1375,10 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
       {/* Modal for Creating / Generating a New Piece */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
-          <div className="admin-card w-full max-w-2xl space-y-4 border-slate-700 bg-[#0A2342]">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="admin-card w-full max-w-2xl space-y-4 border-slate-700 bg-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <FileText size={18} className="text-[#00C4B3]" />
+                <FileText size={18} className="text-sky-400" />
                 <h3 className="text-base font-bold text-white">
                   Crear o Generar Nueva Pieza en FINTERA Insights
                 </h3>
@@ -1406,14 +1402,10 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                   onChange={(e) =>
                     setNewPillar(e.target.value as FinteraContentPillarKey)
                   }
-                  className="admin-input mt-1 w-full bg-[#071120] text-white"
+                  className="admin-input mt-1 w-full"
                 >
                   {Object.values(FINTERA_CONTENT_PILLARS).map((p) => (
-                    <option
-                      key={p.key}
-                      value={p.key}
-                      className="bg-[#0A2342] text-white"
-                    >
+                    <option key={p.key} value={p.key}>
                       {p.label}
                     </option>
                   ))}
@@ -1427,14 +1419,10 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                 <select
                   value={newType}
                   onChange={(e) => setNewType(e.target.value as ContentTypeKey)}
-                  className="admin-input mt-1 w-full bg-[#071120] text-white"
+                  className="admin-input mt-1 w-full"
                 >
                   {Object.values(CONTENT_TYPES).map((t) => (
-                    <option
-                      key={t.key}
-                      value={t.key}
-                      className="bg-[#0A2342] text-white"
-                    >
+                    <option key={t.key} value={t.key}>
                       {t.label}
                     </option>
                   ))}
@@ -1451,7 +1439,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Ej. Cómo comparar dos ofertas de crédito hipotecario en pesos y UVR"
-                className="admin-input mt-1 w-full bg-[#071120] text-white"
+                className="admin-input mt-1 w-full"
               />
             </div>
 
@@ -1465,7 +1453,7 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 placeholder="Escribe el contenido o pulsa 'Generar con Motor IA FINTERA' para redactar automáticamente con citas de SFC, BanRep, DANE, DIAN/RADIAN y OCDE..."
-                className="admin-input mt-1 w-full bg-[#071120] text-white"
+                className="admin-input mt-1 w-full"
               />
             </div>
 

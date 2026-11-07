@@ -1,0 +1,10 @@
+[Unit]
+Description=Run FINTERA Autonomous Content & Qwen Image 3.0 Generator Mon-Thu at 08:00 COT
+
+[Timer]
+OnCalendar=Mon..Thu *-*-* 08:00:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
