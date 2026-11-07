@@ -1,12 +1,16 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   CheckCircle2,
   ClipboardCopy,
+  ExternalLink,
   FileDown,
   Layers,
+  Palette,
   ShieldCheck,
+  Sparkles,
   X,
 } from "lucide-react";
 import {
@@ -22,6 +26,8 @@ interface CarouselSlide {
   headline: string;
   body: string;
   footerTag: string;
+  gradientVariant: string;
+  accentColor: string;
 }
 
 interface LinkedinCarouselPdfModalProps {
@@ -38,6 +44,46 @@ export function LinkedinCarouselPdfModal({
     FINTERA_CONTENT_PILLARS[item.pillar as FinteraContentPillarKey] ||
     FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
 
+  // Variable Enterprise Gradient Palettes based on FINTERA Brand Blueprint V1.0 (#0A2342, #00C4B3, #FFD447)
+  const slideGradients = [
+    {
+      gradient: "from-[#07172B] via-[#0A2342] to-[#040D18]",
+      accent: "#00C4B3",
+      chip: "bg-[#00C4B3]/20 text-[#00C4B3] border-[#00C4B3]/40",
+      printBg: "radial-gradient(circle at top right, rgba(0, 196, 179, 0.28), transparent 60%), #0A2342",
+    },
+    {
+      gradient: "from-[#081F38] via-[#0D2E55] to-[#061426]",
+      accent: "#FFD447",
+      chip: "bg-[#FFD447]/20 text-[#FFD447] border-[#FFD447]/40",
+      printBg: "radial-gradient(circle at top right, rgba(255, 212, 71, 0.24), transparent 55%), #081F38",
+    },
+    {
+      gradient: "from-[#052136] via-[#08384E] to-[#031422]",
+      accent: "#00C4B3",
+      chip: "bg-[#00C4B3]/20 text-[#00C4B3] border-[#00C4B3]/40",
+      printBg: "radial-gradient(circle at top right, rgba(0, 196, 179, 0.26), transparent 55%), #052136",
+    },
+    {
+      gradient: "from-[#091D33] via-[#0F3155] to-[#061424]",
+      accent: "#38BDF8",
+      chip: "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/40",
+      printBg: "radial-gradient(circle at top right, rgba(56, 189, 248, 0.25), transparent 55%), #091D33",
+    },
+    {
+      gradient: "from-[#082433] via-[#0B3A48] to-[#04151E]",
+      accent: "#34D399",
+      chip: "bg-[#34D399]/20 text-[#34D399] border-[#34D399]/40",
+      printBg: "radial-gradient(circle at top right, rgba(52, 211, 153, 0.24), transparent 55%), #082433",
+    },
+    {
+      gradient: "from-[#091C36] via-[#0E2C52] to-[#051122]",
+      accent: "#FFD447",
+      chip: "bg-[#FFD447]/20 text-[#FFD447] border-[#FFD447]/40",
+      printBg: "radial-gradient(circle at bottom right, rgba(0, 196, 179, 0.32), transparent 60%), radial-gradient(circle at top left, rgba(255, 212, 71, 0.22), transparent 50%), #0A2342",
+    },
+  ];
+
   const slides: CarouselSlide[] = useMemo(() => {
     const tutorialMeta = item.typeMetadata as unknown as TutorialMetadata;
     if (
@@ -45,22 +91,27 @@ export function LinkedinCarouselPdfModal({
       Array.isArray(tutorialMeta.carouselSlides) &&
       tutorialMeta.carouselSlides.length > 0
     ) {
-      return tutorialMeta.carouselSlides.map((s) => ({
-        slideNumber: s.slideNumber,
-        eyebrow: `${pillarCfg.shortLabel} · Corte: ${item.cutoffDate || "Octubre 2026"}`,
-        headline: s.headline,
-        body: s.body,
-        footerTag: pillarCfg.brandClaim,
-      }));
+      return tutorialMeta.carouselSlides.map((s, idx) => {
+        const styleVariant = slideGradients[idx % slideGradients.length];
+        return {
+          slideNumber: s.slideNumber,
+          eyebrow: `${pillarCfg.shortLabel} · Corte: ${item.cutoffDate || "Octubre 2026"}`,
+          headline: s.headline,
+          body: s.body,
+          footerTag: pillarCfg.brandClaim,
+          gradientVariant: styleVariant.gradient,
+          accentColor: styleVariant.accent,
+        };
+      });
     }
 
-    // Auto-extract headings and paragraphs from Markdown content to build a 6-slide deck
+    // Auto-extract headings and paragraphs from Markdown content to build a cohesive 6-slide deck
     const h2Matches = item.content
       .split(/\n+/)
       .filter((line) => line.trim().startsWith("## "))
       .map((line) => line.replace(/^##\s+/, "").trim());
 
-    return [
+    const baseSlides = [
       {
         slideNumber: 1,
         eyebrow: `FINTERA INSIGHTS · ${pillarCfg.shortLabel.toUpperCase()}`,
@@ -122,6 +173,15 @@ export function LinkedinCarouselPdfModal({
         footerTag: "www.finterasoluciones.co · Colombia",
       },
     ];
+
+    return baseSlides.map((s, idx) => {
+      const styleVariant = slideGradients[idx % slideGradients.length];
+      return {
+        ...s,
+        gradientVariant: styleVariant.gradient,
+        accentColor: styleVariant.accent,
+      };
+    });
   }, [item, pillarCfg]);
 
   const utmUrl = `https://www.finterasoluciones.co/insights/${item.slug}?utm_source=linkedin&utm_medium=carousel_pdf&utm_campaign=${item.pillar.toLowerCase()}_2026`;
@@ -152,23 +212,36 @@ export function LinkedinCarouselPdfModal({
 
     const slidesHtml = slides
       .map(
-        (s) => `
-      <div class="slide">
+        (s, idx) => `
+      <div class="slide slide-${idx + 1}">
         <div class="top-row">
-          <span class="eyebrow">${s.eyebrow}</span>
-          <span class="slide-num">LÁMINA 0${s.slideNumber} / 0${slides.length}</span>
+          <div class="brand-brandmark">
+            <img src="/images/shieldlogo.png" alt="FINTERA" class="logo-shield" />
+            <div>
+              <span class="brand-title">FINTERA</span>
+              <span class="brand-sub">Banca Hipotecaria & B2B</span>
+            </div>
+          </div>
+          <div class="top-meta">
+            <span class="eyebrow">${s.eyebrow}</span>
+            <span class="slide-num">LÁMINA 0${s.slideNumber} / 0${slides.length}</span>
+          </div>
         </div>
+
         <div class="middle">
-          <div class="accent-bar"></div>
+          <div class="accent-bar" style="background: ${s.accentColor};"></div>
           <h1>${s.headline}</h1>
           <p>${s.body}</p>
         </div>
+
         <div class="bottom-row">
           <div>
-            <strong class="brand">FINTERA</strong>
             <span class="claim">${s.footerTag}</span>
+            <span class="sub-claim">Inteligencia Financiera con Trato Humano · Colombia</span>
           </div>
-          <span class="badge">QA Verificado · ${item.qaScore}/100</span>
+          <div class="badge-wrapper">
+            <span class="badge">Auditoría E-E-A-T · Fuentes Primarias</span>
+          </div>
         </div>
       </div>
     `
@@ -180,7 +253,7 @@ export function LinkedinCarouselPdfModal({
       <html lang="es">
       <head>
         <meta charset="utf-8" />
-        <title>Carrusel LinkedIn FINTERA - ${item.slug}</title>
+        <title>Carrusel LinkedIn FINTERA (1080x1350) - ${item.slug}</title>
         <style>
           @page {
             size: 1080px 1350px;
@@ -192,7 +265,7 @@ export function LinkedinCarouselPdfModal({
             padding: 0;
           }
           body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #061529;
             color: #ffffff;
             -webkit-print-color-adjust: exact;
@@ -201,24 +274,60 @@ export function LinkedinCarouselPdfModal({
           .slide {
             width: 1080px;
             height: 1350px;
-            padding: 88px;
-            background: radial-gradient(circle at top right, rgba(0, 196, 179, 0.22), transparent 55%), #0A2342;
+            padding: 96px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             page-break-after: always;
-            border-bottom: 8px solid #00C4B3;
             position: relative;
+            border-bottom: 10px solid #00C4B3;
           }
+          .slide-1 { background: ${slideGradients[0].printBg}; }
+          .slide-2 { background: ${slideGradients[1].printBg}; }
+          .slide-3 { background: ${slideGradients[2].printBg}; }
+          .slide-4 { background: ${slideGradients[3].printBg}; }
+          .slide-5 { background: ${slideGradients[4].printBg}; }
+          .slide-6 { background: ${slideGradients[5].printBg}; }
+
           .top-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            padding-bottom: 28px;
+            border-bottom: 1px solid rgba(255,255,255,0.18);
+            padding-bottom: 32px;
+          }
+          .brand-brandmark {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+          .logo-shield {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+          }
+          .brand-title {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            color: #FFFFFF;
+            display: block;
+            line-height: 1;
+          }
+          .brand-sub {
+            font-size: 15px;
+            color: #00C4B3;
+            letter-spacing: 0.05em;
+            margin-top: 5px;
+            display: block;
+          }
+          .top-meta {
+            display: flex;
+            align-items: center;
+            gap: 18px;
           }
           .eyebrow {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: 0.08em;
             color: #00C4B3;
@@ -226,61 +335,64 @@ export function LinkedinCarouselPdfModal({
           }
           .slide-num {
             font-size: 20px;
-            font-weight: 700;
+            font-weight: 800;
             color: #FFD447;
-            background: rgba(255, 212, 71, 0.14);
-            border: 1px solid rgba(255, 212, 71, 0.4);
-            padding: 10px 22px;
+            background: rgba(255, 212, 71, 0.15);
+            border: 1.5px solid rgba(255, 212, 71, 0.5);
+            padding: 10px 24px;
             border-radius: 999px;
           }
           .middle {
             margin: auto 0;
+            max-width: 900px;
           }
           .accent-bar {
-            width: 96px;
+            width: 110px;
             height: 10px;
-            background: #00C4B3;
             border-radius: 999px;
-            margin-bottom: 36px;
+            margin-bottom: 38px;
           }
           h1 {
-            font-size: 58px;
-            line-height: 1.16;
-            font-weight: 800;
+            font-size: 56px;
+            line-height: 1.18;
+            font-weight: 900;
             color: #FFFFFF;
-            margin-bottom: 38px;
+            margin-bottom: 34px;
+            letter-spacing: -0.01em;
           }
           p {
             font-size: 32px;
-            line-height: 1.5;
+            line-height: 1.52;
             color: #E2E8F0;
+            font-weight: 400;
           }
           .bottom-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px solid rgba(255,255,255,0.15);
-            padding-top: 32px;
-          }
-          .brand {
-            font-size: 30px;
-            letter-spacing: 0.14em;
-            color: #FFFFFF;
-            display: block;
+            border-top: 1px solid rgba(255,255,255,0.18);
+            padding-top: 36px;
           }
           .claim {
-            font-size: 20px;
+            font-size: 22px;
+            font-weight: 700;
             color: #00C4B3;
+            display: block;
+          }
+          .sub-claim {
+            font-size: 16px;
+            color: #94A3B8;
             margin-top: 6px;
             display: block;
           }
           .badge {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 19px;
+            font-weight: 800;
             color: #0A2342;
             background: #00C4B3;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border-radius: 14px;
+            display: inline-block;
           }
         </style>
       </head>
@@ -288,7 +400,7 @@ export function LinkedinCarouselPdfModal({
         ${slidesHtml}
         <script>
           window.onload = function() {
-            setTimeout(function() { window.print(); }, 350);
+            setTimeout(function() { window.print(); }, 400);
           };
         </script>
       </body>
@@ -298,15 +410,25 @@ export function LinkedinCarouselPdfModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="admin-card max-h-[92vh] w-full max-w-5xl overflow-y-auto space-y-5 border border-[#00C4B3]/40 bg-[#081226]">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            <Layers size={20} className="text-[#00C4B3]" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-slate-700">
+              <Image
+                src="/images/shieldlogo.png"
+                width={26}
+                height={26}
+                alt="FINTERA"
+                unoptimized
+                className="object-contain"
+              />
+            </div>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#00C4B3]">
-                FINTERA LinkedIn Carousel PDF Studio · Formato 1080×1350 (4:5)
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#00C4B3] flex items-center gap-1.5">
+                <Layers size={13} />
+                FINTERA LinkedIn Carousel PDF Studio · 1080×1350 (4:5)
               </span>
               <h2 className="text-base font-extrabold text-white">
                 {item.title}
@@ -362,53 +484,83 @@ export function LinkedinCarouselPdfModal({
           </pre>
         </div>
 
-        {/* 6-Slide Visual Preview Grid */}
+        {/* 6-Slide Visual Preview Grid with Dynamic Variable Gradients, Logo & High-Contrast Typography */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Vista Previa de las {slides.length} Láminas del Carrusel (Brand
-              Blueprint V1.0 · #0A2342 + #00C4B3 + #FFD447)
-            </span>
-            <span className="text-xs text-emerald-400 flex items-center gap-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <Palette size={15} className="text-[#00C4B3]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                Vista Previa de las {slides.length} Láminas · Gradientes Variables FINTERA (#0A2342, #00C4B3, #FFD447)
+              </span>
+            </div>
+            <span className="text-xs text-emerald-400 flex items-center gap-1 font-semibold">
               <ShieldCheck size={14} />
               Cumple Ley 1581 y Regla Editorial FINTERA
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {slides.map((s) => (
-              <div
-                key={s.slideNumber}
-                className="flex flex-col justify-between rounded-2xl border border-[#00C4B3]/30 bg-gradient-to-br from-[#0A2342] via-[#0d2d54] to-[#061529] p-5 text-white shadow-lg min-h-[270px]"
-              >
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2 text-[10px]">
-                    <span className="font-bold uppercase tracking-wider text-[#00C4B3] truncate max-w-[180px]">
-                      {s.eyebrow}
+            {slides.map((s, idx) => {
+              const styleVariant = slideGradients[idx % slideGradients.length];
+              return (
+                <div
+                  key={s.slideNumber}
+                  className={`flex flex-col justify-between rounded-2xl border border-slate-700/60 bg-gradient-to-br ${s.gradientVariant} p-5 text-white shadow-xl min-h-[300px] transition-transform hover:-translate-y-1 duration-200 relative overflow-hidden`}
+                >
+                  {/* Subtle lighting mesh */}
+                  <div className="pointer-events-none absolute -top-12 -right-12 h-36 w-36 rounded-full bg-cyan-400/10 blur-2xl" />
+
+                  <div className="space-y-3 relative z-10">
+                    {/* Top Row with Logo & Slide Number */}
+                    <div className="flex items-center justify-between border-b border-white/15 pb-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <Image
+                          src="/images/shieldlogo.png"
+                          width={18}
+                          height={18}
+                          alt="FINTERA"
+                          unoptimized
+                          className="object-contain shrink-0"
+                        />
+                        <span className="font-extrabold text-[11px] tracking-wider text-white">
+                          FINTERA
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold border ${styleVariant.chip}`}
+                      >
+                        0{s.slideNumber}/0{slides.length}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#00C4B3] block truncate">
+                        {s.eyebrow}
+                      </span>
+                      <div
+                        className="h-1 w-10 rounded-full mt-1 mb-2"
+                        style={{ backgroundColor: s.accentColor }}
+                      />
+                      <h3 className="text-sm font-extrabold leading-snug text-white drop-shadow-sm">
+                        {s.headline}
+                      </h3>
+                      <p className="mt-2 text-xs leading-relaxed text-slate-100 font-normal">
+                        {s.body}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-2.5 text-[10px] relative z-10">
+                    <span className="font-semibold text-slate-300 truncate max-w-[190px]">
+                      {s.footerTag}
                     </span>
-                    <span className="rounded-full bg-[#FFD447]/20 border border-[#FFD447]/40 px-2 py-0.5 font-bold text-[#FFD447]">
-                      0{s.slideNumber}/0{slides.length}
+                    <span className="font-bold text-[#00C4B3]">
+                      Colombia
                     </span>
                   </div>
-                  <div className="h-1 w-10 rounded-full bg-[#00C4B3]" />
-                  <h3 className="text-sm font-extrabold leading-snug text-white">
-                    {s.headline}
-                  </h3>
-                  <p className="text-xs leading-relaxed text-slate-200">
-                    {s.body}
-                  </p>
                 </div>
-
-                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-2.5 text-[10px]">
-                  <span className="font-bold text-[#00C4B3] truncate">
-                    {s.footerTag}
-                  </span>
-                  <span className="font-extrabold tracking-widest text-white">
-                    FINTERA
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

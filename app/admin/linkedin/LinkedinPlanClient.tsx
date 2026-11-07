@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -8,6 +8,8 @@ import {
   ClipboardCopy,
   ExternalLink,
   FileDown,
+  Layers,
+  RefreshCw,
   Share2,
   ShieldAlert,
   Sparkles,
@@ -19,20 +21,30 @@ import {
   FINTERA_CONVERSION_FUNNEL,
   FINTERA_EDITORIAL_COMPLIANCE_RULES,
   FINTERA_LINKEDIN_PROFILE_SPEC,
-  FINTERA_MONTH_1_CALENDAR,
   FINTERA_TARGET_NETWORK,
   FINTERA_WEEKLY_ROUTINE,
   LinkedinCalendarPostSpec,
 } from "@/lib/linkedin-strategy";
+import {
+  generateAgnosticMonthCalendar,
+  SPANISH_MONTHS,
+} from "@/lib/linkedin-generator";
 import type { FinteraContentItem } from "@/lib/blog";
+import type { ResearchSignal } from "@/lib/research/types";
 import { LinkedinCarouselPdfModal } from "@/components/fintera/growth/LinkedinCarouselPdfModal";
 import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
 
 interface LinkedinPlanClientProps {
   existingItems: FinteraContentItem[];
+  liveSignals?: ResearchSignal[];
 }
 
-export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
+export function LinkedinPlanClient({
+  existingItems,
+  liveSignals = [],
+}: LinkedinPlanClientProps) {
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(10); // Noviembre (0-indexed = 10)
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedWeek, setSelectedWeek] = useState<1 | 2 | 3 | 4>(1);
   const [developingSlotId, setDevelopingSlotId] = useState<string | null>(null);
   const [generatedSlotItems, setGeneratedSlotItems] = useState<
@@ -41,15 +53,26 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
   const [copiedProfileField, setCopiedProfileField] = useState<string | null>(
     null
   );
-  const [utmCampaign, setUtmCampaign] = useState("vivienda_oct2026");
+  const [utmCampaign, setUtmCampaign] = useState("vivienda_nov2026");
   const [utmTarget, setUtmTarget] = useState("/simulador");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [carouselModalItem, setCarouselModalItem] =
     useState<FinteraContentItem | null>(null);
 
-  const weekPosts = FINTERA_MONTH_1_CALENDAR.filter(
-    (p) => p.week === selectedWeek
-  );
+  // Dynamically compute the 16-post calendar for the selected Month & Year using live trend signals
+  const activeMonthCalendar = useMemo(() => {
+    return generateAgnosticMonthCalendar({
+      monthIndex: selectedMonthIndex,
+      year: selectedYear,
+      signals: liveSignals,
+    });
+  }, [selectedMonthIndex, selectedYear, liveSignals]);
+
+  const weekPosts = useMemo(() => {
+    return activeMonthCalendar.filter((p) => p.week === selectedWeek);
+  }, [activeMonthCalendar, selectedWeek]);
+
+  const monthLabel = `${SPANISH_MONTHS[selectedMonthIndex]} ${selectedYear}`;
 
   const handleCopyText = async (label: string, text: string) => {
     try {
@@ -312,25 +335,61 @@ export function LinkedinPlanClient({ existingItems }: LinkedinPlanClientProps) {
         </div>
       </div>
 
-      {/* SECCIÓN 5: Calendario Editorial Interactivo del Primer Mes (Semanas 1 a 4 · Lunes a Jueves) */}
+      {/* SECCIÓN 5: Calendario Editorial Interactivo Agnostico Temporal (16 Publicaciones / Mes · 4 por Semana) */}
       <div className="admin-card space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <Calendar size={17} className="text-sky-400" />
+            <Calendar size={18} className="text-sky-400" />
             <div>
-              <h2 className="text-base font-bold text-slate-100">
-                Sección 5 · Calendario Editorial Interactivo: Primer Mes (4
-                Publicaciones / Semana)
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-100">
+                  Sección 5 · Calendario Editorial Agnóstico &amp; Motor de Señales
+                </h2>
+                <span className="admin-status admin-status-info text-[11px]">
+                  {monthLabel} · 16 Publicaciones
+                </span>
+              </div>
               <p className="text-xs text-slate-400">
-                Selecciona una semana y haz clic en &ldquo;Desarrollar esta
-                publicación&rdquo; para redactar el borrador completo con
-                fuentes oficiales y validación QA.
+                Genera en tiempo real la cadencia editorial para cualquier mes del año
+                nutrida de las 14 fuentes primarias oficiales y las señales de mercado.
               </p>
             </div>
           </div>
 
+          {/* Month & Year Selectors + Week Selector */}
           <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={selectedMonthIndex}
+              onChange={(e) => {
+                const idx = Number(e.target.value);
+                setSelectedMonthIndex(idx);
+                setUtmCampaign(`vivienda_${SPANISH_MONTHS[idx].toLowerCase()}${selectedYear}`);
+              }}
+              className="admin-input py-1 text-xs font-semibold"
+            >
+              {SPANISH_MONTHS.map((m, idx) => (
+                <option key={m} value={idx}>
+                  Mes: {m}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedYear}
+              onChange={(e) => {
+                const yr = Number(e.target.value);
+                setSelectedYear(yr);
+                setUtmCampaign(`vivienda_${SPANISH_MONTHS[selectedMonthIndex].toLowerCase()}${yr}`);
+              }}
+              className="admin-input py-1 text-xs font-semibold"
+            >
+              <option value={2026}>Año 2026</option>
+              <option value={2027}>Año 2027</option>
+              <option value={2028}>Año 2028</option>
+            </select>
+
+            <div className="h-5 w-px bg-slate-700 hidden sm:block" />
+
             {([1, 2, 3, 4] as const).map((w) => (
               <button
                 key={w}
