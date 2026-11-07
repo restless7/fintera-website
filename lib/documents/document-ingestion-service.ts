@@ -17,6 +17,7 @@ import {
 import { storageAdapter } from "./storage/s3-storage-adapter";
 import { MagicBytesValidator } from "./security/magic-bytes-validator";
 import { AntivirusScanner } from "./security/antivirus-scanner";
+import { AiDocumentPreAuditor } from "./ai-document-pre-auditor";
 
 export interface CreateUploadIntentInput {
   applicationId: string;
@@ -244,6 +245,15 @@ export class DocumentIngestionService {
       },
     });
 
+    // 2.8.5 PRE-AUDITORÍA DOCUMENTAL CON IA (OCR / XML RADIAN DIAN / Heurística Bancaria)
+    const aiAudit = await AiDocumentPreAuditor.auditDocument({
+      fileBuffer,
+      fileName: intent.declaredFileName,
+      detectedMimeType: magicValidation.detectedMimeType,
+      requirementTitle: intent.declaredFileName,
+      requirementCategory: intent.asset?.category || "IDENTIFICATION",
+    });
+
     // 2.9 Transacción atómica en PostgreSQL para materializar la versión inmutable
     const finalized = await prisma.$transaction(async (tx) => {
       // Upsert o recuperación del Asset
@@ -289,7 +299,7 @@ export class DocumentIngestionService {
           scanStatus: DocumentScanStatus.CLEAN,
           scanEngine: avResult.scannerEngine,
           scanCompletedAt: new Date(),
-          scanDetails: avResult.details,
+          scanDetails: `${avResult.details} | ${aiAudit.summaryBadge}`,
           uploadedByUserId: validAppUserId,
         },
       });
@@ -336,7 +346,7 @@ export class DocumentIngestionService {
             requirementId: intent.requirementId,
             documentVersionId: newVersion.id,
             status: DocumentReviewStatus.PENDING_REVIEW,
-            internalNotes: "Carga reciente confirmada y verificada limpia por el antivirus.",
+            internalNotes: aiAudit.detailedNotes,
           },
         });
       }

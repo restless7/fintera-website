@@ -375,7 +375,31 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
       <div className="space-y-6">
         <PageHeader title="Documentos" eyebrow={fileNumber}
           description={`Requisitos y evidencias de ${[client?.firstName, client?.firstLastName].filter(Boolean).join(" ") || "la solicitud"}. Revise el estado documental de cada banco antes de continuar.`}
-          actions={canUpload ? <button onClick={() => { setUploadTargetReqId(null); setIsUploadModalOpen(true); }} className="admin-button admin-button-primary">+ Cargar documento</button> : undefined}
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={`/api/admin/crm/applications/${applicationId}/documents/dossier${
+                  selectedBankAppId !== "ALL" ? `?bankApplicationId=${selectedBankAppId}` : ""
+                }`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/30 transition-all"
+              >
+                📦 Descargar Dossier Bancario (PDF)
+              </a>
+              {canUpload && (
+                <button
+                  onClick={() => {
+                    setUploadTargetReqId(null);
+                    setIsUploadModalOpen(true);
+                  }}
+                  className="admin-button admin-button-primary"
+                >
+                  + Cargar documento
+                </button>
+              )}
+            </div>
+          }
         />
         <CaseNavigation applicationId={applicationId} fileNumber={fileNumber} documents />
         {error && <p role="alert" className="rounded-lg border border-rose-800 bg-rose-950/30 p-4 text-sm text-rose-300">{error}</p>}
@@ -568,12 +592,27 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
                           >
                             Descargar
                           </button>
+                          {version.scanDetails && version.scanDetails.includes("IA ") && (
+                            <>
+                              <span>·</span>
+                              <span className="px-2 py-0.5 rounded bg-blue-950/90 text-blue-300 border border-blue-700/50 font-semibold text-[10px]">
+                                🤖 {version.scanDetails.split("|").pop()?.trim()}
+                              </span>
+                            </>
+                          )}
                         </div>
                       ) : (
                         <div className="text-[11px] text-amber-400/90 italic pt-1">
                           ⚠️ Sin archivo cargado para este requisito.
                         </div>
                       )}
+
+                      {latestReview?.internalNotes &&
+                        latestReview.internalNotes.includes("[PRE-AUDITORÍA IA") && (
+                          <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-blue-800/40 text-[11px] text-slate-300 whitespace-pre-line font-mono">
+                            {latestReview.internalNotes}
+                          </div>
+                        )}
                     </div>
 
                     {/* Estado de Decisión y Acciones */}

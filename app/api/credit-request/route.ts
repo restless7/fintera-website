@@ -6,6 +6,7 @@ import {
   MAGIC_TRACK_COOKIE_NAME,
   signMagicTrackingToken,
 } from "@/lib/auth/magic-tracking-token";
+import { ResendNotificationService } from "@/lib/notifications/resend-notification-service";
 
 // Force Node.js runtime for Prisma compatibility
 export const runtime = 'nodejs';
@@ -78,6 +79,21 @@ export async function POST(request: NextRequest) {
 
     const portalMagicUrl = `/portal?trackToken=${encodeURIComponent(trackingToken)}`;
     const documentsMagicUrl = `/portal/documentos?trackToken=${encodeURIComponent(trackingToken)}&applicationId=${encodeURIComponent(intakeResult.applicationId)}`;
+
+    // Despachar correo institucional de bienvenida + Magic Link vía Resend (o encolar en Outbox si aún no hay key)
+    await ResendNotificationService.sendApplicationWelcomeNotification({
+      applicationId: intakeResult.applicationId,
+      clientId: intakeResult.clientId,
+      fileNumber: intakeResult.fileNumber,
+      clientName: `${validatedData.firstName} ${validatedData.firstLastName}`.trim(),
+      clientEmail: validatedData.email,
+      requestedAmount:
+        validatedData.requestedAmount ||
+        Number(body.requestedAmount || body.simulatedAmount || 50000000),
+      productCategory: validatedData.creditTypes?.[0] || "VIVIENDA_NO_VIS",
+    }).catch((err) => {
+      console.warn("[Credit Request] Advertencia despachando notificación Resend:", err);
+    });
 
     const response = NextResponse.json(
       {

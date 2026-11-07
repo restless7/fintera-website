@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import { BankWorkflowRegistry } from "@/lib/crm/bank-workflows/registry";
 import BankWorkflowCard from "./BankWorkflowCard";
 import DocumentWorkspaceCard from "./DocumentWorkspaceCard";
+import PortalBridgeCard from "./PortalBridgeCard";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -235,8 +236,10 @@ export default async function CaseWorkspacePage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Columna Derecha: Bitácora de Actividades (Internal Timeline) */}
+          {/* Columna Derecha: Consola Portal Cliente + Bitácora de Actividades */}
           <div className="space-y-6">
+            <PortalBridgeCard applicationId={application.id} />
+
             <div id="actividad" className="bg-slate-900/70 border border-slate-800 rounded-xl p-6">
               <div className="flex flex-wrap gap-2 items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-white">

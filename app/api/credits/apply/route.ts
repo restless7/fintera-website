@@ -4,6 +4,7 @@ import {
   MAGIC_TRACK_COOKIE_NAME,
   signMagicTrackingToken,
 } from "@/lib/auth/magic-tracking-token";
+import { ResendNotificationService } from "@/lib/notifications/resend-notification-service";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,20 @@ export async function POST(req: NextRequest) {
 
     const portalMagicUrl = `/portal?trackToken=${encodeURIComponent(trackingToken)}`;
     const documentsMagicUrl = `/portal/documentos?trackToken=${encodeURIComponent(trackingToken)}&applicationId=${encodeURIComponent(intakeResult.applicationId)}`;
+
+    try {
+      await ResendNotificationService.sendApplicationWelcomeNotification({
+        applicationId: intakeResult.applicationId,
+        clientId: intakeResult.clientId,
+        clientEmail: personalInfo.email || "cliente@finterasoluciones.co",
+        clientName: `${personalInfo.firstName || "Solicitante"} ${personalInfo.firstLastName || personalInfo.lastName || "Fintera"}`.trim(),
+        fileNumber: intakeResult.fileNumber,
+        productCategory: creditDetails.creditType || "VIVIENDA_NO_VIS",
+        requestedAmount: Number(creditDetails.amount || creditDetails.requestedAmount || 120000000),
+      });
+    } catch (emailErr) {
+      console.warn("[API credits/apply] Resend welcome email warning:", emailErr);
+    }
 
     const res = NextResponse.json(
       {

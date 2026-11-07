@@ -9,6 +9,7 @@ import {
   DocumentReviewStatus,
   DocumentScanStatus,
 } from "@/prisma/generated/client";
+import { ResendNotificationService } from "@/lib/notifications/resend-notification-service";
 
 export interface AttachEvidenceInput {
   requirementId: string;
@@ -229,6 +230,18 @@ export class DocumentMultibankService {
         action: status === "APPROVED" ? "APPROVE_REVIEW" : "REJECT_REVIEW",
         isAuthorized: true,
       },
+    });
+
+    // Notificar al cliente vía Resend (Subsanación o Aprobación)
+    await ResendNotificationService.sendDocumentReviewNotification({
+      applicationId: requirement.bankApplication.applicationId,
+      requirementTitle: requirement.requirementDefinition.title,
+      bankId: requirement.bankApplication.bankId,
+      status: reviewStatusEnum === DocumentReviewStatus.APPROVED ? "APPROVED" : "REJECTED",
+      rejectionReason: rejectionReasonDescription || null,
+      customerVisibleNotes: customerVisibleNotes || null,
+    }).catch((err) => {
+      console.warn("[DocumentMultibankService] Advertencia enviando email Resend:", err);
     });
 
     return newReview;

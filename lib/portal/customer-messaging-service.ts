@@ -7,6 +7,7 @@
 import prisma from "@/lib/prisma";
 import { MessageSenderType } from "@/prisma/generated/client";
 import { CustomerIdentityService, CustomerSecurityError } from "@/lib/auth/customer-identity-service";
+import { ResendNotificationService } from "@/lib/notifications/resend-notification-service";
 
 export interface CustomerMessageDTO {
   id: string;
@@ -161,6 +162,14 @@ export class CustomerMessagingService {
         },
         status: "PENDING",
       },
+    });
+
+    await ResendNotificationService.sendAdvisorMessageNotification({
+      applicationId,
+      advisorName: senderName,
+      messageContent: content.trim(),
+    }).catch((err) => {
+      console.warn("[CustomerMessagingService] Advertencia enviando email Resend:", err);
     });
 
     return {

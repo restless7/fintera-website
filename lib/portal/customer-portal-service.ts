@@ -9,6 +9,7 @@ import { BankStage, CustomerGrantRole } from "@/prisma/generated/client";
 import { CustomerIdentityService, CustomerSecurityError } from "@/lib/auth/customer-identity-service";
 import { parseMagicActorId } from "@/lib/auth/magic-tracking-token";
 import { getPublicStageInfo, PUBLIC_MILESTONES } from "./bank-stage-mapping";
+import { ResendNotificationService } from "@/lib/notifications/resend-notification-service";
 
 export interface CustomerDashboardApplicationSummary {
   id: string;
@@ -414,6 +415,16 @@ export class CustomerPortalService {
           publicStageTitle,
         },
       },
+    });
+
+    await ResendNotificationService.sendMilestoneUpdateNotification({
+      applicationId: bankApp.applicationId,
+      bankId: bankApp.bankId,
+      stageTitle: publicStageTitle,
+      explanation: publicExplanation,
+      actionNote: actionNote || null,
+    }).catch((err) => {
+      console.warn("[CustomerPortalService] Advertencia enviando email de hito Resend:", err);
     });
 
     return { eventId: event.id };
