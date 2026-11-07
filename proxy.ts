@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 /**
  * FINTERA ENTERPRISE CRM — NEXT.JS 16 PROXY / MIDDLEWARE
  * Protege áreas internas (/admin/crm/*) y portal del cliente (/portal/*)
- * Permite acceso público irrestricto al simulador financiero y páginas de captación.
+ * Permite acceso al simulador financiero, insights, portal de aliados y handoff mágico al Portal de Cliente.
  */
 
 const isPublicRoute = createRouteMatcher([
@@ -14,23 +14,28 @@ const isPublicRoute = createRouteMatcher([
   '/credit-request(.*)',
   '/credits/(.*)',
   '/portafolio(.*)',
+  '/insights(.*)',
+  '/aliados(.*)',
   '/contacto(.*)',
   '/nosotros(.*)',
   '/legal/(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/portal(.*)',
   '/api/credit-request(.*)',
+  '/api/growth/(.*)',
+  '/api/portal/(.*)',
   '/api/fill-form(.*)',
   '/api/webhooks/(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // 1. Rutas públicas no requieren autenticación
+  // 1. Rutas públicas o rutas de Portal protegidas por BOLA/HMAC en su propio controlador
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
-  // 2. Verificar sesión de Clerk
+  // 2. Verificar sesión de Clerk para rutas administrativas (/admin/*)
   const { userId, redirectToSignIn } = await auth();
 
   if (!userId) {

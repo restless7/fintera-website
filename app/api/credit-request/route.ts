@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { creditRequestSchema } from "@/app/lib/validation/creditRequestSchema";
 import { ApplicationService } from "@/lib/crm/application-service";
 import { IdempotencyConflictError } from "@/lib/crm/idempotency-service";
+import {
+  MAGIC_TRACK_COOKIE_NAME,
+  signMagicTrackingToken,
+} from "@/lib/auth/magic-tracking-token";
 
 // Force Node.js runtime for Prisma compatibility
 export const runtime = 'nodejs';
@@ -66,7 +70,16 @@ export async function POST(request: NextRequest) {
       propertyValue: body.propertyValue,
     });
 
-    return NextResponse.json(
+    const trackingToken = signMagicTrackingToken({
+      applicationId: intakeResult.applicationId,
+      clientId: intakeResult.clientId,
+      fileNumber: intakeResult.fileNumber,
+    });
+
+    const portalMagicUrl = `/portal?trackToken=${encodeURIComponent(trackingToken)}`;
+    const documentsMagicUrl = `/portal/documentos?trackToken=${encodeURIComponent(trackingToken)}&applicationId=${encodeURIComponent(intakeResult.applicationId)}`;
+
+    const response = NextResponse.json(
       {
         success: true,
         message: intakeResult.message,
@@ -75,9 +88,22 @@ export async function POST(request: NextRequest) {
         requestNumber: intakeResult.fileNumber,
         isExistingClient: intakeResult.isExistingClient,
         isDuplicateRetry: intakeResult.isDuplicateRetry,
+        trackingToken,
+        portalMagicUrl,
+        documentsMagicUrl,
       },
       { status: 201 }
     );
+
+    response.cookies.set(MAGIC_TRACK_COOKIE_NAME, trackingToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
+    return response;
   } catch (error: any) {
     console.error("[Credit Request] Error:", {
       name: error.name,

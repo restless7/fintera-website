@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import { CustomerIdentityService, CustomerSecurityError } from "@/lib/auth/customer-identity-service";
 import { storageAdapter } from "@/lib/documents/storage/s3-storage-adapter";
 import { DocumentIngestionService } from "@/lib/documents/document-ingestion-service";
+import { DocumentRequirementService } from "@/lib/documents/document-requirement-service";
 import { CustomerDocumentDtoMapper, CustomerDocumentSummaryDTO } from "@/lib/crm/dto/customer-document.dto";
 import { DocumentScanStatus, DocumentCategory, CustomerGrantRole } from "@/prisma/generated/client";
 
@@ -22,7 +23,7 @@ export class CustomerDocumentService {
     const auth = await CustomerIdentityService.verifyApplicationAccess(clerkUserId, applicationId, "VIEW");
 
     // Consultar requisitos materializados
-    const requirements = await prisma.bankDocumentRequirement.findMany({
+    let requirements = await prisma.bankDocumentRequirement.findMany({
       where: {
         bankApplication: { applicationId },
       },
@@ -51,6 +52,10 @@ export class CustomerDocumentService {
             validUntil: true,
             documentVersion: {
               select: {
+                id: true,
+                versionNumber: true,
+                originalFileName: true,
+                detectedMimeType: true,
                 uploadedAt: true,
               },
             },
@@ -58,6 +63,63 @@ export class CustomerDocumentService {
         },
       },
     });
+
+    // Auto-materializar checklist oficial si el expediente aún no tiene obligaciones inicializadas
+    if (requirements.length === 0) {
+      const bankApps = await prisma.bankApplication.findMany({
+        where: { applicationId },
+        select: { id: true },
+      });
+      for (const bApp of bankApps) {
+        try {
+          await DocumentRequirementService.materializeRequirements(bApp.id, clerkUserId);
+        } catch (matErr) {
+          console.warn("[CustomerDocumentService] Advertencia materializando requisitos:", matErr);
+        }
+      }
+      if (bankApps.length > 0) {
+        requirements = await prisma.bankDocumentRequirement.findMany({
+          where: {
+            bankApplication: { applicationId },
+          },
+          include: {
+            bankApplication: {
+              select: { bankId: true },
+            },
+            requirementDefinition: {
+              select: {
+                requirementCode: true,
+                title: true,
+                description: true,
+                category: true,
+                isMandatory: true,
+                validityDays: true,
+              },
+            },
+            reviews: {
+              orderBy: { reviewVersion: "desc" },
+              take: 1,
+              select: {
+                status: true,
+                rejectionReasonDescription: true,
+                customerVisibleNotes: true,
+                reviewedAt: true,
+                validUntil: true,
+                documentVersion: {
+                  select: {
+                    id: true,
+                    versionNumber: true,
+                    originalFileName: true,
+                    detectedMimeType: true,
+                    uploadedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+    }
 
     // Si es un co-deudor, filtrar estrictamente los requisitos asignados a su persona
     let filteredReqs = requirements;

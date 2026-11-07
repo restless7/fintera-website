@@ -32,6 +32,9 @@ export default function CreditApplicationPage() {
   const [completedSteps, setCompletedSteps] = useState<FormStep[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [fileNumber, setFileNumber] = useState<string | null>(null);
+  const [portalMagicUrl, setPortalMagicUrl] = useState<string>("/portal");
+  const [documentsMagicUrl, setDocumentsMagicUrl] = useState<string>("/portal/documentos");
 
   const [formData, setFormData] = useState<FormData>({
     creditDetails: {},
@@ -119,6 +122,9 @@ export default function CreditApplicationPage() {
 
       const result = await response.json();
       setApplicationId(result.id);
+      if (result.fileNumber) setFileNumber(result.fileNumber);
+      if (result.portalMagicUrl) setPortalMagicUrl(result.portalMagicUrl);
+      if (result.documentsMagicUrl) setDocumentsMagicUrl(result.documentsMagicUrl);
 
       toast.success("¡Solicitud enviada exitosamente!", {
         description: "Recibirá una confirmación por correo electrónico.",
@@ -159,8 +165,32 @@ export default function CreditApplicationPage() {
               <CardContent className="p-6">
                 <div className="text-left space-y-4">
                   <div>
-                    <p className="text-sm text-gray-600">Número de Solicitud:</p>
-                    <p className="font-mono font-semibold text-fintera-600">{applicationId}</p>
+                    <p className="text-sm text-gray-600">Número de Radicado Oficial:</p>
+                    <p className="font-mono font-semibold text-lg text-fintera-600">{fileNumber || applicationId}</p>
+                  </div>
+
+                  <div className="bg-[#0F172A] text-white rounded-xl p-5 space-y-3 border border-emerald-500/30">
+                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                      Portal del Cliente & Bóveda Documental Activa
+                    </p>
+                    <p className="text-xs text-slate-300">
+                      Su enlace seguro de seguimiento ya está habilitado. Cargue sus documentos obligatorios y consulte el estado de su trámite bancario en tiempo real:
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                      <a
+                        href={documentsMagicUrl}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all"
+                      >
+                        <span>Ir a Cargar Documentos</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </a>
+                      <a
+                        href={portalMagicUrl}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-semibold text-xs transition-all"
+                      >
+                        <span>Seguimiento en Portal Cliente</span>
+                      </a>
+                    </div>
                   </div>
                   
                   <div>

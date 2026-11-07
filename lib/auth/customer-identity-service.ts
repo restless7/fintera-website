@@ -10,6 +10,7 @@ import {
   CustomerGrantRole,
   UserRole,
 } from "@/prisma/generated/client";
+import { parseMagicActorId } from "./magic-tracking-token";
 
 export interface InitiateLinkResult {
   challengeId: string;
@@ -84,6 +85,45 @@ export class CustomerIdentityService {
   public static async resolveCustomerContext(clerkUserId: string): Promise<CustomerContext> {
     if (!clerkUserId || clerkUserId.trim() === "") {
       return { isLinked: false, clerkUserId: "", client: null, grants: [] };
+    }
+
+    // 0. Soporte de Magic Tracking Token HMAC-SHA256 con alcance restringido (Fase 2 Enterprise)
+    const magicActor = parseMagicActorId(clerkUserId);
+    if (magicActor) {
+      const app = await prisma.crmCreditApplication.findUnique({
+        where: { id: magicActor.applicationId },
+        include: { client: true },
+      });
+
+      if (!app || app.clientId !== magicActor.clientId) {
+        return { isLinked: false, clerkUserId, client: null, grants: [] };
+      }
+
+      return {
+        isLinked: true,
+        clerkUserId,
+        client: {
+          id: app.client.id,
+          documentType: app.client.documentType,
+          documentNumber: app.client.documentNumber,
+          firstName: app.client.firstName,
+          firstLastName: app.client.firstLastName,
+          email: app.client.email,
+          phone: app.client.phone,
+        },
+        grants: [
+          {
+            id: `magic_grant_${app.id}`,
+            applicationId: app.id,
+            applicantId: null,
+            grantRole: CustomerGrantRole.PRIMARY_HOLDER,
+            canViewApplication: true,
+            canViewDocuments: true,
+            canUploadDocuments: true,
+            canMessageAdvisor: true,
+          },
+        ],
+      };
     }
 
     // 1. Buscar cliente vinculado directamente
@@ -611,6 +651,24 @@ export class CustomerIdentityService {
         applicantId: null,
         clientId: app.clientId,
       };
+    }
+
+    // 2.5 Si accede mediante Magic Tracking Token HMAC-SHA256 (BOLA estricto al clientId y applicationId)
+    const magicActor = parseMagicActorId(clerkUserId);
+    if (magicActor) {
+      if (app.id === magicActor.applicationId && app.clientId === magicActor.clientId) {
+        return {
+          isAuthorized: true,
+          grantRole: CustomerGrantRole.PRIMARY_HOLDER,
+          applicantId: null,
+          clientId: app.clientId,
+        };
+      }
+      throw new CustomerSecurityError(
+        "Acceso denegado: El token de seguimiento no autoriza el acceso a este expediente.",
+        403,
+        "IDOR_FORBIDDEN"
+      );
     }
 
     // 3. Si tiene un CustomerAccessGrant activo

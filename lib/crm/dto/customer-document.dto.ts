@@ -1,7 +1,7 @@
 /**
  * FASE 6.4: GATE E — CUSTOMER SAFE DOCUMENT DTO
- * Contratos de proyección documental seguros para el futuro Portal del Cliente (Gate F)
- * Aislamiento estricto: Oculta rutas internas S3, notas de analistas y diagnósticos de antivirus
+ * Contratos de proyección documental seguros para el Portal del Cliente (Gate F)
+ * Aislamiento estricto: Oculta rutas internas de bucket, notas privadas de analistas y diagnósticos de antivirus
  */
 
 import { DocumentReviewStatus } from "@/prisma/generated/client";
@@ -22,6 +22,10 @@ export interface CustomerDocumentSummaryDTO {
   uploadedAt?: string | null;
   validUntil?: string | null;
   canUploadNewVersion: boolean;
+  latestVersionId?: string | null;
+  versionNumber?: number | null;
+  originalFileName?: string | null;
+  detectedMimeType?: string | null;
 }
 
 export class CustomerDocumentDtoMapper {
@@ -46,6 +50,10 @@ export class CustomerDocumentDtoMapper {
       reviewedAt?: Date | null;
       validUntil?: Date | null;
       documentVersion?: {
+        id?: string;
+        versionNumber?: number;
+        originalFileName?: string;
+        detectedMimeType?: string;
         uploadedAt: Date;
       };
     }>;
@@ -79,6 +87,10 @@ export class CustomerDocumentDtoMapper {
       uploadedAt: latestReview?.documentVersion?.uploadedAt?.toISOString() || null,
       validUntil: latestReview?.validUntil?.toISOString() || null,
       canUploadNewVersion: publicStatus !== "APPROVED",
+      latestVersionId: latestReview?.documentVersion?.id || null,
+      versionNumber: latestReview?.documentVersion?.versionNumber || null,
+      originalFileName: latestReview?.documentVersion?.originalFileName || null,
+      detectedMimeType: latestReview?.documentVersion?.detectedMimeType || null,
     };
   }
 }

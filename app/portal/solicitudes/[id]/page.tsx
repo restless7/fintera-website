@@ -212,6 +212,49 @@ export default function CustomerApplicationDetailPage({
         </Link>
       </div>
 
+      {/* Resumen de los 6 Hitos Públicos Oficiales y Responsable Actual */}
+      <Card className="border-slate-200 shadow-sm bg-white overflow-hidden">
+        <CardContent className="p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">
+                Ruta Crítica de Originación FINTERA (6 Hitos Oficiales)
+              </h2>
+              <p className="text-xs text-slate-500">
+                Monto solicitado: ${app.requestedAmount.toLocaleString("es-CO")} COP · Plazo:{" "}
+                {app.termMonths} meses ({Math.round(app.termMonths / 12)} años)
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Trazabilidad Cifrada Activa</span>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            {[
+              { step: 1, title: "1. Documentación", sla: "1–2 días", actor: "Cliente / FINTERA" },
+              { step: 2, title: "2. Radicación", sla: "24h", actor: "Mesa FINTERA" },
+              { step: 3, title: "3. Estudio Riesgos", sla: "3–5 días", actor: "Comité Banco" },
+              { step: 4, title: "4. Aprobación", sla: "1–2 días", actor: "Banco Aliado" },
+              { step: 5, title: "5. Peritaje y Títulos", sla: "5–8 días", actor: "Perito / Legal" },
+              { step: 6, title: "6. Desembolso", sla: "2–3 días", actor: "Operaciones" },
+            ].map((milestone) => (
+              <div
+                key={milestone.step}
+                className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 space-y-1"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-700">{milestone.title}</span>
+                  <span className="text-[10px] text-slate-500">{milestone.sla}</span>
+                </div>
+                <p className="text-[10px] text-slate-500">Responsable: {milestone.actor}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Grid de 2 Columnas: Detalle de Bancos y Línea de Tiempo + Canal de Mensajería */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Columna Izquierda (2 spans): Trámites Bancarios y Línea de Tiempo */}

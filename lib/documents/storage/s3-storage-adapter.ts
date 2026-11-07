@@ -22,6 +22,7 @@ import {
   DownloadAuthorization,
 } from "./storage-adapter.interface";
 import { getStorageConfig } from "./storage-config";
+import { SupabaseStorageAdapter, getSupabaseStorageConfig } from "./supabase-storage-adapter";
 
 export class S3StorageAdapter implements StorageAdapter {
   private client: S3Client;
@@ -300,4 +301,16 @@ export class S3StorageAdapter implements StorageAdapter {
 }
 
 // Instancia singleton por defecto
-export const storageAdapter = new S3StorageAdapter();
+function createCanonicalStorageAdapter(): StorageAdapter {
+  const provider = (process.env.STORAGE_PROVIDER || "supabase").toLowerCase();
+  const supabaseConfig = getSupabaseStorageConfig();
+  if (provider === "supabase" && supabaseConfig) {
+    return new SupabaseStorageAdapter(supabaseConfig);
+  }
+  if (supabaseConfig && !process.env.S3_ACCESS_KEY_ID) {
+    return new SupabaseStorageAdapter(supabaseConfig);
+  }
+  return new S3StorageAdapter();
+}
+
+export const storageAdapter: StorageAdapter = createCanonicalStorageAdapter();

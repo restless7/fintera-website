@@ -40,7 +40,14 @@ export interface ConfirmUploadInput {
 
 export class DocumentIngestionService {
   private static readonly MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
-  private static readonly ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+  private static readonly ALLOWED_MIME_TYPES = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "application/xml",
+    "text/xml",
+  ];
 
   /**
    * 1. Crea una intención de carga con URL pre-firmada PUT hacia la zona de cuarentena

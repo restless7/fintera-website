@@ -7,6 +7,7 @@
 import prisma from "@/lib/prisma";
 import { BankStage, CustomerGrantRole } from "@/prisma/generated/client";
 import { CustomerIdentityService, CustomerSecurityError } from "@/lib/auth/customer-identity-service";
+import { parseMagicActorId } from "@/lib/auth/magic-tracking-token";
 import { getPublicStageInfo, PUBLIC_MILESTONES } from "./bank-stage-mapping";
 
 export interface CustomerDashboardApplicationSummary {
@@ -67,8 +68,11 @@ export class CustomerPortalService {
 
     // Identificar qué expedientes tiene autorizados
     let applicationIds: string[] = [];
+    const magicActor = parseMagicActorId(clerkUserId);
 
-    if (context.client) {
+    if (magicActor) {
+      applicationIds = [magicActor.applicationId];
+    } else if (context.client) {
       // Titular principal: consulta todos sus expedientes
       const clientApps = await prisma.crmCreditApplication.findMany({
         where: { clientId: context.client.id },

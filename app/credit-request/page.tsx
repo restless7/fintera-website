@@ -49,7 +49,9 @@ const productOptions = {
 export default function CreditRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [requestNumber, setRequestNumber] = useState<number | null>(null);
+  const [requestNumber, setRequestNumber] = useState<string | number | null>(null);
+  const [portalMagicUrl, setPortalMagicUrl] = useState<string>("/portal");
+  const [documentsMagicUrl, setDocumentsMagicUrl] = useState<string>("/portal/documentos");
   const [currentSection, setCurrentSection] = useState(1);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
@@ -224,7 +226,9 @@ export default function CreditRequestPage() {
 
         // Save form data for PDF generation
         setSubmittedData(data);
-        setRequestNumber(result.requestNumber);
+        setRequestNumber(result.fileNumber || result.requestNumber);
+        if (result.portalMagicUrl) setPortalMagicUrl(result.portalMagicUrl);
+        if (result.documentsMagicUrl) setDocumentsMagicUrl(result.documentsMagicUrl);
 
         // Show download modal
         setShowDownloadModal(true);
@@ -320,14 +324,43 @@ export default function CreditRequestPage() {
               </h1>
               {requestNumber && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 inline-block">
-                  <p className="text-gray-700 font-medium">Nº de Solicitud:</p>
-                  <p className="text-3xl font-bold text-blue-700">#{requestNumber + 500}</p>
+                  <p className="text-gray-700 font-medium">Nº de Radicado Oficial FINTERA:</p>
+                  <p className="text-2xl md:text-3xl font-bold font-mono text-blue-700">
+                    {typeof requestNumber === "number" ? `#${requestNumber + 500}` : requestNumber}
+                  </p>
                 </div>
               )}
-              <p className="text-gray-600 mb-8">
-                Hemos recibido tu información y nuestro equipo la revisará en las próximas 24-48 horas.
-                Te contactaremos a través de los medios que indicaste.
+              <p className="text-gray-600 mb-6">
+                Hemos creado tu expediente digital en nuestro CRM Canónico. Ahora puedes hacer seguimiento en tiempo real de los 6 hitos bancarios y cargar tus soportes en nuestra Bóveda Documental Cifrada.
               </p>
+
+              {/* Enterprise Client Portal & Supabase Vault Handoff CTA */}
+              <div className="bg-[#0F172A] text-white rounded-2xl p-6 mb-6 text-left shadow-xl border border-emerald-500/30">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Acceso Directo Activado · Bóveda Cifrada 256-bit
+                </div>
+                <h3 className="text-lg font-bold text-white mb-1">
+                  Portal del Cliente y Centro Documental FINTERA
+                </h3>
+                <p className="text-xs text-slate-300 mb-4 leading-relaxed">
+                  Tu sesión segura de seguimiento ya está activa. Sube tus documentos (PDF, PNG, JPG o XML DIAN) directamente a tu expediente o consulta el avance en los bancos aliados.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href={documentsMagicUrl}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg"
+                  >
+                    <span>Subir Carpeta Documental Ahora</span>
+                  </Link>
+                  <Link
+                    href={portalMagicUrl}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-600 font-semibold rounded-xl text-sm transition-all"
+                  >
+                    <span>Ver Estado y Línea de Tiempo</span>
+                  </Link>
+                </div>
+              </div>
 
               {/* Important reminder about documents */}
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">

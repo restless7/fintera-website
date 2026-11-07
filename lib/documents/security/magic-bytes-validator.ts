@@ -93,12 +93,38 @@ export class MagicBytesValidator {
       };
     }
 
+    // 4.5 Detección de XML Factura Electrónica DIAN / AttachedDocument (Factoring B2B RADIAN)
+    const headAscii = buffer.subarray(0, Math.min(buffer.length, 512)).toString("utf8").trimStart();
+    if (
+      headAscii.startsWith("<?xml") ||
+      headAscii.startsWith("<AttachedDocument") ||
+      headAscii.startsWith("<Invoice") ||
+      headAscii.startsWith("<CreditNote")
+    ) {
+      const hasScript =
+        buffer.includes(Buffer.from("<script", "ascii")) ||
+        buffer.includes(Buffer.from("<!ENTITY", "ascii"));
+      if (hasScript) {
+        return {
+          isValid: false,
+          detectedMimeType: "application/xml",
+          detectedExtension: "xml",
+          error: "XML rechazado por contener entidades externas (XXE) o scripts activos.",
+        };
+      }
+      return {
+        isValid: true,
+        detectedMimeType: "application/xml",
+        detectedExtension: "xml",
+      };
+    }
+
     // 5. No coincide con ningún tipo permitido
     return {
       isValid: false,
       detectedMimeType: "application/octet-stream",
       detectedExtension: "bin",
-      error: "Tipo de archivo no permitido. Solo se admiten documentos PDF, JPEG y PNG auténticos.",
+      error: "Tipo de archivo no permitido. Solo se admiten documentos PDF, JPEG, PNG y XML DIAN auténticos.",
     };
   }
 
