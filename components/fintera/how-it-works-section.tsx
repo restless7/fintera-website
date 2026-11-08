@@ -33,7 +33,7 @@ const steps = [
   {
     step: "03",
     icon: LightBulbIcon,
-    brandIcon: "/images/brand-system/icons/icon-04-acompanamiento-humano-v1.webp",
+    brandIcon: "/images/brand-system/icons/icon-04-acompanamiento-humano.webp",
     title: "Obtienes tu Financiación",
     description: "Acompañamiento humano cercano hasta el desembolso con las mejores condiciones reales del mercado.",
     details: ["Acompañamiento continuo", "Claridad en cuotas y seguros", "Desembolso sin reprocesos"],

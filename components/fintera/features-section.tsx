@@ -51,7 +51,7 @@ const features = [
     gradient: "from-[#00C4B3] to-[#FFD447]",
     delay: 0.4,
     image: "/images/brand-system/pillars/pilar-4-confianza-oportunidades.webp",
-    brandIcon: "/images/brand-system/icons/icon-04-acompanamiento-humano-v1.webp",
+    brandIcon: "/images/brand-system/icons/icon-04-acompanamiento-humano.webp",
   },
 ];
 

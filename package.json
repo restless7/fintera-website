@@ -16,7 +16,8 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "lint:admin": "eslint app/admin components/admin lib/auth app/api/admin/crm lib/crm/admin-request-time.ts --max-warnings=0"
+    "lint:admin": "eslint app/admin components/admin lib/auth app/api/admin/crm lib/crm/admin-request-time.ts --max-warnings=0",
+    "test:assets": "npx tsx scripts/test-brand-asset-integrity.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",

@@ -5,6 +5,7 @@ import {
   upsertFinteraContent,
 } from "@/lib/blog";
 import { generateFinteraCreativeImage } from "@/lib/services/ai-generation";
+import { FINTERA_BRAND_ASSET_REGISTRY } from "@/lib/brand-assets";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id, action, prompt, imageUrl, setAsCover, size } = body || {};
+    const { id, action, prompt, imageUrl, setAsCover, size, assetId } = body || {};
 
     // Mode 1: Attach an external URL or uploaded Data URI directly to the article
     if (action === "attach") {
@@ -28,6 +29,37 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // Role Governance Enforcement (R1.1-05)
+      const cleanUrl = imageUrl.trim();
+      if (
+        cleanUrl.startsWith("/images/pillars/") ||
+        cleanUrl.startsWith("/images/brand-system/pillars/")
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Gobernanza de Marca (Regla de No-Reciclaje): Las portadas de los 4 Pilares Institucionales están estrictamente reservadas para cabeceras de categoría y no pueden asignarse a artículos individuales.",
+          },
+          { status: 422 }
+        );
+      }
+
+      let matchedRegistryAsset = null;
+      if (assetId) {
+        matchedRegistryAsset = FINTERA_BRAND_ASSET_REGISTRY.find(
+          (a) => a.id === assetId
+        );
+        if (matchedRegistryAsset && matchedRegistryAsset.role === "PILLAR_COVER") {
+          return NextResponse.json(
+            {
+              error:
+                "Gobernanza de Marca: El activo seleccionado tiene el rol PILLAR_COVER, reservado exclusivamente para la arquitectura de pilares.",
+            },
+            { status: 422 }
+          );
+        }
+      }
+
       const existing = getFinteraContentByIdOrSlug(id);
       if (!existing) {
         return NextResponse.json(
@@ -37,9 +69,15 @@ export async function POST(req: NextRequest) {
       }
 
       const newAsset = {
-        url: imageUrl.trim(),
-        prompt: prompt?.trim() || "Pieza creativa adjunta manualmente",
-        model: "Adjunto Manual / Studio",
+        url: cleanUrl,
+        prompt:
+          prompt?.trim() ||
+          matchedRegistryAsset?.title ||
+          "Pieza creativa adjunta manualmente",
+        model: matchedRegistryAsset
+          ? `Marca · ${matchedRegistryAsset.role}`
+          : "Adjunto Manual / Studio",
+        assetId: matchedRegistryAsset?.id,
         createdAt: new Date().toISOString(),
       };
 
@@ -49,19 +87,18 @@ export async function POST(req: NextRequest) {
 
       const updatedItem = await upsertFinteraContent({
         ...existing,
-        coverImage:
-          setAsCover !== false ? imageUrl.trim() : existing.coverImage,
+        coverImage: setAsCover !== false ? cleanUrl : existing.coverImage,
         imagePrompt: prompt?.trim() || existing.imagePrompt,
         creativeAssets: [
           newAsset,
-          ...existingAssets.filter((a) => a.url !== imageUrl.trim()),
+          ...existingAssets.filter((a) => a.url !== cleanUrl),
         ],
       });
 
       return NextResponse.json({
         success: true,
-        imageUrl: imageUrl.trim(),
-        modelUsed: "Adjunto Manual / Studio",
+        imageUrl: cleanUrl,
+        modelUsed: newAsset.model,
         item: updatedItem,
       });
     }

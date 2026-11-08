@@ -22,6 +22,25 @@ import {
 } from "@/lib/content-types";
 import type { FinteraContentItem } from "@/lib/blog";
 
+function escapeHtml(str: string | number | null | undefined): string {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function sanitizeUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  const clean = String(url).trim();
+  if (/^(?:https?:|\/|data:image\/)/i.test(clean)) {
+    return clean.replace(/"/g, "%22").replace(/'/g, "%27");
+  }
+  return "";
+}
+
 interface CarouselSlide {
   slideNumber: number;
   role: "COVER" | "CONTEXT" | "INSIGHT" | "COMPARISON" | "CHECKLIST" | "CTA";
@@ -262,18 +281,18 @@ export function LinkedinCarouselPdfModal({
     const slidesHtml = slides
       .map(
         (s, idx) => `
-      <div class="slide slide-${idx + 1}" style="background-image: linear-gradient(180deg, rgba(7, 23, 43, 0.88) 0%, rgba(10, 35, 66, 0.94) 100%), url('${origin}${s.bgImageUrl}');">
+      <div class="slide slide-${idx + 1}" style="background-image: linear-gradient(180deg, rgba(7, 23, 43, 0.88) 0%, rgba(10, 35, 66, 0.94) 100%), url('${sanitizeUrl(origin + s.bgImageUrl)}');">
         <div class="top-row">
           <div class="brand-brandmark">
-            <img src="${origin}/images/shieldlogo.png" alt="FINTERA" class="logo-shield" />
+            <img src="${sanitizeUrl(origin + "/images/shieldlogo.png")}" alt="FINTERA" class="logo-shield" />
             <div>
               <span class="brand-title">FINTERA</span>
               <span class="brand-sub">Banca Hipotecaria & B2B</span>
             </div>
           </div>
           <div class="top-meta">
-            <span class="eyebrow">${s.eyebrow}</span>
-            <span class="slide-num">LÁMINA 0${s.slideNumber} / 0${slides.length}</span>
+            <span class="eyebrow">${escapeHtml(s.eyebrow)}</span>
+            <span class="slide-num">LÁMINA 0${escapeHtml(s.slideNumber)} / 0${escapeHtml(slides.length)}</span>
           </div>
         </div>
 
@@ -282,19 +301,19 @@ export function LinkedinCarouselPdfModal({
             s.iconImageUrl
               ? `
             <div class="icon-container">
-              <img src="${origin}${s.iconImageUrl}" alt="Icono" class="slide-icon" />
-              <div class="accent-bar" style="background: ${s.accentColor};"></div>
+              <img src="${sanitizeUrl(origin + s.iconImageUrl)}" alt="Icono" class="slide-icon" />
+              <div class="accent-bar" style="background: ${escapeHtml(s.accentColor)};"></div>
             </div>
           `
-              : `<div class="accent-bar" style="background: ${s.accentColor};"></div>`
+              : `<div class="accent-bar" style="background: ${escapeHtml(s.accentColor)};"></div>`
           }
-          <h1>${s.headline}</h1>
-          <p>${s.body}</p>
+          <h1>${escapeHtml(s.headline)}</h1>
+          <p>${escapeHtml(s.body)}</p>
         </div>
 
         <div class="bottom-row">
           <div>
-            <span class="claim">${s.footerTag}</span>
+            <span class="claim">${escapeHtml(s.footerTag)}</span>
             <span class="sub-claim">Inteligencia Financiera con Trato Humano · Colombia</span>
           </div>
           <div class="badge-wrapper">
@@ -311,7 +330,7 @@ export function LinkedinCarouselPdfModal({
       <html lang="es">
       <head>
         <meta charset="utf-8" />
-        <title>Carrusel LinkedIn FINTERA (1080x1350) - ${item.slug}</title>
+        <title>Carrusel LinkedIn FINTERA (1080x1350) - ${escapeHtml(item.slug)}</title>
         <style>
           @page {
             size: 1080px 1350px;
@@ -332,6 +351,7 @@ export function LinkedinCarouselPdfModal({
           .slide {
             width: 1080px;
             height: 1350px;
+            aspect-ratio: 4/5;
             padding: 96px;
             display: flex;
             flex-direction: column;
@@ -471,9 +491,35 @@ export function LinkedinCarouselPdfModal({
       <body>
         ${slidesHtml}
         <script>
-          window.onload = function() {
-            setTimeout(function() { window.print(); }, 400);
-          };
+          async function waitForAssetsAndPrint() {
+            try {
+              // 1. Wait for document fonts
+              if (document.fonts && document.fonts.ready) {
+                await document.fonts.ready;
+              }
+              // 2. Wait for all <img> tags to complete loading
+              const images = Array.from(document.querySelectorAll('img'));
+              await Promise.all(images.map((img) => {
+                if (img.complete) return Promise.resolve();
+                return new Promise((resolve) => {
+                  img.addEventListener('load', resolve, { once: true });
+                  img.addEventListener('error', resolve, { once: true });
+                });
+              }));
+              // 3. Render stabilization tick
+              await new Promise((r) => setTimeout(r, 150));
+              window.print();
+            } catch (err) {
+              console.warn('Print readiness fallback:', err);
+              window.print();
+            }
+          }
+
+          if (document.readyState === 'complete') {
+            waitForAssetsAndPrint();
+          } else {
+            window.addEventListener('load', waitForAssetsAndPrint, { once: true });
+          }
         </script>
       </body>
       </html>
@@ -577,7 +623,7 @@ export function LinkedinCarouselPdfModal({
               return (
                 <div
                   key={s.slideNumber}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-700/80 p-5 text-white shadow-2xl min-h-[340px] transition-transform hover:-translate-y-1 duration-200 relative overflow-hidden group"
+                  className="flex flex-col justify-between rounded-2xl border border-slate-700/80 p-6 text-white shadow-2xl aspect-[4/5] min-h-[420px] transition-transform hover:-translate-y-1 duration-200 relative overflow-hidden group"
                   style={{
                     backgroundImage: `linear-gradient(180deg, rgba(7, 23, 43, 0.88) 0%, rgba(10, 35, 66, 0.94) 100%), url('${s.bgImageUrl}')`,
                     backgroundSize: "cover",

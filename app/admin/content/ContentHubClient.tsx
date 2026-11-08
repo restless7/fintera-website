@@ -381,7 +381,11 @@ export function ContentHubClient({ initialItems }: ContentHubClientProps) {
     }
   };
 
-  const handleAttachCustomImage = async (imageUrlToAttach: string, label?: string) => {
+  const handleAttachCustomImage = async (
+    imageUrlToAttach: string,
+    label?: string,
+    assetId?: string
+  ) => {
     if (!activeItem || !imageUrlToAttach.trim()) return;
     setIsGeneratingImage(true);
     setFeedbackBanner(null);
@@ -393,18 +397,25 @@ export function ContentHubClient({ initialItems }: ContentHubClientProps) {
           id: activeItem.id,
           action: "attach",
           imageUrl: imageUrlToAttach.trim(),
+          assetId,
           prompt: label || creativePrompt.trim() || "Pieza creativa adjunta",
           setAsCover: true,
         }),
       });
       const data = await res.json();
+      if (!res.ok || data.error) {
+        setFeedbackBanner(`⚠ ${data.error || "No se pudo asignar el activo."}`);
+        return;
+      }
       if (data.success && data.item) {
         setItems((prev) =>
           prev.map((i) => (i.id === data.item.id ? data.item : i))
         );
         setActiveItem(data.item);
         setCustomImageUrl("");
-        setFeedbackBanner("✔ Imagen creativa adjuntada y establecida como portada.");
+        setFeedbackBanner(
+          `✔ Activo de marca verificado (${data.modelUsed || "Marca FINTERA"}) y asignado como portada.`
+        );
       }
     } finally {
       setIsGeneratingImage(false);
@@ -1399,7 +1410,8 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                             onClick={() =>
                               handleAttachCustomImage(
                                 asset.publicUrl,
-                                asset.title
+                                asset.title,
+                                asset.id
                               )
                             }
                             className={`group relative overflow-hidden rounded-lg border text-left transition ${
@@ -2229,26 +2241,40 @@ https://www.finterasoluciones.co${pillarCfg.defaultCtaUrl}
                       </div>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                      {isPillarCover && (
-                        <span className="text-[10px] text-amber-400 font-semibold truncate" title="Reservado para cabecera del pilar">
-                          Cabecera Pilar
-                        </span>
+                    <div className="mt-3 pt-2 border-t border-slate-800/80">
+                      {isPillarCover ? (
+                        <div className="space-y-1.5">
+                          <div className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-1 text-[10px] text-amber-300 font-semibold text-center">
+                            🚫 Rol Reservado: Cabecera Institucional
+                          </div>
+                          <button
+                            type="button"
+                            disabled
+                            className="admin-button text-xs w-full py-1.5 justify-center opacity-40 cursor-not-allowed bg-slate-800 text-slate-400 border-slate-700"
+                          >
+                            No asignable a artículo
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleAttachCustomImage(
+                              asset.publicUrl,
+                              asset.title,
+                              asset.id
+                            );
+                            setShowAssetExplorer(false);
+                          }}
+                          className={`admin-button text-xs w-full py-1.5 justify-center ${
+                            isSelected
+                              ? "bg-emerald-600 text-white font-bold"
+                              : "admin-button-primary"
+                          }`}
+                        >
+                          {isSelected ? "Activo Asignado ✔" : "Asignar a Artículo"}
+                        </button>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleAttachCustomImage(asset.publicUrl, asset.title);
-                          setShowAssetExplorer(false);
-                        }}
-                        className={`admin-button text-xs w-full py-1.5 justify-center ${
-                          isSelected
-                            ? "bg-emerald-600 text-white font-bold"
-                            : "admin-button-primary"
-                        }`}
-                      >
-                        {isSelected ? "Activo Asignado ✔" : "Asignar a Artículo"}
-                      </button>
                     </div>
                   </div>
                 );
