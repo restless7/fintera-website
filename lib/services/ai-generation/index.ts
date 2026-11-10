@@ -353,14 +353,13 @@ Estructura el documento en Markdown limpio (sin bloques de código JSON envolven
     status: input.publishImmediately ? "PUBLISHED" : "DRAFT",
     aiGenerated: true,
     aiModel: `${providerUsed}/${modelUsed}`,
-    typeMetadata: calendarSlot
-      ? {
-        linkedinWeek: calendarSlot.week,
-        linkedinDay: calendarSlot.day,
-        linkedinFormat: calendarSlot.format,
-        ctaUrlWithUtm: calendarSlot.ctaUrlWithUtm,
-      }
-      : {},
+    typeMetadata: {
+      calendarPostId: input.calendarPostId || calendarSlot?.id,
+      linkedinWeek: calendarSlot?.week,
+      linkedinDay: calendarSlot?.day,
+      linkedinFormat: calendarSlot?.format,
+      ctaUrlWithUtm: calendarSlot?.ctaUrlWithUtm,
+    },
     tags:
       pillar === "VIVIENDA_B2C"
         ? [

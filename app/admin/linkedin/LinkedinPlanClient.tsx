@@ -72,6 +72,44 @@ export function LinkedinPlanClient({
     return activeMonthCalendar.filter((p) => p.week === selectedWeek);
   }, [activeMonthCalendar, selectedWeek]);
 
+  // Sincronización persistente de piezas editoriales desarrolladas con los slots del calendario agnóstico
+  const resolvedSlotItems = useMemo(() => {
+    const map: Record<string, FinteraContentItem> = { ...generatedSlotItems };
+
+    for (const slot of activeMonthCalendar) {
+      if (map[slot.id]) continue;
+
+      const slotTitleNorm = slot.title.trim().toLowerCase();
+      const slotSlug = slot.title
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+      const matched = existingItems.find((item) => {
+        const meta = (item.typeMetadata || {}) as Record<string, unknown>;
+        if (meta.calendarPostId === slot.id) return true;
+        if (item.title.trim().toLowerCase() === slotTitleNorm) return true;
+        if (item.slug === slotSlug) return true;
+        if (
+          meta.linkedinWeek === slot.week &&
+          typeof meta.linkedinDay === "string" &&
+          meta.linkedinDay.toLowerCase() === slot.day.toLowerCase()
+        ) {
+          return true;
+        }
+        return false;
+      });
+
+      if (matched) {
+        map[slot.id] = matched;
+      }
+    }
+
+    return map;
+  }, [generatedSlotItems, activeMonthCalendar, existingItems]);
+
   const monthLabel = `${SPANISH_MONTHS[selectedMonthIndex]} ${selectedYear}`;
 
   const handleCopyText = async (label: string, text: string) => {
@@ -407,7 +445,7 @@ export function LinkedinPlanClient({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {weekPosts.map((slot) => {
-            const generatedItem = generatedSlotItems[slot.id];
+            const generatedItem = resolvedSlotItems[slot.id];
             const isDeveloping = developingSlotId === slot.id;
             return (
               <div
