@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   FinteraShareBreakdown,
-  getFinteraContentByIdOrSlug,
+  getFinteraContentByIdOrSlugWithDb,
   recordFinteraArticleTelemetry,
 } from "@/lib/blog";
 
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const item = getFinteraContentByIdOrSlug(slug);
+  const item = await getFinteraContentByIdOrSlugWithDb(slug);
   if (!item) {
     return NextResponse.json(
       { error: "Artículo no encontrado" },

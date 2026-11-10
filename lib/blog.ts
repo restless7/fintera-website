@@ -1443,62 +1443,203 @@ function buildDefaultAnalytics(
   };
 }
 
-function loadCachedPosts(): FinteraContentItem[] {
-  const enrichItem = (item: FinteraContentItem): FinteraContentItem => {
-    const meta = (item.typeMetadata || {}) as Record<string, unknown>;
-    const cleanTitle = stripCalendarPrefixFromText(item.title);
-    const cleanSlug = stripCalendarPrefixFromSlug(item.slug);
-    const cleanSubtitle = item.subtitle
-      ? stripCalendarPrefixFromText(item.subtitle)
-      : null;
-    const cleanContent = stripCalendarPrefixFromText(item.content);
-    const rawCover =
-      item.coverImage ||
-      (typeof meta.coverImage === "string" ? meta.coverImage : null);
+let inMemoryPostsCache: FinteraContentItem[] | null = null;
 
-    const humanReview = buildDefaultHumanReview(
-      item,
-      (item.humanReview || meta.humanReview) as
-        | Partial<FinteraHumanReviewMetadata>
-        | undefined
-    );
-    const analytics = buildDefaultAnalytics(
-      item,
-      (item.analytics || meta.analytics) as
-        | Partial<FinteraArticleAnalytics>
-        | undefined
-    );
+export function enrichFinteraContentItem(
+  item: FinteraContentItem
+): FinteraContentItem {
+  const meta = (item.typeMetadata || {}) as Record<string, unknown>;
+  const cleanTitle = stripCalendarPrefixFromText(item.title);
+  const cleanSlug = stripCalendarPrefixFromSlug(item.slug);
+  const cleanSubtitle = item.subtitle
+    ? stripCalendarPrefixFromText(item.subtitle)
+    : null;
+  const cleanContent = stripCalendarPrefixFromText(item.content);
+  const rawCover =
+    item.coverImage ||
+    (typeof meta.coverImage === "string" ? meta.coverImage : null);
 
-    return {
-      ...item,
-      title: cleanTitle,
-      slug: cleanSlug,
-      subtitle: cleanSubtitle,
-      content: cleanContent,
-      views: analytics.views,
-      coverImage: resolveArticleCoverImage(item.id, cleanSlug, rawCover),
-      imagePrompt:
-        item.imagePrompt ||
-        (typeof meta.imagePrompt === "string" ? meta.imagePrompt : null) ||
-        buildFinteraBrandImagePrompt({
-          title: cleanTitle,
-          pillar: item.pillar,
-          contentType: item.contentType,
-        }),
-      creativeAssets: Array.isArray(item.creativeAssets)
-        ? item.creativeAssets
-        : Array.isArray(meta.creativeAssets)
-          ? (meta.creativeAssets as FinteraCreativeAsset[])
-          : [],
+  const humanReview = buildDefaultHumanReview(
+    item,
+    (item.humanReview || meta.humanReview) as
+      | Partial<FinteraHumanReviewMetadata>
+      | undefined
+  );
+  const analytics = buildDefaultAnalytics(
+    item,
+    (item.analytics || meta.analytics) as
+      | Partial<FinteraArticleAnalytics>
+      | undefined
+  );
+
+  return {
+    ...item,
+    title: cleanTitle,
+    slug: cleanSlug,
+    subtitle: cleanSubtitle,
+    content: cleanContent,
+    views: analytics.views,
+    coverImage: resolveArticleCoverImage(item.id, cleanSlug, rawCover),
+    imagePrompt:
+      item.imagePrompt ||
+      (typeof meta.imagePrompt === "string" ? meta.imagePrompt : null) ||
+      buildFinteraBrandImagePrompt({
+        title: cleanTitle,
+        pillar: item.pillar,
+        contentType: item.contentType,
+      }),
+    creativeAssets: Array.isArray(item.creativeAssets)
+      ? item.creativeAssets
+      : Array.isArray(meta.creativeAssets)
+        ? (meta.creativeAssets as FinteraCreativeAsset[])
+        : [],
+    humanReview,
+    analytics,
+    typeMetadata: {
+      ...meta,
       humanReview,
       analytics,
-      typeMetadata: {
-        ...meta,
-        humanReview,
-        analytics,
-      },
-    };
+    },
   };
+}
+
+const enrichItem = enrichFinteraContentItem;
+
+export function convertPrismaBlogPostToFinteraContentItem(
+  row: {
+    id: string;
+    title: string;
+    slug: string;
+    subtitle?: string | null;
+    excerpt?: string | null;
+    content: string;
+    status: string;
+    contentType: string;
+    featured?: boolean | null;
+    pillar?: string | null;
+    audience?: string | null;
+    cutoffDate?: string | null;
+    typeMetadata?: unknown;
+    gated?: boolean | null;
+    downloadUrl?: string | null;
+    aiGenerated?: boolean | null;
+    aiModel?: string | null;
+    seoTitle?: string | null;
+    seoDescription?: string | null;
+    seoKeywords?: string | null;
+    readingTime?: number | null;
+    wordCount?: number | null;
+    qaStatus?: string | null;
+    qaScore?: number | null;
+    qaApprovalHash?: string | null;
+    qaReport?: unknown;
+    views?: number | null;
+    likes?: number | null;
+    publishedAt?: Date | string | null;
+    scheduledAt?: Date | string | null;
+    createdAt?: Date | string | null;
+    updatedAt?: Date | string | null;
+  }
+): FinteraContentItem {
+  const meta =
+    row.typeMetadata && typeof row.typeMetadata === "object"
+      ? (row.typeMetadata as Record<string, unknown>)
+      : {};
+
+  const cleanTitle = stripCalendarPrefixFromText(row.title || "");
+  const cleanSlug = stripCalendarPrefixFromSlug(row.slug || "");
+  const cleanSubtitle = row.subtitle
+    ? stripCalendarPrefixFromText(row.subtitle)
+    : null;
+  const cleanContent = stripCalendarPrefixFromText(row.content || "");
+
+  const wordCount =
+    row.wordCount ?? (cleanContent ? cleanContent.split(/\s+/).length : 0);
+  const readingTime =
+    row.readingTime ?? Math.max(1, Math.ceil(wordCount / 180));
+
+  const rawCover =
+    typeof meta.coverImage === "string" ? meta.coverImage : null;
+  const coverImage = resolveArticleCoverImage(row.id, cleanSlug, rawCover);
+
+  const createdAt = row.createdAt
+    ? new Date(row.createdAt).toISOString()
+    : new Date().toISOString();
+  const updatedAt = row.updatedAt
+    ? new Date(row.updatedAt).toISOString()
+    : createdAt;
+  const publishedAt = row.publishedAt
+    ? new Date(row.publishedAt).toISOString()
+    : row.status === "PUBLISHED"
+      ? createdAt
+      : null;
+  const scheduledAt = row.scheduledAt
+    ? new Date(row.scheduledAt).toISOString()
+    : null;
+
+  const item: FinteraContentItem = {
+    id: row.id,
+    title: cleanTitle,
+    slug: cleanSlug,
+    subtitle: cleanSubtitle,
+    excerpt: row.excerpt || cleanContent.slice(0, 180) + "...",
+    content: cleanContent,
+    status: (row.status as FinteraContentItem["status"]) || "DRAFT",
+    contentType: (row.contentType as ContentTypeKey) || "BLOG_POST",
+    pillar: (row.pillar as FinteraContentPillarKey) || "VIVIENDA_B2C",
+    audience: (row.audience as FinteraAudienceKey) || "B2C_VIVIENDA",
+    cutoffDate: row.cutoffDate || "Octubre 2026",
+    featured: Boolean(row.featured),
+    gated: Boolean(row.gated),
+    downloadUrl: row.downloadUrl || null,
+    coverImage,
+    imagePrompt:
+      typeof meta.imagePrompt === "string" ? meta.imagePrompt : null,
+    creativeAssets: Array.isArray(meta.creativeAssets)
+      ? (meta.creativeAssets as FinteraCreativeAsset[])
+      : [],
+    aiGenerated: Boolean(row.aiGenerated),
+    aiModel: row.aiModel || null,
+    seoTitle: row.seoTitle || null,
+    seoDescription: row.seoDescription || null,
+    seoKeywords: row.seoKeywords || null,
+    readingTime,
+    wordCount,
+    qaStatus: (row.qaStatus as FinteraContentItem["qaStatus"]) || "UNVERIFIED",
+    qaScore: row.qaScore ?? 0,
+    qaApprovalHash: row.qaApprovalHash || null,
+    qaReport: (row.qaReport as QaEvaluationResult) || null,
+    authorName:
+      (meta.authorName as string) || "Comité de Criterio Financiero FINTERA",
+    authorRole:
+      (meta.authorRole as string) ||
+      "Dirección de Criterio Técnico y Habeas Data",
+    categoryName:
+      (meta.categoryName as string) ||
+      (row.pillar === "FACTORING_B2B"
+        ? "Liquidez Empresarial y Factoring"
+        : "Crédito de Vivienda y Leasing"),
+    categorySlug:
+      (meta.categorySlug as string) ||
+      (row.pillar === "FACTORING_B2B" ? "factoring-b2b" : "vivienda-b2c"),
+    tags: Array.isArray(meta.tags)
+      ? (meta.tags as string[])
+      : ["FINTERA", "Finanzas Colombia"],
+    views: row.views ?? 0,
+    publishedAt,
+    scheduledAt,
+    createdAt,
+    updatedAt,
+    typeMetadata: meta,
+  };
+
+  return enrichFinteraContentItem(item);
+}
+
+function loadCachedPosts(): FinteraContentItem[] {
+  if (inMemoryPostsCache && inMemoryPostsCache.length > 0) {
+    return inMemoryPostsCache;
+  }
 
   try {
     if (fs.existsSync(POSTS_CACHE_FILE)) {
@@ -1527,16 +1668,21 @@ function loadCachedPosts(): FinteraContentItem[] {
             }
           }
         }
-        return Array.from(byId.values());
+        const loaded = Array.from(byId.values());
+        inMemoryPostsCache = loaded;
+        return loaded;
       }
     }
   } catch {
     // Fallback to seeded insights
   }
-  return SEEDED_FINTERA_INSIGHTS.map(enrichItem);
+  const seeded = SEEDED_FINTERA_INSIGHTS.map(enrichItem);
+  inMemoryPostsCache = seeded;
+  return seeded;
 }
 
 function saveCachedPosts(posts: FinteraContentItem[]): void {
+  inMemoryPostsCache = posts;
   try {
     if (!fs.existsSync(CACHE_DIR)) {
       fs.mkdirSync(CACHE_DIR, { recursive: true });
@@ -1560,18 +1706,21 @@ export function isFinteraContentPublished(item: FinteraContentItem): boolean {
   return false;
 }
 
-export function getAllFinteraContent(options?: {
-  status?: FinteraContentItem["status"];
-  contentType?: ContentTypeKey;
-  pillar?: FinteraContentPillarKey;
-  audience?: FinteraAudienceKey;
-}): FinteraContentItem[] {
-  let items = loadCachedPosts();
+export function filterAndSortFinteraContent(
+  items: FinteraContentItem[],
+  options?: {
+    status?: FinteraContentItem["status"];
+    contentType?: ContentTypeKey;
+    pillar?: FinteraContentPillarKey;
+    audience?: FinteraAudienceKey;
+  }
+): FinteraContentItem[] {
+  let list = [...items];
 
   // Auto-promote any SCHEDULED post whose scheduledAt time has arrived
   let cacheModified = false;
   const now = Date.now();
-  for (const item of items) {
+  for (const item of list) {
     if (item.status === "SCHEDULED" && item.scheduledAt) {
       const scheduledTime = new Date(item.scheduledAt).getTime();
       if (!Number.isNaN(scheduledTime) && scheduledTime <= now) {
@@ -1582,30 +1731,85 @@ export function getAllFinteraContent(options?: {
     }
   }
   if (cacheModified) {
-    saveCachedPosts(items);
+    saveCachedPosts(list);
   }
 
   if (options?.status) {
     if (options.status === "PUBLISHED") {
-      items = items.filter(isFinteraContentPublished);
+      list = list.filter(isFinteraContentPublished);
     } else {
-      items = items.filter((item) => item.status === options.status);
+      list = list.filter((item) => item.status === options.status);
     }
   }
   if (options?.contentType) {
-    items = items.filter((item) => item.contentType === options.contentType);
+    list = list.filter((item) => item.contentType === options.contentType);
   }
   if (options?.pillar) {
-    items = items.filter((item) => item.pillar === options.pillar);
+    list = list.filter((item) => item.pillar === options.pillar);
   }
   if (options?.audience) {
-    items = items.filter((item) => item.audience === options.audience);
+    list = list.filter((item) => item.audience === options.audience);
   }
-  return items.sort(
+  return list.sort(
     (a, b) =>
       new Date(b.publishedAt || b.createdAt).getTime() -
       new Date(a.publishedAt || a.createdAt).getTime()
   );
+}
+
+export function getAllFinteraContent(options?: {
+  status?: FinteraContentItem["status"];
+  contentType?: ContentTypeKey;
+  pillar?: FinteraContentPillarKey;
+  audience?: FinteraAudienceKey;
+}): FinteraContentItem[] {
+  const items = loadCachedPosts();
+  return filterAndSortFinteraContent(items, options);
+}
+
+export async function getAllFinteraContentWithDb(options?: {
+  status?: FinteraContentItem["status"];
+  contentType?: ContentTypeKey;
+  pillar?: FinteraContentPillarKey;
+  audience?: FinteraAudienceKey;
+}): Promise<FinteraContentItem[]> {
+  try {
+    const dbPosts = await prisma.blogPost.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (dbPosts && dbPosts.length > 0) {
+      const dbItems = dbPosts.map(convertPrismaBlogPostToFinteraContentItem);
+      const byId = new Map<string, FinteraContentItem>();
+
+      for (const item of dbItems) {
+        byId.set(item.id, item);
+      }
+
+      for (const seeded of SEEDED_FINTERA_INSIGHTS) {
+        const enrichedSeeded = enrichItem(seeded);
+        if (!byId.has(enrichedSeeded.id)) {
+          byId.set(enrichedSeeded.id, enrichedSeeded);
+        } else {
+          const current = byId.get(enrichedSeeded.id)!;
+          if (
+            enrichedSeeded.status === "PUBLISHED" &&
+            current.status === "DRAFT"
+          ) {
+            byId.set(enrichedSeeded.id, enrichedSeeded);
+          }
+        }
+      }
+
+      const merged = Array.from(byId.values());
+      saveCachedPosts(merged);
+      return filterAndSortFinteraContent(merged, options);
+    }
+  } catch {
+    // Safe fallback to local cache
+  }
+
+  return getAllFinteraContent(options);
 }
 
 export function getFinteraContentByIdOrSlug(
@@ -1621,6 +1825,45 @@ export function getFinteraContentByIdOrSlug(
   );
 }
 
+export async function getFinteraContentByIdOrSlugWithDb(
+  idOrSlug: string
+): Promise<FinteraContentItem | undefined> {
+  const normalizedTarget = stripCalendarPrefixFromSlug(idOrSlug);
+
+  // 1. Try Neon PostgreSQL first for fresh, authoritative state
+  try {
+    const post = await prisma.blogPost.findFirst({
+      where: {
+        OR: [
+          { id: idOrSlug },
+          { slug: idOrSlug },
+          { slug: normalizedTarget },
+        ],
+      },
+    });
+
+    if (post) {
+      const item = convertPrismaBlogPostToFinteraContentItem(post);
+      const items = loadCachedPosts();
+      const existingIdx = items.findIndex(
+        (i) => i.id === item.id || i.slug === item.slug
+      );
+      if (existingIdx >= 0) {
+        items[existingIdx] = item;
+      } else {
+        items.unshift(item);
+      }
+      saveCachedPosts(items);
+      return item;
+    }
+  } catch {
+    // Database query failed or table not found, fallback to cached
+  }
+
+  // 2. Fallback to in-memory/file cache
+  return getFinteraContentByIdOrSlug(idOrSlug);
+}
+
 export async function upsertFinteraContent(
   input: Partial<FinteraContentItem> & { title: string; content: string }
 ): Promise<FinteraContentItem> {
@@ -1634,14 +1877,38 @@ export async function upsertFinteraContent(
         : null
       : undefined;
 
-  const existingIndex = items.findIndex(
+  let existingIndex = items.findIndex(
     (i) =>
       (input.id && i.id === input.id) ||
       (input.slug &&
         (i.slug === input.slug ||
           i.slug === stripCalendarPrefixFromSlug(input.slug)))
   );
-  const existing = existingIndex >= 0 ? items[existingIndex] : undefined;
+  let existing = existingIndex >= 0 ? items[existingIndex] : undefined;
+
+  // If not found in memory/file cache, check Neon PostgreSQL
+  if (!existing && (input.id || input.slug)) {
+    try {
+      const dbRow = await prisma.blogPost.findFirst({
+        where: {
+          OR: [
+            ...(input.id ? [{ id: input.id }] : []),
+            ...(input.slug
+              ? [
+                  { slug: input.slug },
+                  { slug: stripCalendarPrefixFromSlug(input.slug) },
+                ]
+              : []),
+          ],
+        },
+      });
+      if (dbRow) {
+        existing = convertPrismaBlogPostToFinteraContentItem(dbRow);
+      }
+    } catch {
+      // Non-fatal fallback
+    }
+  }
 
   const rawSlug =
     input.slug ||
@@ -1832,6 +2099,15 @@ export async function upsertFinteraContent(
 
   // Best-effort sync to Prisma BlogPost table when DB has the table migrated
   try {
+    const publishedAtDate = updatedItem.publishedAt
+      ? new Date(updatedItem.publishedAt)
+      : updatedItem.status === "PUBLISHED"
+      ? new Date()
+      : null;
+    const scheduledAtDate = updatedItem.scheduledAt
+      ? new Date(updatedItem.scheduledAt)
+      : null;
+
     await prisma.blogPost.upsert({
       where: { slug: updatedItem.slug },
       update: {
@@ -1861,6 +2137,8 @@ export async function upsertFinteraContent(
         qaReport: (updatedItem.qaReport || {}) as object,
         views: updatedItem.analytics?.views ?? updatedItem.views,
         likes: updatedItem.analytics?.helpfulVotes ?? 0,
+        publishedAt: publishedAtDate,
+        scheduledAt: scheduledAtDate,
       },
       create: {
         id: updatedItem.id,
@@ -1891,6 +2169,8 @@ export async function upsertFinteraContent(
         qaReport: (updatedItem.qaReport || {}) as object,
         views: updatedItem.analytics?.views ?? updatedItem.views,
         likes: updatedItem.analytics?.helpfulVotes ?? 0,
+        publishedAt: publishedAtDate,
+        scheduledAt: scheduledAtDate,
       },
     });
   } catch {
@@ -1906,7 +2186,7 @@ export async function recordFinteraArticleTelemetry(params: {
   channel?: keyof FinteraShareBreakdown;
   readSeconds?: number;
 }): Promise<FinteraArticleAnalytics | null> {
-  const item = getFinteraContentByIdOrSlug(params.idOrSlug);
+  const item = await getFinteraContentByIdOrSlugWithDb(params.idOrSlug);
   if (!item) return null;
 
   let currentAnalytics = buildDefaultAnalytics(item, item.analytics);
@@ -1984,7 +2264,7 @@ export async function certifyFinteraHumanReview(params: {
   expertMesaNote: string;
   publishImmediately?: boolean;
 }): Promise<FinteraContentItem> {
-  const item = getFinteraContentByIdOrSlug(params.idOrSlug);
+  const item = await getFinteraContentByIdOrSlugWithDb(params.idOrSlug);
   if (!item) {
     throw new Error(`No se encontró la pieza editorial: ${params.idOrSlug}`);
   }
@@ -2017,7 +2297,7 @@ export async function remediateFinteraContent(
   newScore: number;
   appliedFixes: string[];
 }> {
-  const item = getFinteraContentByIdOrSlug(idOrSlug);
+  const item = await getFinteraContentByIdOrSlugWithDb(idOrSlug);
   if (!item) {
     throw new Error(`No se encontró la pieza editorial: ${idOrSlug}`);
   }
@@ -2083,12 +2363,15 @@ export async function remediateFinteraContent(
 export async function deleteFinteraContent(
   idOrSlug: string
 ): Promise<{ deleted: boolean; slug?: string }> {
-  const items = loadCachedPosts();
-  const target = items.find((i) => i.id === idOrSlug || i.slug === idOrSlug);
+  let target = await getFinteraContentByIdOrSlugWithDb(idOrSlug);
+  if (!target) {
+    target = getFinteraContentByIdOrSlug(idOrSlug);
+  }
   if (!target) {
     return { deleted: false };
   }
-  const filtered = items.filter((i) => i.id !== target.id && i.slug !== target.slug);
+  const items = loadCachedPosts();
+  const filtered = items.filter((i) => i.id !== target!.id && i.slug !== target!.slug);
   saveCachedPosts(filtered);
 
   try {

@@ -6,8 +6,8 @@ import Footer from "@/components/fintera/footer";
 import { MarkdownRenderer } from "@/components/fintera/markdown-renderer";
 import { ArticleEngagementBar } from "@/components/fintera/article-engagement-bar";
 import {
-  getAllFinteraContent,
-  getFinteraContentByIdOrSlug,
+  getAllFinteraContentWithDb,
+  getFinteraContentByIdOrSlugWithDb,
   resolveArticleCoverImage,
 } from "@/lib/blog";
 import {
@@ -29,7 +29,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const item = getFinteraContentByIdOrSlug(slug);
+  const item = await getFinteraContentByIdOrSlugWithDb(slug);
   if (!item) {
     return {
       title: "Artículo no encontrado | FINTERA Insights",
@@ -104,7 +104,7 @@ export default async function FinteraInsightDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const item = getFinteraContentByIdOrSlug(slug);
+  const item = await getFinteraContentByIdOrSlugWithDb(slug);
   if (!item) {
     notFound();
   }
@@ -117,7 +117,8 @@ export default async function FinteraInsightDetailPage({
     FINTERA_CONTENT_PILLARS[item.pillar as FinteraContentPillarKey] ||
     FINTERA_CONTENT_PILLARS.VIVIENDA_B2C;
 
-  const relatedItems = getAllFinteraContent({ status: "PUBLISHED" })
+  const allPublished = await getAllFinteraContentWithDb({ status: "PUBLISHED" });
+  const relatedItems = allPublished
     .filter((other) => other.id !== item.id)
     .sort((a, b) => (a.pillar === item.pillar ? -1 : b.pillar === item.pillar ? 1 : 0))
     .slice(0, 3);

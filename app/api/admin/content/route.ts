@@ -3,8 +3,8 @@ import { authorizeAdminApi } from "@/lib/auth/admin-api";
 import {
   certifyFinteraHumanReview,
   deleteFinteraContent,
-  getAllFinteraContent,
-  getFinteraContentByIdOrSlug,
+  getAllFinteraContentWithDb,
+  getFinteraContentByIdOrSlugWithDb,
   remediateFinteraContent,
   upsertFinteraContent,
 } from "@/lib/blog";
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (id) {
-    const item = getFinteraContentByIdOrSlug(id);
+    const item = await getFinteraContentByIdOrSlugWithDb(id);
     if (!item) {
       return NextResponse.json(
         { error: "Pieza editorial no encontrada" },
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, item });
   }
 
-  const items = getAllFinteraContent();
+  const items = await getAllFinteraContentWithDb();
   return NextResponse.json({ success: true, items });
 }
 
@@ -69,7 +69,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const existing = getFinteraContentByIdOrSlug(id);
+    const existing = await getFinteraContentByIdOrSlugWithDb(id);
     if (!existing) {
       return NextResponse.json(
         { error: "Pieza editorial no encontrada" },

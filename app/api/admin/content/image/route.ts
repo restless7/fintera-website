@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeAdminApi } from "@/lib/auth/admin-api";
 import {
-  getFinteraContentByIdOrSlug,
+  getFinteraContentByIdOrSlugWithDb,
   upsertFinteraContent,
 } from "@/lib/blog";
 import { generateFinteraCreativeImage } from "@/lib/services/ai-generation";
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const existing = getFinteraContentByIdOrSlug(id);
+      const existing = await getFinteraContentByIdOrSlugWithDb(id);
       if (!existing) {
         return NextResponse.json(
           { error: "Pieza editorial no encontrada" },

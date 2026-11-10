@@ -21,7 +21,7 @@ import {
 } from "../../content-types";
 import {
   FinteraContentItem,
-  getFinteraContentByIdOrSlug,
+  getFinteraContentByIdOrSlugWithDb,
   resolveArticleCoverImage,
   stripCalendarPrefixFromText,
   upsertFinteraContent,
@@ -491,7 +491,7 @@ export async function rewriteFinteraContentWithAi(
   previousQaScore: number;
   newQaScore: number;
 }> {
-  const existing = getFinteraContentByIdOrSlug(input.idOrSlug);
+  const existing = await getFinteraContentByIdOrSlugWithDb(input.idOrSlug);
   if (!existing) {
     throw new Error(`No se encontró la pieza editorial: ${input.idOrSlug}`);
   }
@@ -613,7 +613,7 @@ export async function generateFinteraCreativeImage(
   item?: FinteraContentItem;
 }> {
   const existing = input.idOrSlug
-    ? getFinteraContentByIdOrSlug(input.idOrSlug)
+    ? await getFinteraContentByIdOrSlugWithDb(input.idOrSlug)
     : undefined;
 
   const promptUsed =

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
-import { getAllFinteraContent, resolveArticleCoverImage } from "@/lib/blog";
+import { getAllFinteraContentWithDb, resolveArticleCoverImage } from "@/lib/blog";
 import {
   CONTENT_TYPES,
   FINTERA_BRAND_BLUEPRINT,
@@ -29,7 +29,8 @@ export default async function FinteraInsightsPublicPage({
   const selectedPillar = resolvedParams.pillar || "ALL";
   const selectedType = resolvedParams.type || "ALL";
 
-  const publishedItems = getAllFinteraContent({ status: "PUBLISHED" }).filter(
+  const allPublished = await getAllFinteraContentWithDb({ status: "PUBLISHED" });
+  const publishedItems = allPublished.filter(
     (item) => {
       if (selectedPillar !== "ALL" && item.pillar !== selectedPillar)
         return false;
@@ -106,7 +107,7 @@ export default async function FinteraInsightsPublicPage({
                   href="/insights"
                   className="rounded-xl bg-[#0A2342] px-4 py-2 text-xs font-bold text-white hover:bg-[#0A2342]/90"
                 >
-                  Ver todas las publicaciones ({getAllFinteraContent({ status: "PUBLISHED" }).length})
+                  Ver todas las publicaciones ({allPublished.length})
                 </Link>
               )}
             </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getFinteraContentByIdOrSlug,
+  getFinteraContentByIdOrSlugWithDb,
   recordFinteraArticleTelemetry,
 } from "@/lib/blog";
 import { FINTERA_CONTENT_PILLARS } from "@/lib/content-types";
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (action === "DISPATCH_DIGEST") {
       const { slug, customTitle, customExcerpt, customCutoff, recipientEmail } =
         body;
-      const item = slug ? getFinteraContentByIdOrSlug(slug) : null;
+      const item = slug ? await getFinteraContentByIdOrSlugWithDb(slug) : null;
       const recipients = recipientEmail
         ? [String(recipientEmail).trim()]
         : ["comite.editorial@finterasoluciones.co"];
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const item = sourceSlug ? getFinteraContentByIdOrSlug(sourceSlug) : undefined;
+    const item = sourceSlug ? await getFinteraContentByIdOrSlugWithDb(sourceSlug) : undefined;
     if (sourceSlug) {
       await recordFinteraArticleTelemetry({
         idOrSlug: sourceSlug,
