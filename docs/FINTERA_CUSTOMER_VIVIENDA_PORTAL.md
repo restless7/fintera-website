@@ -1,6 +1,6 @@
 # FINTERA — Portal del cliente para vivienda
 
-Estado: **LOCAL_GO_WITH_DISCLOSED_LIMITS**. La implementación pasó build, TypeScript, lint focal y verificación independiente local. La migración alojada, el ciclo de vida del trabajador, la publicación y la aceptación de una sesión humana mantienen sus propios controles de ejecución. Este informe subordinado documenta el portal y su flujo documental, sin certificar esos pasos pendientes.
+Estado: **LOCAL_GO_WITH_DISCLOSED_LIMITS**, con migración alojada, configuración de almacenamiento y arranque del trabajador aceptados mediante recibos independientes. Corte previo al push: la publicación en Vercel y el recorrido de una sesión humana de cliente siguen pendientes. Este informe distingue esos pasos de la verificación local satisfactoria.
 
 ## Ubicación documental
 
@@ -36,6 +36,12 @@ La respuesta anónima del servidor ofrece los recorridos reales de inicio de ses
 
 Los nuevos componentes se ubican en `components/customer-portal/` y el estilo se limita a `app/portal/portal.css`. El diseñador posee la interfaz; el arquitecto posee contratos, autenticación, API, servicios, esquema, controles del servidor y el wrapper del layout. QA verifica de forma independiente fuente, comportamiento y evidencias.
 
+### Requisito de entrada al expediente
+
+El formulario real `/credit-request` envía a `/api/credit-request`; el intake canónico crea `Client`, `CrmCreditApplication` con referencia FNT y solicitante principal, además de la fila de compatibilidad histórica. La creación autorizada del personal y el endpoint compatible `/api/credits/apply` comparten ese flujo. Las 31 solicitudes antiguas conservadas únicamente en `credit_requests` no se importan automáticamente como expedientes CRM.
+
+Ser SUPER_ADMIN no otorga propiedad sobre expedientes del portal de clientes: se necesita la relación real con un cliente o una concesión de acceso. Un cliente nuevo con marcador de origen confiable puede confirmar expresamente la vinculación de su correo principal verificado en Clerk. Los contactos históricos o ambiguos requieren la vinculación asistida del personal SUPER_ADMIN sobre un expediente existente. No es necesario vincular un banco para comenzar la lista general documental.
+
 ## Carga y versiones
 
 El cliente selecciona un archivo, revisa su destino y confirma el envío. Se obtiene una autorización, se transfiere con progreso real y se confirma el mismo intento. El procesamiento asíncrono y la revisión documental son estados distintos: recibir o validar un archivo no equivale a aprobarlo.
@@ -54,7 +60,13 @@ La aplicación acepta confirmar el intento durante diez minutos. El token de car
 
 ## Operación del procesamiento
 
-La arquitectura aprobada utiliza un trabajador saliente y antivirus dedicado, con credenciales y servicios de alcance restringido. El inventario previo encontró un daemon nativo inactivo y firmas antiguas; esa instalación no se utilizó como acreditación. QA verificó el primer arranque del contenedor dedicado con imagen fijada, ClamAV 1.5.4 y firmas 28186 del 17 de noviembre, PDF limpio y EICAR físicos, sin OOM. La política de reinicio quedó `unless-stopped` tras sus controles autorizados. Esto acredita ese arranque, no resistencia de carga o recarga prolongada ni instalación del trabajador de la aplicación. El plan y las autorizaciones operativas se conservan fuera de Git. No se toman las variables de una base local distinta como configuración de producción.
+La arquitectura utiliza un trabajador saliente y antivirus dedicado, con credenciales y servicios de alcance restringido. El inventario previo encontró un daemon nativo inactivo y firmas antiguas; esa instalación no se utilizó como acreditación. QA verificó el primer arranque del contenedor dedicado con imagen fijada, ClamAV 1.5.4 y firmas 28186 del 17 de noviembre, PDF limpio y EICAR físicos, sin OOM. La política de reinicio quedó `unless-stopped` tras sus controles autorizados. Ese control no demuestra resistencia de carga o recarga prolongada. El plan y las autorizaciones operativas se conservan fuera de Git; no se tomó la URL de una base local distinta como configuración de producción.
+
+En el corte del 18 de noviembre a las 04:57 UTC, la migración adicional alojada ya tenía ACK y aceptación independiente. Su primer postcheck mantuvo STOP por diferencias de representación del catálogo y `search_path` entre la referencia local y PostgreSQL 18.7. Se conservó ese STOP y no se repitió la migración. La conciliación de sólo lectura comprobó exactamente 56 columnas, 17 restricciones semánticas y 18 índices, además de 35 restricciones NOT NULL nativas que corresponden una a una a columnas obligatorias; las 52 restricciones quedaron verificadas como impuestas. Se conservaron las 53 tablas previas, sus conteos salvo el incremento de la historia de migración y los hashes seleccionados, las 31 solicitudes históricas y las nueve entradas originales de migración; la historia final tiene diez entradas. Los recibos son `publication/additive-document-migration-acceptance.json` y `qa/independent-hosted-migration-review.json`.
+
+La configuración documental recibió cuatro ACK de creación de variables dedicadas: los 77 registros previos conservaron su metadata y el total quedó en 81. Ambos buckets se verificaron privados, con límite de 15 MB. Esta lectura de metadata y los ACK de escritura no constituyen una atestación de bytes de secretos. El recibo es `publication/document-storage-configuration-receipt.json`.
+
+El trabajador de la aplicación está activo con Node 22.23.5 fijado, proceso y ejecutable reales, entorno verificado contra la custodia privada, 21 artefactos conservados y heartbeat reciente con antivirus listo. El STOP inicial de ejecución quedó registrado; se resolvió cambiando únicamente dos directorios del runtime de 0700 a 0755, sin repetir el instalador ni añadir puertos entrantes. `publication/worker-permission-repair-receipt.json` e `qa/independent-hosted-worker-review.json` registran el resultado cualificado. Una consulta real de Prisma nativo, ejecutada como el usuario del servicio y revertida en sólo lectura, confirmó la base y el rol esperados con configuración estricta del motor y CA del sistema. El indicador SSL del backend fue falso detrás de la terminación del proveedor: no se interpreta como atestación del transporte cliente-proveedor ni se afirma inspección de certificados del par.
 
 Un envío fallido, una confirmación ambigua o un ACK perdido puede conservar un objeto privado en cuarentena o un objeto limpio único todavía sin referencia. El trabajador no repite automáticamente esas escrituras ni declara que se eliminaron. En este alcance no se verificó una política programada de retención o recolección de objetos huérfanos: su revisión y limpieza requieren una decisión operativa manual, sin afirmar plazos legales de conservación. La prueba física satisfactoria de 77 bytes utilizó dos claves aisladas y confirmó la eliminación de ambas; ese resultado no acredita limpieza automática de todos los intentos.
 
@@ -85,7 +97,7 @@ Las etiquetas de axe fueron `wcag2a`, `wcag2aa`, `wcag21aa` y `wcag22aa`; este r
 
 La preservación independiente comparó los 406 archivos de base: 374 sin cambios, 32 modificaciones existentes intencionales y ninguno ausente. El documento de marca previamente modificado y sus cuatro PNG conservaron exactamente sus bytes. El hook ordinario de graphify terminó sin reemplazar el grafo por una versión menor; su metadata quedó registrada fuera de Git. No se repitieron indiscriminadamente las suites financieras ajenas al cambio.
 
-La migración alojada, el trabajador completo y la aceptación aplicación→trabajador→Supabase en el entorno publicado siguen pendientes en este corte. Los fixtures locales no acreditan sesiones humanas ni aceptación alojada. El rechazo de contenido activo de PDF es heurístico, no reconstrucción de contenido ni garantía de detectar todos los archivos maliciosos; la denegación anónima de Storage tampoco certifica todas sus políticas autenticadas.
+El push, la disponibilidad de la nueva versión en Vercel y la aceptación aplicación→trabajador→Supabase desde una sesión real del entorno publicado siguen pendientes en este corte previo a publicación. Los fixtures locales, el arranque real del trabajador y sus consultas de sólo lectura no acreditan ese recorrido humano. El rechazo de contenido activo de PDF es heurístico, no reconstrucción de contenido ni garantía de detectar todos los archivos maliciosos; la denegación anónima de Storage tampoco certifica todas sus políticas autenticadas.
 
 La lectura pública del portal alojado previa a esta publicación confirmó que conserva la instancia TEST de Clerk. Este trabajo no autoriza sustituir sus claves o entorno de identidad. Una publicación para revisión dentro de ese entorno no acredita una instancia LIVE ni aceptación operativa de clientes reales; la comprobación final debe mantener explícita esa distinción.
 
