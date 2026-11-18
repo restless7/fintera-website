@@ -34,6 +34,8 @@ export const ApplicationStatus = {
 export type ApplicationStatus = (typeof ApplicationStatus)[keyof typeof ApplicationStatus];
 
 export type Permission =
+  | 'crm:commercial:finance:read'
+  | 'crm:commercial:finance:write'
   // Leads & Captación
   | 'crm:lead:read'
   | 'crm:lead:create'
@@ -91,6 +93,8 @@ export interface AuthorizationResult {
  */
 export const ROLE_PERMISSIONS_MAP: Record<UserRole, Permission[]> = {
   SUPER_ADMIN: [
+    'crm:commercial:finance:read',
+    'crm:commercial:finance:write',
     'crm:lead:read',
     'crm:lead:create',
     'crm:lead:assign',
@@ -111,6 +115,8 @@ export const ROLE_PERMISSIONS_MAP: Record<UserRole, Permission[]> = {
   ],
 
   COMMERCIAL_DIRECTOR: [
+    'crm:commercial:finance:read',
+    'crm:commercial:finance:write',
     'crm:lead:read',
     'crm:lead:create',
     'crm:lead:assign',
@@ -172,6 +178,7 @@ export const ROLE_PERMISSIONS_MAP: Record<UserRole, Permission[]> = {
   ],
 
   AUDITOR: [
+    'crm:commercial:finance:read',
     'crm:application:read',
     'crm:document:read',
     'crm:policy:read',

@@ -1,3 +1,4 @@
+import { CaseCommercialPanel } from "@/components/admin/commercial/CaseCommercialPanel";
 import { requireAdminApplication } from "@/lib/auth/admin-session";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -66,6 +67,8 @@ export default async function CaseWorkspacePage({ params }: PageProps) {
       <div className="space-y-6">
         <PageHeader title={application.fileNumber} eyebrow="Expediente hipotecario" description={`${application.client.firstName} ${application.client.firstLastName} · ${application.productCategory.replace(/_/g, " ")}`} metadata={<StatusBadge status={application.status} />} />
         <CaseNavigation applicationId={application.id} fileNumber={application.fileNumber} />
+
+        <CaseCommercialPanel applicationId={application.id} />
 
         {/* Resumen Principal del Caso (Cards) */}
         <div id="resumen" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

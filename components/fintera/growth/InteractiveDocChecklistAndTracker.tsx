@@ -1,5 +1,7 @@
 "use client";
 
+import { GrowthReceiptTracker } from "./GrowthReceiptTracker";
+
 import React, { useState } from "react";
 import Link from "next/link";
 import {
@@ -54,7 +56,8 @@ const PROFILE_DOCS: Record<
       },
       {
         id: "emp-2",
-        title: "Certificación laboral original (Cargo, salario, antigüedad y tipo de contrato)",
+        title:
+          "Certificación laboral original (Cargo, salario, antigüedad y tipo de contrato)",
         validity: "Máx. 30 días de expedición",
         tip: "Mínimo 6 meses en contrato indefinido o 12 meses en término fijo.",
         mandatory: true,
@@ -68,14 +71,16 @@ const PROFILE_DOCS: Record<
       },
       {
         id: "emp-4",
-        title: "Extractos bancarios de nómina de los últimos 3 meses (PDF original del banco)",
+        title:
+          "Extractos bancarios de nómina de los últimos 3 meses (PDF original del banco)",
         validity: "Últimos 90 días",
         tip: "Sin contraseña de apertura para validación automática en mesa de crédito.",
         mandatory: true,
       },
       {
         id: "emp-5",
-        title: "Certificado de Ingresos y Retenciones (Formato 220 DIAN) o Declaración de Renta",
+        title:
+          "Certificado de Ingresos y Retenciones (Formato 220 DIAN) o Declaración de Renta",
         validity: "Último año gravable",
         tip: "Si no declaras renta, adjunta carta de no declarante firmada.",
         mandatory: false,
@@ -97,21 +102,24 @@ const PROFILE_DOCS: Record<
       },
       {
         id: "ind-2",
-        title: "Extractos bancarios personales y/o de negocio de los últimos 6 meses",
+        title:
+          "Extractos bancarios personales y/o de negocio de los últimos 6 meses",
         validity: "Últimos 180 días",
         tip: "Los bancos aliados calculan tu ingreso base sobre los abonos bancarios recurrentes.",
         mandatory: true,
       },
       {
         id: "ind-3",
-        title: "Declaración de Renta de los últimos 2 años gravables (con acuse de recibo DIAN)",
+        title:
+          "Declaración de Renta de los últimos 2 años gravables (con acuse de recibo DIAN)",
         validity: "Últimos 2 periodos fiscales",
         tip: "Fundamental para soportar patrimonio bruto y renta líquida ante Bancolombia, Itaú y Davivienda.",
         mandatory: true,
       },
       {
         id: "ind-4",
-        title: "Contratos de prestación de servicios o certificaciones comerciales de clientes",
+        title:
+          "Contratos de prestación de servicios o certificaciones comerciales de clientes",
         validity: "Vigentes",
         tip: "Acredita continuidad de ingresos de al menos 12 a 24 meses en la actividad.",
         mandatory: true,
@@ -133,35 +141,40 @@ const PROFILE_DOCS: Record<
     items: [
       {
         id: "col-1",
-        title: "Cédula de ciudadanía colombiana + Pasaporte o documento de estatus migratorio vigente",
+        title:
+          "Cédula de ciudadanía colombiana + Pasaporte o documento de estatus migratorio vigente",
         validity: "Vigente",
         tip: "Aceptamos residencia permanente, ciudadanía o permiso de trabajo vigente según el banco aliado.",
         mandatory: true,
       },
       {
         id: "col-2",
-        title: "Taxes / Declaración de impuestos del país de residencia (Form 1040, W-2, IRPF o Notice of Assessment)",
+        title:
+          "Taxes / Declaración de impuestos del país de residencia (Form 1040, W-2, IRPF o Notice of Assessment)",
         validity: "Último año fiscal",
         tip: "Valida tus ingresos anuales en USD, EUR, CAD, GBP o CLP.",
         mandatory: true,
       },
       {
         id: "col-3",
-        title: "Extractos bancarios internacionales de los últimos 3 a 6 meses (Bank Statements)",
+        title:
+          "Extractos bancarios internacionales de los últimos 3 a 6 meses (Bank Statements)",
         validity: "Últimos 90–180 días",
         tip: "Donde se evidencie el abono periódico de nómina o actividad independiente en el exterior.",
         mandatory: true,
       },
       {
         id: "col-4",
-        title: "Paystubs / Nóminas de los últimos 3 meses y carta laboral del empleador extranjero",
+        title:
+          "Paystubs / Nóminas de los últimos 3 meses y carta laboral del empleador extranjero",
         validity: "Últimos 90 días",
         tip: "No requiere apostilla para la fase de aprobación de crédito hipotecario.",
         mandatory: true,
       },
       {
         id: "col-5",
-        title: "Reporte de crédito internacional (Credit Bureau: Experian, Equifax, TransUnion o CIRBE)",
+        title:
+          "Reporte de crédito internacional (Credit Bureau: Experian, Equifax, TransUnion o CIRBE)",
         validity: "Máx. 30 días",
         tip: "Nuestro equipo asesora la consulta sin afectar tu puntaje crediticio local.",
         mandatory: false,
@@ -176,35 +189,40 @@ const PROFILE_DOCS: Record<
     items: [
       {
         id: "b2b-1",
-        title: "Certificado de Existencia y Representación Legal (Cámara de Comercio) y RUT actualizado",
+        title:
+          "Certificado de Existencia y Representación Legal (Cámara de Comercio) y RUT actualizado",
         validity: "Máx. 30 días de expedición",
         tip: "Verifica facultades del representante legal y cuantías máximas autorizadas.",
         mandatory: true,
       },
       {
         id: "b2b-2",
-        title: "Estados Financieros de los últimos 2 cierres anuales + corte parcial reciente",
+        title:
+          "Estados Financieros de los últimos 2 cierres anuales + corte parcial reciente",
         validity: "Firmados por Contador y/o Revisor Fiscal",
         tip: "Incluye notas a los estados financieros y tarjetas profesionales.",
         mandatory: true,
       },
       {
         id: "b2b-3",
-        title: "Declaración de Renta Persona Jurídica de los últimos 2 años y composición accionaria",
+        title:
+          "Declaración de Renta Persona Jurídica de los últimos 2 años y composición accionaria",
         validity: "Con certificación de beneficiarios finales (SARLAFT)",
         tip: "Requisito obligatorio de debida diligencia SARLAFT / SAGRILAFT.",
         mandatory: true,
       },
       {
         id: "b2b-4",
-        title: "XML y Representación Gráfica de las Facturas Electrónicas con Eventos RADIAN (030, 032, 033/034)",
+        title:
+          "XML y Representación Gráfica de las Facturas Electrónicas con Eventos RADIAN (030, 032, 033/034)",
         validity: "Facturas con vencimiento entre 30 y 120 días",
         tip: "Sin reclamos inscritos y emitidas a pagadores corporativos verificables.",
         mandatory: true,
       },
       {
         id: "b2b-5",
-        title: "Extractos bancarios corporativos de los últimos 3 meses y certificación de cuenta destino",
+        title:
+          "Extractos bancarios corporativos de los últimos 3 meses y certificación de cuenta destino",
         validity: "Últimos 90 días",
         tip: "Cuenta a nombre del emisor para giro tras el endoso electrónico en RADIAN.",
         mandatory: true,
@@ -244,23 +262,14 @@ const STRUCTURING_STAGES = [
 export default function InteractiveDocChecklistAndTracker() {
   const [selectedProfile, setSelectedProfile] =
     useState<ProfileKey>("EMPLEADO");
-  const [checkedIds, setCheckedIds] = useState<Record<string, boolean>>({
-    "emp-1": true,
-    "emp-2": true,
-  });
-
-  // Live Tracking Code Lookup
-  const [trackingQuery, setTrackingQuery] = useState<string>("FIN-B2B-2610-841");
-  const [lookupLoading, setLookupLoading] = useState<boolean>(false);
-  const [lookupResult, setLookupResult] = useState<any | null>(null);
-  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [checkedIds, setCheckedIds] = useState<Record<string, boolean>>({});
 
   const currentSpec = PROFILE_DOCS[selectedProfile];
   const completedCount = currentSpec.items.filter(
-    (item) => checkedIds[item.id]
+    (item) => checkedIds[item.id],
   ).length;
   const readinessPct = Math.round(
-    (completedCount / currentSpec.items.length) * 100
+    (completedCount / currentSpec.items.length) * 100,
   );
 
   const toggleDoc = (id: string) => {
@@ -270,33 +279,6 @@ export default function InteractiveDocChecklistAndTracker() {
     }));
   };
 
-  const handleLookup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trackingQuery.trim()) return;
-    setLookupLoading(true);
-    setLookupError(null);
-    try {
-      const res = await fetch(
-        `/api/growth/leads?trackingCode=${encodeURIComponent(
-          trackingQuery.trim()
-        )}`
-      );
-      const data = await res.json();
-      if (!res.ok || !data.found) {
-        setLookupResult(null);
-        setLookupError(
-          data.error || "No se encontró el código. Prueba con FIN-B2B-2610-841 o FIN-ALI-2610-319."
-        );
-      } else {
-        setLookupResult(data.lead);
-      }
-    } catch {
-      setLookupError("Error al consultar el estado de la operación.");
-    } finally {
-      setLookupLoading(false);
-    }
-  };
-
   return (
     <section className="py-16 bg-white border-t border-slate-200">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl space-y-12">
@@ -304,16 +286,20 @@ export default function InteractiveDocChecklistAndTracker() {
         <div className="max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-full bg-[#0A2342] px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#00C4B3]">
             <ShieldCheck className="w-4 h-4" />
-            Señales de Claridad · Bóveda Documental y Trazabilidad en Vivo
+            Preparación orientativa y recibo de captación
           </span>
           <h2 className="mt-3 text-2xl sm:text-4xl font-extrabold text-[#0A2342] tracking-tight">
-            Prepara tu Carpeta sin Fricción y Rastrea Cada Etapa de tu Solicitud
+            Prepara tu carpeta y consulta tu recibo
           </h2>
           <p className="mt-2 text-sm sm:text-base text-slate-600 leading-relaxed">
-            Más del 60% de las demoras bancarias en Colombia ocurren por
-            carpetas documentales incompletas o extractos vencidos. Valida tu
-            checklist según tu perfil y cárgala de forma cifrada en nuestro{" "}
-            <strong className="text-[#0A2342]">Portal de Clientes</strong>.
+            Esta lista es una guía personal ilustrativa: marcar una casilla no
+            carga ni verifica documentos, ni modifica tu expediente. Los
+            requisitos vigentes de tu solicitud se consultan en el{" "}
+            <Link href="/portal/documentos" className="font-semibold underline">
+              Portal de Clientes
+            </Link>{" "}
+            con una cuenta vinculada. El recibo público confirma únicamente que
+            una captación fue recibida.
           </p>
         </div>
 
@@ -473,7 +459,9 @@ export default function InteractiveDocChecklistAndTracker() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs font-bold text-[#00C4B3]">
                   <Lock className="w-4 h-4" />
-                  <span>Bóveda Documental Cifrada (Supabase Storage + AES-256)</span>
+                  <span>
+                    Bóveda Documental Cifrada (Supabase Storage + AES-256)
+                  </span>
                 </div>
                 <p className="text-xs text-slate-300">
                   Sube tus soportes una sola vez y FINTERA estructura la
@@ -501,75 +489,13 @@ export default function InteractiveDocChecklistAndTracker() {
 
           {/* Right Column: Live Operation Tracker & 5 Milestones */}
           <div className="lg:col-span-5 space-y-6">
-            {/* Live Tracking Code Search */}
-            <div className="rounded-3xl bg-[#0A2342] text-white p-6 sm:p-7 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#00C4B3]">
-                  Rastreador Rápido de Expediente
-                </span>
-                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#FFD447]">
-                  24/7 en línea
-                </span>
-              </div>
-              <h3 className="text-lg font-extrabold text-white">
-                Consulta el Estado de tu Solicitud o Diagnóstico B2B
-              </h3>
-              <form onSubmit={handleLookup} className="flex gap-2">
-                <input
-                  type="text"
-                  value={trackingQuery}
-                  onChange={(e) => setTrackingQuery(e.target.value)}
-                  placeholder="Ej. FIN-B2B-2610-841 o FIN-ALI-2610-319"
-                  className="flex-1 rounded-xl border border-slate-700 bg-[#061529] px-3.5 py-2.5 text-xs font-mono text-white placeholder:text-slate-400"
-                />
-                <button
-                  type="submit"
-                  disabled={lookupLoading}
-                  className="rounded-xl bg-[#00C4B3] hover:bg-[#00a899] px-4 py-2.5 text-xs font-extrabold text-[#0A2342] transition flex items-center gap-1.5 shrink-0"
-                >
-                  <Search className="w-4 h-4" />
-                  <span>{lookupLoading ? "..." : "Consultar"}</span>
-                </button>
-              </form>
-
-              {lookupError && (
-                <p className="text-xs text-amber-300">{lookupError}</p>
-              )}
-
-              {lookupResult && (
-                <div className="rounded-2xl border border-[#00C4B3]/40 bg-[#061529] p-4 space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-[#FFD447]">
-                      {lookupResult.trackingCode}
-                    </span>
-                    <span className="rounded-full bg-[#00C4B3]/20 px-2.5 py-0.5 text-[11px] font-bold text-[#00C4B3]">
-                      Avance: {lookupResult.stageProgress}%
-                    </span>
-                  </div>
-                  <p className="font-bold text-white text-sm">
-                    {lookupResult.companyName || lookupResult.clientName}
-                  </p>
-                  <p className="text-slate-300">{lookupResult.productLabel}</p>
-                  <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-[#00C4B3]"
-                      style={{ width: `${lookupResult.stageProgress}%` }}
-                    />
-                  </div>
-                  {lookupResult.notes && (
-                    <p className="text-[11px] text-slate-400 pt-1">
-                      {lookupResult.notes}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+            <GrowthReceiptTracker />
 
             {/* 5-Stage Structuring Path */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-4">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#008f82]">
                 <FileCheck2 className="w-4 h-4" />
-                <span>Las 5 Etapas de Estructuración FINTERA</span>
+                <span>Guía ilustrativa del proceso</span>
               </div>
               <ol className="space-y-3">
                 {STRUCTURING_STAGES.map((st) => (
@@ -598,4 +524,3 @@ export default function InteractiveDocChecklistAndTracker() {
     </section>
   );
 }
-

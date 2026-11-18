@@ -162,9 +162,9 @@ export class DocumentRequirementService {
    *
    * Regla de Oro: Si no hay requisitos materializados, RETORNA FALSE (no aprueba en falso vacíos).
    */
-  public static async evaluateBankReadiness(bankApplicationId: string): Promise<DocumentaryReadinessResult> {
+  public static async evaluateBankReadiness(bankApplicationId: string, db: import("@/prisma/generated/client").Prisma.TransactionClient = prisma): Promise<DocumentaryReadinessResult> {
     // 1. Consultar todos los requisitos obligatorios aplicables
-    const mandatoryRequirements = await prisma.bankDocumentRequirement.findMany({
+    const mandatoryRequirements = await db.bankDocumentRequirement.findMany({
       where: {
         bankApplicationId,
         isMandatory: true,

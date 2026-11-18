@@ -216,6 +216,14 @@ model ClientConsentRecord {
 // ============================================================================
 
 model CrmCreditApplication {
+  commercialRevision Int @default(0) @map("commercial_revision")
+  commercialLeads CommercialLead[]
+  commercialContacts CommercialContact[]
+  commercialHandoffs CommercialHandoff[]
+  commercialConditions CommercialCondition[]
+  commercialDisbursements CommercialDisbursement[]
+  commercialReceivables CommercialReceivable[]
+  legacyDispositions CommercialLegacyDisposition[]
   id                    String                @id @default(uuid())
   fileNumber            String                @unique // FNT-2026-XXXX
   clientId              String
@@ -650,6 +658,8 @@ model PolicyAuditLog {
 // ============================================================================
 
 model BankStageTransitionEvent {
+  resolvedSlaDeadline DateTime? @map("resolved_sla_deadline") @db.Timestamptz(3)
+  resolvedWithinSla Boolean? @map("resolved_within_sla")
   id                 String          @id @default(uuid())
   bankApplicationId  String
   bankApplication    BankApplication @relation(fields: [bankApplicationId], references: [id], onDelete: Restrict)
@@ -1640,4 +1650,231 @@ model DocumentWorkerHeartbeat {
   scannerReady Boolean @map("scanner_ready")
   scannerEngine String? @map("scanner_engine")
   @@map("document_worker_heartbeats")
+}
+
+// Commercial records; no borrower fee or illustrative agreement is seeded.
+model CommercialLead {
+  id                String                @id @default(uuid())
+  trackingCode      String                @unique @map("tracking_code")
+  idempotencyKey    String                @unique @map("idempotency_key")
+  payloadHash       String                @map("payload_hash")
+  revision          Int                   @default(0)
+  channel           String
+  pillar            String
+  clientName        String                @map("client_name")
+  contactEmail      String                @map("contact_email")
+  contactPhone      String                @map("contact_phone")
+  city              String
+  productLabel      String                @map("product_label")
+  amountCOP         Decimal?              @map("amount_cop") @db.Decimal(18, 2)
+  partnerName       String?               @map("partner_name")
+  capture           Json
+  consentVersion    String                @map("consent_version")
+  consentAt         DateTime              @default(now()) @map("consent_at") @db.Timestamptz(3)
+  abuseHash         String                @map("abuse_hash")
+  status            String                @default("NEW")
+  assignedAdvisorId String?               @map("assigned_advisor_id")
+  teamId            String?               @map("team_id")
+  nextActionAt      DateTime?             @map("next_action_at") @db.Timestamptz(3)
+  applicationId     String?               @map("application_id")
+  application       CrmCreditApplication? @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([assignedAdvisorId, createdAt])
+  @@index([teamId, createdAt])
+  @@index([abuseHash, createdAt])
+  @@index([contactEmail, createdAt])
+  @@map("commercial_leads")
+}
+
+model CommercialCommand {
+  id          String   @id
+  actorUserId String   @map("actor_user_id")
+  payloadHash String   @map("payload_hash")
+  resourceId  String   @map("resource_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("commercial_commands")
+}
+
+model CommercialLegacyDisposition {
+  legacyId      String                @id @map("legacy_id")
+  revision      Int                   @default(0)
+  disposition   String
+  applicationId String?               @map("application_id")
+  application   CrmCreditApplication? @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  reason        String
+  actorUserId   String                @map("actor_user_id")
+  updatedAt     DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("commercial_legacy_dispositions")
+}
+
+model CommercialContact {
+  id            String                @id @default(uuid())
+  applicationId String?               @map("application_id")
+  application   CrmCreditApplication? @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  leadId        String?               @map("lead_id")
+  actorUserId   String                @map("actor_user_id")
+  outcome       String
+  note          String
+  occurredAt    DateTime              @map("occurred_at") @db.Timestamptz(3)
+  nextActionAt  DateTime?             @map("next_action_at") @db.Timestamptz(3)
+
+  @@index([applicationId, occurredAt])
+  @@index([leadId, occurredAt])
+  @@map("commercial_contacts")
+}
+
+model CommercialHandoff {
+  id                String               @id @default(uuid())
+  applicationId     String               @map("application_id")
+  application       CrmCreditApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  bankApplicationId String               @map("bank_application_id")
+  reference         String
+  deliveredAt       DateTime             @map("delivered_at") @db.Timestamptz(3)
+  evidenceReference String               @map("evidence_reference")
+  actorUserId       String               @map("actor_user_id")
+
+  @@unique([bankApplicationId, reference])
+  @@index([applicationId])
+  @@map("commercial_handoffs")
+}
+
+model CommercialCondition {
+  id                String               @id @default(uuid())
+  applicationId     String               @map("application_id")
+  application       CrmCreditApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  bankApplicationId String               @map("bank_application_id")
+  revision          Int                  @default(0)
+  title             String
+  status            String               @default("OPEN")
+  dueAt             DateTime?            @map("due_at") @db.Timestamptz(3)
+  evidenceReference String?              @map("evidence_reference")
+
+  @@index([applicationId])
+  @@map("commercial_conditions")
+}
+
+model CommercialDisbursement {
+  id                String               @id @default(uuid())
+  applicationId     String               @map("application_id")
+  application       CrmCreditApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  bankApplicationId String               @map("bank_application_id")
+  amountCOP         Decimal              @map("amount_cop") @db.Decimal(18, 2)
+  occurredAt        DateTime             @map("occurred_at") @db.Timestamptz(3)
+  reference         String
+  evidenceReference String               @map("evidence_reference")
+  supersedesId      String?              @unique @map("supersedes_id")
+  actorUserId       String               @map("actor_user_id")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([applicationId])
+  @@index([bankApplicationId])
+  @@map("commercial_disbursements")
+}
+
+model CommercialAgreement {
+  id                String                 @id @default(uuid())
+  agreementKey      String                 @map("agreement_key")
+  version           Int
+  counterpartyType  String                 @map("counterparty_type")
+  counterpartyName  String                 @map("counterparty_name")
+  bankId            String?                @map("bank_id")
+  partnerEmail      String?                @map("partner_email")
+  kind              String
+  ratePercent       Decimal?               @map("rate_percent") @db.Decimal(9, 6)
+  fixedAmountCOP    Decimal?               @map("fixed_amount_cop") @db.Decimal(18, 2)
+  trigger           String
+  validFrom         DateTime               @map("valid_from") @db.Timestamptz(3)
+  validUntil        DateTime?              @map("valid_until") @db.Timestamptz(3)
+  evidenceReference String                 @map("evidence_reference")
+  actorUserId       String                 @map("actor_user_id")
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  receivables       CommercialReceivable[]
+
+  @@unique([agreementKey, version])
+  @@map("commercial_agreements")
+}
+
+model CommercialReceivable {
+  agreementKey      String                   @map("agreement_key")
+  id                String                   @id @default(uuid())
+  applicationId     String                   @map("application_id")
+  application       CrmCreditApplication     @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  bankApplicationId String                   @map("bank_application_id")
+  agreementId       String                   @map("agreement_id")
+  agreement         CommercialAgreement      @relation(fields: [agreementId], references: [id], onDelete: Restrict)
+  triggerReference  String                   @map("trigger_reference")
+  amountCOP         Decimal                  @map("amount_cop") @db.Decimal(18, 2)
+  revision          Int                      @default(0)
+  dueAt             DateTime?                @map("due_at") @db.Timestamptz(3)
+  evidenceReference String                   @map("evidence_reference")
+  actorUserId       String                   @map("actor_user_id")
+  createdAt         DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  entries           CommercialFinanceEntry[]
+
+  @@unique([bankApplicationId, agreementId, triggerReference])
+  @@unique([bankApplicationId, agreementKey])
+  @@index([applicationId])
+  @@map("commercial_receivables")
+}
+
+model CommercialFinanceEntry {
+  reversesId        String?                  @map("reverses_id")
+  reverses          CommercialFinanceEntry?  @relation("CommercialEntryReversal", fields: [reversesId], references: [id], onDelete: Restrict)
+  reversals         CommercialFinanceEntry[] @relation("CommercialEntryReversal")
+  id                String                   @id @default(uuid())
+  receivableId      String                   @map("receivable_id")
+  receivable        CommercialReceivable     @relation(fields: [receivableId], references: [id], onDelete: Restrict)
+  kind              String
+  amountCOP         Decimal                  @map("amount_cop") @db.Decimal(18, 2)
+  occurredAt        DateTime                 @map("occurred_at") @db.Timestamptz(3)
+  reference         String
+  evidenceReference String                   @map("evidence_reference")
+  reason            String
+  actorUserId       String                   @map("actor_user_id")
+
+  @@unique([receivableId, kind, reference])
+  @@index([occurredAt])
+  @@map("commercial_finance_entries")
+}
+
+model CommercialWorkerHeartbeat {
+  id                   String    @id
+  lastHeartbeatAt      DateTime  @map("last_heartbeat_at") @db.Timestamptz(3)
+  notificationsEnabled Boolean   @default(false) @map("notifications_enabled")
+  lastScanAt           DateTime? @map("last_scan_at") @db.Timestamptz(3)
+  lastErrorCode        String?   @map("last_error_code")
+
+  @@map("commercial_worker_heartbeats")
+}
+
+// Own queue only. A provider acceptance is never reported as delivered.
+model CommercialNotification {
+  applicationRevision Int @map("application_revision")
+  clientUpdatedAt DateTime @map("client_updated_at") @db.Timestamptz(3)
+  consentRecordId String @map("consent_record_id")
+  id             String    @id @default(uuid())
+  applicationId  String    @map("application_id")
+  recipient      String
+  subject        String
+  content        String
+  contentHash    String    @map("content_hash")
+  revision       Int       @default(0)
+  status         String    @default("AWAITING_APPROVAL")
+  approvedBy     String?   @map("approved_by")
+  approvedAt     DateTime? @map("approved_at") @db.Timestamptz(3)
+  providerKey    String    @unique @map("provider_key")
+  providerId     String?   @map("provider_id")
+  claimedBy      String?   @map("claimed_by")
+  claimedAt      DateTime? @map("claimed_at") @db.Timestamptz(3)
+  leaseExpiresAt DateTime? @map("lease_expires_at") @db.Timestamptz(3)
+  errorCode      String?   @map("error_code")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([applicationId, createdAt])
+  @@index([status, createdAt])
+  @@map("commercial_notifications")
 }

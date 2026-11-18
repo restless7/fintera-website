@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     if (!context || context.role === "CLIENT" || !context.permissions.includes("crm:report:read")) {
       return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
     }
-    const data = await BiAggregationService.getExecutiveOverview();
+    const data = await BiAggregationService.getExecutiveOverview(context);
     return NextResponse.json(data);
   } catch (err: any) {
     console.error("[API admin/crm/bi/overview] Error:", err);

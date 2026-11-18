@@ -61,6 +61,8 @@ function subscribeTheme(listener: () => void) {
 
 const icons = {
   overview: House,
+  commercial: BriefcaseBusiness,
+  finance: BarChart3,
   applications: BriefcaseBusiness,
   assigned: UsersRound,
   "follow-up": Clock3,
@@ -166,6 +168,8 @@ export function AdminShell({
   if (pathname.endsWith("/documents")) crumbs.push({ label: "Documentos", href: pathname });
   if (pathname.endsWith("/bi") && home.href !== pathname)
     crumbs.push({ label: "Analítica comercial", href: pathname });
+  if (pathname.endsWith("/commercial") && home.href !== pathname) crumbs.push({label:"Gestión comercial",href:pathname});
+  if (pathname.endsWith("/finance")) crumbs.push({label:"Ingresos y cartera",href:pathname});
   if (pathname.endsWith("/users")) crumbs.push({ label: "Usuarios y accesos", href: pathname });
   if (pathname.startsWith("/admin/content"))
     crumbs.push({ label: "Centro Editorial", href: "/admin/content" });

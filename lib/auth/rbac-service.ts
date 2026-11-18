@@ -54,7 +54,7 @@ export class RbacService {
       if ((EDITABLE_POLICY_ROLES as readonly string[]).includes(role)) {
         const policy = await prisma.rolePermissionPolicy.findUnique({ where: { role } });
         if (policy) {
-          if (policy.permissions.length > 17 || new Set(policy.permissions).size !== policy.permissions.length || !policy.permissions.every(value => ACCESS_PERMISSIONS.includes(value as Permission))) return { status: "UNAVAILABLE" };
+          if (policy.permissions.length > ACCESS_PERMISSIONS.length || new Set(policy.permissions).size !== policy.permissions.length || !policy.permissions.every(value => ACCESS_PERMISSIONS.includes(value as Permission))) return { status: "UNAVAILABLE" };
           permissions = policy.permissions as Permission[];
         }
       }

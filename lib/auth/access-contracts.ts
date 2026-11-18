@@ -27,6 +27,6 @@ export const accessMutationSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("updateUser"), userId: id, expectedRevision: revision, role, isActive: z.boolean(), memberships, reason }).strict(),
   z.object({ action: z.literal("createTeam"), name: z.string().trim().min(2).max(100), description: z.string().trim().max(500), reason }).strict(),
   z.object({ action: z.literal("updateTeam"), teamId: id, expectedRevision: revision, name: z.string().trim().min(2).max(100), description: z.string().trim().max(500), reason }).strict(),
-  z.object({ action: z.literal("updateRolePermissions"), role, expectedRevision: revision, permissions: z.array(z.string()).max(17).refine(value => new Set(value).size === value.length && value.every(p => ACCESS_PERMISSIONS.includes(p as Permission)), "Permisos inválidos"), reason }).strict(),
+  z.object({ action: z.literal("updateRolePermissions"), role, expectedRevision: revision, permissions: z.array(z.string()).max(ACCESS_PERMISSIONS.length).refine(value => new Set(value).size === value.length && value.every(p => ACCESS_PERMISSIONS.includes(p as Permission)), "Permisos inválidos"), reason }).strict(),
 ]);
 export type AccessMutation = z.infer<typeof accessMutationSchema>;

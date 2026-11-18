@@ -123,7 +123,7 @@ export class DocumentProcessingWorker {
         if (tx !== prisma) await tx.$queryRaw`SELECT role FROM role_permission_policies WHERE role::text = ${actor.role} FOR SHARE`;
         const policy = await tx.rolePermissionPolicy.findUnique({ where: { role: actor.role } });
         if (policy) {
-          if (policy.permissions.length > 17 || new Set(policy.permissions).size !== policy.permissions.length || !policy.permissions.every(value => (ACCESS_PERMISSIONS as readonly string[]).includes(value))) throw new Error("ACTOR_POLICY_INVALID");
+          if (policy.permissions.length > ACCESS_PERMISSIONS.length || new Set(policy.permissions).size !== policy.permissions.length || !policy.permissions.every(value => (ACCESS_PERMISSIONS as readonly string[]).includes(value))) throw new Error("ACTOR_POLICY_INVALID");
           permissions = policy.permissions;
         }
       }

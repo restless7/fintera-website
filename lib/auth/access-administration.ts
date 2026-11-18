@@ -50,6 +50,7 @@ const scopeDescriptions: Record<UserRole, string> = {
   CLIENT: "Sin navegación interna. Los flujos de cliente requieren su relación y concesiones específicas; el alta no vincula expedientes automáticamente.",
 };
 const permissionLabels: Record<Permission, string> = {
+  "crm:commercial:finance:read":"Consultar ingresos", "crm:commercial:finance:write":"Gestionar ingresos",
   "crm:lead:read": "Consultar prospectos", "crm:lead:create": "Crear prospectos", "crm:lead:assign": "Asignar prospectos",
   "crm:application:read": "Consultar expedientes", "crm:application:create": "Crear expedientes", "crm:application:update": "Actualizar expedientes", "crm:application:transition": "Cambiar estado comercial",
   "crm:bank-case:manage": "Gestionar proceso bancario", "crm:document:read": "Consultar documentos", "crm:document:review": "Revisar documentos", "crm:document:upload": "Cargar documentos",
@@ -141,6 +142,7 @@ export async function mutateAccessAdministration(clerkUserId: string, input: Acc
       if (change.count !== 1) fail("STALE_REVISION", "El equipo cambió. Actualiza y revisa antes de guardar.", 409);
       await record(tx, actor, "RBAC_TEAM_CHANGED", "Team", previous.id, input.reason, { name: previous.name, description: previous.description, revision: previous.revision }, { name: input.name, description: input.description, revision: input.expectedRevision + 1 });
     } else if (input.action === "updateRolePermissions") {
+      if(input.role!=="COMMERCIAL_DIRECTOR" && input.permissions.some(p=>p.startsWith("crm:commercial:finance:"))) fail("INVALID_INPUT","Los permisos de ingresos sólo se pueden asignar a Dirección Comercial.");
       if (!(EDITABLE_POLICY_ROLES as readonly string[]).includes(input.role)) fail("INVALID_INPUT", "La política de este rol está protegida.");
       const previous = await tx.rolePermissionPolicy.findUnique({ where: { role: input.role } });
       if ((previous?.revision || 0) !== input.expectedRevision) fail("STALE_REVISION", "La política cambió. Actualiza y revisa antes de guardar.", 409);

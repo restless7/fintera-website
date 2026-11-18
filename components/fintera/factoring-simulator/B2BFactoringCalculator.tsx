@@ -1,5 +1,7 @@
 "use client";
 
+import { GrowthCaptureForm } from "../growth/GrowthCaptureForm";
+
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -23,25 +25,13 @@ export default function B2BFactoringCalculator() {
     useState<number>(1.55);
 
   // RADIAN (DIAN) Events Checklist
-  const [event030Acuse, setEvent030Acuse] = useState<boolean>(true);
-  const [event032ReciboBien, setEvent032ReciboBien] = useState<boolean>(true);
-  const [event033Aceptacion, setEvent033Aceptacion] = useState<boolean>(true);
-  const [noClaimsInRadian, setNoClaimsInRadian] = useState<boolean>(true);
+  const [event030Acuse, setEvent030Acuse] = useState<boolean>(false);
+  const [event032ReciboBien, setEvent032ReciboBien] = useState<boolean>(false);
+  const [event033Aceptacion, setEvent033Aceptacion] = useState<boolean>(false);
+  const [noClaimsInRadian, setNoClaimsInRadian] = useState<boolean>(false);
 
   // Lead Capture Modal / Drawer State
   const [showLeadForm, setShowLeadForm] = useState<boolean>(false);
-  const [companyName, setCompanyName] = useState<string>("");
-  const [nitMasked, setNitMasked] = useState<string>("");
-  const [contactName, setContactName] = useState<string>("");
-  const [contactEmail, setContactEmail] = useState<string>("");
-  const [contactPhone, setContactPhone] = useState<string>("");
-  const [payerCompanyName, setPayerCompanyName] = useState<string>("");
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [submittedTrackingCode, setSubmittedTrackingCode] = useState<
-    string | null
-  >(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
   const formatCOP = (val: number) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -53,19 +43,19 @@ export default function B2BFactoringCalculator() {
     const monthsEquivalent = paymentTermDays / 30;
     const totalDiscountRatePct = monthlyDiscountFactorPct * monthsEquivalent;
     const estimatedDiscountCostCOP = Math.round(
-      invoiceAmount * (totalDiscountRatePct / 100)
+      invoiceAmount * (totalDiscountRatePct / 100),
     );
     const operationalCustodyFeeCOP = 185000; // Costo operativo ilustrativo custodia/endoso RADIAN
     const totalFactoringCostCOP =
       estimatedDiscountCostCOP + operationalCustodyFeeCOP;
     const netDisbursementCOP = Math.max(
       0,
-      invoiceAmount - totalFactoringCostCOP
+      invoiceAmount - totalFactoringCostCOP,
     );
 
     // Commercial benefit from having cash on day 3 instead of waiting paymentTermDays
     const commercialGainFromLiquidityCOP = Math.round(
-      invoiceAmount * (supplierEarlyDiscountPct / 100)
+      invoiceAmount * (supplierEarlyDiscountPct / 100),
     );
 
     const netFinancialBenefitCOP =
@@ -120,14 +110,14 @@ export default function B2BFactoringCalculator() {
       ["Plazo de Pago Pactado (Dias)", paymentTermDays],
       ["Dias de Caja Liberados", calculation.daysLiberated],
       [
-        "Eventos RADIAN Completados (de 3)",
+        "Supuestos RADIAN marcados por usuario (de 3)",
         calculation.completedRadianEvents,
       ],
       [
-        "Estado Titulo Valor RADIAN",
+        "Lista orientativa; no certifica titulo valor",
         calculation.isRadianNegotiable
-          ? "APTO PARA ENDOSO ELECTRONICO"
-          : "PENDIENTE DE EVENTOS RADIAN",
+          ? "SUPUESTOS DECLARADOS COMPLETOS; NO VERIFICADOS"
+          : "SUPUESTOS SIN CONFIRMAR; NO VERIFICADOS",
       ],
       [
         "Liquidez Neta Estimada a Recibir (COP)",
@@ -141,79 +131,19 @@ export default function B2BFactoringCalculator() {
         "Beneficio Comercial Pronto Pago / Rotacion (COP)",
         calculation.commercialGainFromLiquidityCOP,
       ],
-      [
-        "Beneficio Neto de Liquidez (COP)",
-        calculation.netFinancialBenefitCOP,
-      ],
+      ["Beneficio Neto de Liquidez (COP)", calculation.netFinancialBenefitCOP],
     ];
     const csv =
-      "data:text/csv;charset=utf-8," +
-      rows.map((r) => r.join(",")).join("\n");
+      "data:text/csv;charset=utf-8," + rows.map((r) => r.join(",")).join("\n");
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csv));
     link.setAttribute(
       "download",
-      `fintera-diagnostico-factoring-radian-${paymentTermDays}d.csv`
+      `fintera-diagnostico-factoring-radian-${paymentTermDays}d.csv`,
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const handleSubmitB2BDiagnostic = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactName.trim() || !contactEmail.trim()) return;
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      const searchParams =
-        typeof window !== "undefined"
-          ? new URLSearchParams(window.location.search)
-          : null;
-      const res = await fetch("/api/growth/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          channel: "B2B_FACTORING_CALCULATOR",
-          pillar: "FACTORING_B2B",
-          clientName: contactName.trim(),
-          companyName: companyName.trim() || "Empresa en Evaluación B2B",
-          nitOrCedulaMasked: nitMasked.trim() || "Reservado (Ley 1581)",
-          contactEmail: contactEmail.trim(),
-          contactPhone: contactPhone.trim(),
-          amountCOP: invoiceAmount,
-          termDaysOrMonths: paymentTermDays,
-          productLabel: `Factoring RADIAN ${paymentTermDays}d · Pagador: ${
-            payerCompanyName.trim() || "Corporativo en estudio"
-          }`,
-          radianReady: calculation.isRadianNegotiable,
-          radianEventsCompleted: calculation.completedRadianEvents,
-          estimatedNetBenefitCOP: calculation.netFinancialBenefitCOP,
-          utmSource: searchParams?.get("utm_source") || "simulador_b2b",
-          utmMedium: searchParams?.get("utm_medium") || "calculadora_radian",
-          utmCampaign:
-            searchParams?.get("utm_campaign") || "liquidez_empresarial_2026",
-          notes: `Liquidez neta estimada: ${formatCOP(
-            calculation.netDisbursementCOP
-          )}. Pagador reportado: ${
-            payerCompanyName.trim() || "Por definir"
-          }. Eventos RADIAN: ${calculation.completedRadianEvents}/3.`,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(
-          data.error || "No se pudo registrar el diagnóstico B2B."
-        );
-      }
-      setSubmittedTrackingCode(data.trackingCode);
-    } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : "Error al enviar solicitud"
-      );
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   return (
@@ -233,7 +163,7 @@ export default function B2BFactoringCalculator() {
                 </span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-                Calculadora del Costo de Esperar Facturas y Validador RADIAN
+                Calculadora ilustrativa de factoring
               </h2>
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
                 Evalúa con criterio financiero cuánto le cuesta a tu empresa
@@ -354,8 +284,8 @@ export default function B2BFactoringCalculator() {
                   />
                   <p className="text-[11px] text-slate-500">
                     Ahorro comercial que obtiene tu empresa al pagar materia
-                    prima de contado o rotar inventario antes de {paymentTermDays}{" "}
-                    días.
+                    prima de contado o rotar inventario antes de{" "}
+                    {paymentTermDays} días.
                   </p>
                 </div>
 
@@ -399,10 +329,10 @@ export default function B2BFactoringCalculator() {
                   </div>
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-[#008f82]">
-                      Paso 2 · Verificación de Título Valor (DIAN / RADIAN)
+                      Paso 2 · Condiciones declaradas para la simulación
                     </span>
                     <h3 className="text-lg font-extrabold text-[#0A2342]">
-                      Checklist de Eventos Obligatorios en RADIAN
+                      Preguntas orientativas sobre eventos RADIAN
                     </h3>
                   </div>
                 </div>
@@ -415,7 +345,7 @@ export default function B2BFactoringCalculator() {
                   }`}
                 >
                   {calculation.isRadianNegotiable
-                    ? "✔ Título Valor Negociable (3/3 Eventos)"
+                    ? "✔ Supuestos declarados completos; sin verificación (3/3 Eventos)"
                     : `⚠ Pendiente Eventos (${calculation.completedRadianEvents}/3)`}
                 </span>
               </div>
@@ -537,7 +467,9 @@ export default function B2BFactoringCalculator() {
               {/* Financial Breakdown Table */}
               <div className="space-y-3 text-xs border-b border-white/15 pb-5">
                 <div className="flex items-center justify-between text-slate-300">
-                  <span>Valor nominal de la factura ({paymentTermDays} días):</span>
+                  <span>
+                    Valor nominal de la factura ({paymentTermDays} días):
+                  </span>
                   <strong className="text-white tabular-nums">
                     {formatCOP(invoiceAmount)}
                   </strong>
@@ -607,9 +539,7 @@ export default function B2BFactoringCalculator() {
                   className="w-full rounded-xl bg-[#00C4B3] hover:bg-[#00a899] px-5 py-3.5 text-sm font-extrabold text-[#0A2342] shadow-lg transition flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>
-                    Solicitar Estudio de Pagador y Estructuración B2B
-                  </span>
+                  <span>Solicitar Estudio de Pagador y Estructuración B2B</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
@@ -634,126 +564,13 @@ export default function B2BFactoringCalculator() {
 
               {/* Expandable B2B Lead Capture Form */}
               {showLeadForm && (
-                <div className="rounded-2xl border border-[#00C4B3]/50 bg-[#061529] p-5 space-y-4">
-                  {submittedTrackingCode ? (
-                    <div className="space-y-3 text-center py-2">
-                      <CheckCircle2 className="w-10 h-10 text-[#00C4B3] mx-auto" />
-                      <h4 className="text-base font-extrabold text-white">
-                        ¡Diagnóstico B2B Registrado con Éxito!
-                      </h4>
-                      <p className="text-xs text-slate-300">
-                        Tu código único de seguimiento en la mesa de
-                        estructuración B2B de FINTERA es:
-                      </p>
-                      <div className="rounded-xl bg-[#0A2342] border border-[#00C4B3] py-2.5 px-4 font-mono text-base font-extrabold text-[#FFD447]">
-                        {submittedTrackingCode}
-                      </div>
-                      <p className="text-[11px] text-slate-400">
-                        Puedes consultar el avance de tu evaluación en el{" "}
-                        <Link
-                          href={`/aliados?code=${submittedTrackingCode}`}
-                          className="text-[#00C4B3] underline font-bold"
-                        >
-                           Rastreador de Operaciones B2B
-                        </Link>{" "}
-                        o en nuestro{" "}
-                        <Link
-                          href="/portal"
-                          className="text-[#00C4B3] underline font-bold"
-                        >
-                          Portal de Clientes
-                        </Link>
-                        .
-                      </p>
-                    </div>
-                  ) : (
-                    <form
-                      onSubmit={handleSubmitB2BDiagnostic}
-                      className="space-y-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#00C4B3]">
-                          Pre-Radicación Confidencial B2B (Ley 1581)
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowLeadForm(false)}
-                          className="text-xs text-slate-400 hover:text-white"
-                        >
-                          Cerrar
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <input
-                          type="text"
-                          required
-                          placeholder="Tu nombre y cargo (Ej. CFO)"
-                          value={contactName}
-                          onChange={(e) => setContactName(e.target.value)}
-                          className="rounded-lg border border-slate-700 bg-[#0A2342] px-3 py-2 text-xs text-white placeholder:text-slate-400"
-                        />
-                        <input
-                          type="text"
-                          required
-                          placeholder="Razón social de tu empresa"
-                          value={companyName}
-                          onChange={(e) => setCompanyName(e.target.value)}
-                          className="rounded-lg border border-slate-700 bg-[#0A2342] px-3 py-2 text-xs text-white placeholder:text-slate-400"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <input
-                          type="email"
-                          required
-                          placeholder="Correo corporativo"
-                          value={contactEmail}
-                          onChange={(e) => setContactEmail(e.target.value)}
-                          className="rounded-lg border border-slate-700 bg-[#0A2342] px-3 py-2 text-xs text-white placeholder:text-slate-400"
-                        />
-                        <input
-                          type="tel"
-                          required
-                          placeholder="Celular / WhatsApp corporativo"
-                          value={contactPhone}
-                          onChange={(e) => setContactPhone(e.target.value)}
-                          className="rounded-lg border border-slate-700 bg-[#0A2342] px-3 py-2 text-xs text-white placeholder:text-slate-400"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <input
-                          type="text"
-                          placeholder="NIT empresa (opcional)"
-                          value={nitMasked}
-                          onChange={(e) => setNitMasked(e.target.value)}
-                          className="rounded-lg border border-slate-700 bg-[#0A2342] px-3 py-2 text-xs text-white placeholder:text-slate-400"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Empresa pagadora de la factura"
-                          value={payerCompanyName}
-                          onChange={(e) => setPayerCompanyName(e.target.value)}
-                          className="rounded-lg border border-slate-700 bg-[#0A2342] px-3 py-2 text-xs text-white placeholder:text-slate-400"
-                        />
-                      </div>
-
-                      {submitError && (
-                        <p className="text-xs text-rose-400">{submitError}</p>
-                      )}
-
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className="w-full rounded-lg bg-[#FFD447] hover:bg-amber-300 px-4 py-2.5 text-xs font-extrabold text-[#0A2342] transition"
-                      >
-                        {submitting
-                          ? "Generando Expediente B2B..."
-                          : "Confirmar y Obtener Código de Seguimiento B2B"}
-                      </button>
-                    </form>
-                  )}
+                <div className="rounded-2xl border border-[#00C4B3]/50 bg-white p-5 space-y-4">
+                  <GrowthCaptureForm
+                    channel="B2B_FACTORING_CALCULATOR"
+                    pillar="FACTORING_B2B"
+                    productLabel="Solicitud de diagnóstico de factoring"
+                    source="simulador_b2b"
+                  />
                 </div>
               )}
             </div>

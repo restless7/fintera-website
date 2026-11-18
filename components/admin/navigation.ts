@@ -13,7 +13,9 @@ export interface AdminNavItem {
     | "content"
     | "research"
     | "linkedin"
-    | "pipeline";
+    | "pipeline"
+    | "commercial"
+    | "finance";
 }
 export interface AdminNavGroup {
   label: string;
@@ -51,6 +53,12 @@ export function getAdminNavigation(
         },
       ],
     });
+  }
+  if (permissions.includes("crm:lead:read")) {
+    groups.push({label:"Originación",items:[{label:"Gestión comercial",href:"/admin/crm/commercial",icon:"commercial"}]});
+  }
+  if (["SUPER_ADMIN","COMMERCIAL_DIRECTOR","AUDITOR"].includes(role) && permissions.includes("crm:commercial:finance:read")) {
+    groups.push({label:"Control financiero",items:[{label:"Ingresos y cartera",href:"/admin/crm/finance",icon:"finance"}]});
   }
   if (permissions.includes("crm:report:read")) {
     groups.push({

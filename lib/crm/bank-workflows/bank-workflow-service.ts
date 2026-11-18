@@ -210,7 +210,10 @@ export class BankWorkflowService {
       isPubliclyVisible: true,
     };
 
-    const newSlaDeadline = SlaService.calculateInitialDeadline(targetStage, new Date());
+    const transitionTime = new Date();
+    const resolvedSla = SlaService.evaluateStatus({ stage: currentStage, createdAt: currentBankApp.createdAt, updatedAt: currentBankApp.updatedAt, slaDeadline: currentBankApp.slaDeadline, slaPausedAt: currentBankApp.slaPausedAt, slaTotalPausedMs: currentBankApp.slaTotalPausedMs, now: transitionTime });
+    const resolvedDeadline = resolvedSla.isPaused ? null : resolvedSla.effectiveDeadline;
+    const newSlaDeadline = SlaService.calculateInitialDeadline(targetStage, transitionTime);
 
     let validActorId: string | null = null;
     if (actorUserId) {
@@ -260,6 +263,9 @@ export class BankWorkflowService {
           bankApplicationId,
           fromStage: currentStage,
           toStage: targetStage,
+          transitionedAt: transitionTime,
+          resolvedSlaDeadline: resolvedDeadline,
+          resolvedWithinSla: resolvedDeadline ? transitionTime <= resolvedDeadline : null,
           workflowVersion: workflow.version,
           actorUserId: validActorId,
           actorRole: actorRole.toString(),
@@ -486,7 +492,10 @@ export class BankWorkflowService {
       isPubliclyVisible: true,
     };
 
-    const newSlaDeadline = SlaService.calculateInitialDeadline(targetStage, new Date());
+    const transitionTime = new Date();
+    const resolvedSla = SlaService.evaluateStatus({ stage: currentStage, createdAt: currentBankApp.createdAt, updatedAt: currentBankApp.updatedAt, slaDeadline: currentBankApp.slaDeadline, slaPausedAt: currentBankApp.slaPausedAt, slaTotalPausedMs: currentBankApp.slaTotalPausedMs, now: transitionTime });
+    const resolvedDeadline = resolvedSla.isPaused ? null : resolvedSla.effectiveDeadline;
+    const newSlaDeadline = SlaService.calculateInitialDeadline(targetStage, transitionTime);
 
     let validActorId: string | null = null;
     if (actorUserId) {
@@ -517,6 +526,9 @@ export class BankWorkflowService {
           bankApplicationId,
           fromStage: currentStage,
           toStage: targetStage,
+          transitionedAt: transitionTime,
+          resolvedSlaDeadline: resolvedDeadline,
+          resolvedWithinSla: resolvedDeadline ? transitionTime <= resolvedDeadline : null,
           workflowVersion: workflow.version,
           reason: `[EXCEPCIÓN ADMINISTRATIVA: ${exceptionApprovalCode}] ${reason}. Justificación: ${exceptionReason}`,
           evidenceType: "ADMINISTRATIVE_EXCEPTION",
