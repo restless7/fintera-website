@@ -90,8 +90,10 @@ export class DocumentRequirementService {
       throw new Error(`El expediente comercial ${bankApp.applicationId} no cuenta con ningún solicitante registrado.`);
     }
 
-    const profile = (primaryApplicant.occupation?.toUpperCase() || "ASALARIADO") as
-      "ASALARIADO" | "INDEPENDIENTE" | "PENSIONADO" | "COLEX" | "TODOS";
+    const profile = primaryApplicant.occupation?.trim().toUpperCase();
+    if (!["ASALARIADO", "INDEPENDIENTE", "PENSIONADO", "COLEX"].includes(profile || "")) {
+      throw new Error("Confirme el perfil del solicitante antes de materializar requisitos bancarios.");
+    }
 
     // Buscar definiciones aplicables:
     // 1. Transversales (bankId is null)

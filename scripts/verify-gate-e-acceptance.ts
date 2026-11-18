@@ -17,6 +17,7 @@ import path from "path";
 import crypto from "crypto";
 import { execSync } from "child_process";
 import prisma from "../lib/prisma";
+import { DocumentProcessingWorker } from "../lib/documents/document-processing-worker";
 import {
   UserRole,
   BankStage,
@@ -203,7 +204,10 @@ async function runGateETestSuite() {
       actorUserId: adminId,
       actorRole: UserRole.SUPER_ADMIN,
     });
-    assert(!eicarConfirm.success && eicarConfirm.scanStatus === DocumentScanStatus.INFECTED, "Pipeline de Ingesta: Archivo infectado EICAR detenido inmediatamente en cuarentena");
+    const eicarClaim = await DocumentProcessingWorker.claimNext();
+    if (!eicarClaim || eicarClaim.intentId !== eicarIntent.intentId) throw new Error("Aislar la cola antes de ejecutar esta suite");
+    const eicarProcessed = await DocumentProcessingWorker.processClaim(eicarClaim.intentId, eicarClaim.token);
+    assert(eicarConfirm.queued && !eicarProcessed.committed && eicarProcessed.code === "MALWARE_BLOCKED", "Pipeline de Ingesta: Archivo infectado EICAR detenido inmediatamente en cuarentena");
 
     // B8: Archivo sobredimensionado (>15 MB) rechazado
     const oversizedIntent = await DocumentIngestionService.createUploadIntent({

@@ -3,12 +3,10 @@
  * CustomerIdentityService: Vinculación Segura de Cuentas, Desafíos Anti-Enumeración y ABAC Granular
  */
 
-import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import {
-  AccountLinkStatus,
   CustomerGrantRole,
-  UserRole,
+  Prisma,
 } from "@/prisma/generated/client";
 import { parseMagicActorId } from "./magic-tracking-token";
 
@@ -17,7 +15,6 @@ export interface InitiateLinkResult {
   maskedDestination: string;
   verificationChannel: string;
   expiresAt: Date;
-  testOtpPreview?: string; // Solo en desarrollo local para automatización de pruebas
 }
 
 export interface CustomerContext {
@@ -35,6 +32,7 @@ export interface CustomerContext {
   } | null;
   grants: Array<{
     id: string;
+    clientId: string;
     applicationId: string | null;
     applicantId: string | null;
     grantRole: CustomerGrantRole;
@@ -58,27 +56,6 @@ export class CustomerSecurityError extends Error {
 }
 
 export class CustomerIdentityService {
-  private static HASH_SECRET = process.env.CUSTOMER_LINK_SECRET || "fintera_customer_otp_secret_key_2026_secure";
-
-  /**
-   * Hashea un código OTP mediante HMAC-SHA256 para evitar almacenamiento en texto plano
-   */
-  private static hashOtp(otp: string): string {
-    return crypto
-      .createHmac("sha256", this.HASH_SECRET)
-      .update(otp.trim())
-      .digest("hex");
-  }
-
-  /**
-   * Ofusca un número de teléfono o correo para no revelar información sensible
-   */
-  private static maskPhone(phone: string): string {
-    if (!phone || phone.length < 4) return "(***) ***-****";
-    const last4 = phone.slice(-4);
-    return `(***) ***-${last4}`;
-  }
-
   /**
    * Resuelve el contexto completo del cliente autenticado a partir de su sesión Clerk
    */
@@ -104,23 +81,24 @@ export class CustomerIdentityService {
         clerkUserId,
         client: {
           id: app.client.id,
-          documentType: app.client.documentType,
-          documentNumber: app.client.documentNumber,
-          firstName: app.client.firstName,
-          firstLastName: app.client.firstLastName,
-          email: app.client.email,
-          phone: app.client.phone,
+          documentType: "",
+          documentNumber: "",
+          firstName: "",
+          firstLastName: "",
+          email: "",
+          phone: "",
         },
         grants: [
           {
             id: `magic_grant_${app.id}`,
+            clientId: app.clientId,
             applicationId: app.id,
             applicantId: null,
             grantRole: CustomerGrantRole.PRIMARY_HOLDER,
             canViewApplication: true,
-            canViewDocuments: true,
-            canUploadDocuments: true,
-            canMessageAdvisor: true,
+            canViewDocuments: false,
+            canUploadDocuments: false,
+            canMessageAdvisor: false,
           },
         ],
       };
@@ -137,6 +115,7 @@ export class CustomerIdentityService {
       where: {
         clerkUserId,
         revokedAt: null,
+        effectiveAt: { lte: now },
         OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
       },
     });
@@ -146,7 +125,7 @@ export class CustomerIdentityService {
     }
 
     return {
-      isLinked: client !== null,
+      isLinked: client !== null || grants.length > 0,
       clerkUserId,
       client: client
         ? {
@@ -161,6 +140,7 @@ export class CustomerIdentityService {
         : null,
       grants: grants.map((g) => ({
         id: g.id,
+        clientId: g.clientId,
         applicationId: g.applicationId,
         applicantId: g.applicantId,
         grantRole: g.grantRole,
@@ -175,7 +155,7 @@ export class CustomerIdentityService {
   /**
    * Inicia el proceso de vinculación de cuenta con resistencia a enumeración y rate limiting
    */
-  public static async initiateAccountLink(params: {
+  public static async initiateAccountLink(_params: {
     clerkUserId: string;
     documentType: string;
     documentNumber: string;
@@ -183,309 +163,15 @@ export class CustomerIdentityService {
     ipAddress?: string;
     userAgent?: string;
   }): Promise<InitiateLinkResult> {
-    const { clerkUserId, documentType, documentNumber, channel = "SMS_OTP", ipAddress, userAgent } = params;
-
-    // Rate Limiting anti-fuerza bruta: máx 5 intentos en 15 minutos por usuario Clerk
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-    const recentAttempts = await prisma.customerAccountLinkAttempt.count({
-      where: {
-        clerkUserId,
-        createdAt: { gte: fifteenMinutesAgo },
-      },
-    });
-
-    if (recentAttempts >= 5) {
-      throw new CustomerSecurityError(
-        "Demasiados intentos de vinculación recientes. Intente nuevamente en 15 minutos.",
-        429,
-        "RATE_LIMIT_EXCEEDED"
-      );
-    }
-
-    // Verificar si la cuenta Clerk ya está vinculada a un cliente
-    const existingLinkedClient = await prisma.client.findFirst({
-      where: { clerkUserId },
-    });
-    if (existingLinkedClient) {
-      throw new CustomerSecurityError(
-        "Esta cuenta ya se encuentra vinculada a un expediente cliente.",
-        409,
-        "ACCOUNT_ALREADY_LINKED"
-      );
-    }
-
-    // Buscar candidato en base de datos canónica
-    const candidateClient = await prisma.client.findUnique({
-      where: {
-        documentType_documentNumber: {
-          documentType,
-          documentNumber,
-        },
-      },
-    });
-
-    // Generar OTP de 6 dígitos
-    const otp = crypto.randomInt(100000, 999999).toString();
-    const hashedVerifier = this.hashOtp(otp);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos de vigencia
-
-    if (!candidateClient) {
-      // PROTECCIÓN ANTI-ENUMERACIÓN: Registrar intento sintético sin asociar clientId
-      const syntheticAttempt = await prisma.customerAccountLinkAttempt.create({
-        data: {
-          clerkUserId,
-          clientId: null,
-          documentType,
-          documentNumber,
-          hashedVerifier,
-          verificationChannel: channel,
-          targetPhone: null,
-          targetEmail: null,
-          status: AccountLinkStatus.PENDING,
-          expiresAt,
-          ipAddress: ipAddress || null,
-          userAgent: userAgent || null,
-        },
-      });
-
-      return {
-        challengeId: syntheticAttempt.id,
-        maskedDestination: "(***) ***-****",
-        verificationChannel: channel,
-        expiresAt,
-      };
-    }
-
-    // Si el cliente ya está vinculado a otra cuenta Clerk distinta y activa
-    if (candidateClient.clerkUserId && candidateClient.clerkUserId !== clerkUserId) {
-      throw new CustomerSecurityError(
-        "El titular ya cuenta con una credencial digital activa. Si perdió el acceso, solicite recuperación asistida a su asesor comercial.",
-        409,
-        "CLIENT_ALREADY_CLAIMED"
-      );
-    }
-
-    const maskedPhone = this.maskPhone(candidateClient.phone);
-
-    // Crear intento de vinculación legítimo
-    const attempt = await prisma.customerAccountLinkAttempt.create({
-      data: {
-        clerkUserId,
-        clientId: candidateClient.id,
-        documentType,
-        documentNumber,
-        hashedVerifier,
-        verificationChannel: channel,
-        targetPhone: candidateClient.phone,
-        targetEmail: candidateClient.email,
-        status: AccountLinkStatus.PENDING,
-        expiresAt,
-        ipAddress: ipAddress || null,
-        userAgent: userAgent || null,
-      },
-    });
-
-    // Cifrar el sobre de entrega en OtpDeliveryEnvelope (AES-256-GCM)
-    try {
-      const envelopeSecret = process.env.OTP_ENVELOPE_SECRET || "fintera-otp-envelope-key-secret-32-chars-aes256";
-      const key = crypto.createHash("sha256").update(envelopeSecret).digest();
-      const iv = crypto.randomBytes(12);
-      const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-      let ciphertext = cipher.update(otp, "utf8", "hex");
-      ciphertext += cipher.final("hex");
-      const authTag = cipher.getAuthTag().toString("hex");
-      const encryptedEnvelope = `${iv.toString("hex")}:${ciphertext}:${authTag}`;
-
-      await prisma.otpDeliveryEnvelope.create({
-        data: {
-          challengeId: attempt.id,
-          encryptedOtp: encryptedEnvelope,
-          targetMasked: maskedPhone,
-          channel: "LOCAL_SINK_SMS",
-          status: "PENDING",
-          expiresAt,
-        },
-      });
-
-      // Emitir evento al outbox transaccional (con referencia opaca, SIN OTP en texto plano)
-      await prisma.domainOutboxEvent.create({
-        data: {
-          aggregateType: "CustomerAccountLinkAttempt",
-          aggregateId: attempt.id,
-          eventType: "CUSTOMER_OTP_CHALLENGE_ISSUED",
-          payload: {
-            challengeId: attempt.id,
-            targetMasked: maskedPhone,
-            channel: "LOCAL_SINK_SMS",
-            expiresAt: expiresAt.toISOString(),
-          },
-        },
-      });
-    } catch (envelopeErr) {
-      console.error("[CustomerIdentityService] Error sellando sobre OTP:", envelopeErr);
-    }
-
-    return {
-      challengeId: attempt.id,
-      maskedDestination: maskedPhone,
-      verificationChannel: channel,
-      expiresAt,
-      testOtpPreview: otp, // Facilitar aserciones deterministas en tests locales
-    };
+    throw new CustomerSecurityError("Use el vínculo de correo verificado o solicite ayuda a su asesor.", 409, "VERIFIED_IDENTITY_REQUIRED");
   }
 
-  /**
-   * Valida el código de verificación e instaura atómicamente la vinculación y permisos del titular
-   */
-  public static async verifyAccountLink(params: {
+  public static async verifyAccountLink(_params: {
     clerkUserId: string;
     challengeId: string;
     otpCode: string;
   }): Promise<{ success: boolean; clientId: string }> {
-    const { clerkUserId, challengeId, otpCode } = params;
-
-    const attempt = await prisma.customerAccountLinkAttempt.findUnique({
-      where: { id: challengeId },
-    });
-
-    if (!attempt || attempt.clerkUserId !== clerkUserId) {
-      throw new CustomerSecurityError("Desafío de vinculación inexistente o inválido.", 404, "CHALLENGE_NOT_FOUND");
-    }
-
-    if (attempt.status !== AccountLinkStatus.PENDING) {
-      throw new CustomerSecurityError(
-        `El desafío no se encuentra en estado pendiente (Estado: ${attempt.status}).`,
-        400,
-        "CHALLENGE_NOT_PENDING"
-      );
-    }
-
-    if (new Date() > attempt.expiresAt) {
-      await prisma.customerAccountLinkAttempt.update({
-        where: { id: challengeId },
-        data: { status: AccountLinkStatus.EXPIRED, failureReason: "OTP_EXPIRED" },
-      });
-      throw new CustomerSecurityError("El código de verificación ha expirado.", 400, "OTP_EXPIRED");
-    }
-
-    if (attempt.attemptCount >= attempt.maxAttempts) {
-      await prisma.customerAccountLinkAttempt.update({
-        where: { id: challengeId },
-        data: { status: AccountLinkStatus.FAILED_MAX_ATTEMPTS, failureReason: "MAX_ATTEMPTS_EXCEEDED" },
-      });
-      throw new CustomerSecurityError("Número máximo de intentos superado.", 400, "MAX_ATTEMPTS_EXCEEDED");
-    }
-
-    const providedHash = this.hashOtp(otpCode);
-
-    if (providedHash !== attempt.hashedVerifier) {
-      const nextCount = attempt.attemptCount + 1;
-      const willFail = nextCount >= attempt.maxAttempts;
-      await prisma.customerAccountLinkAttempt.update({
-        where: { id: challengeId },
-        data: {
-          attemptCount: nextCount,
-          status: willFail ? AccountLinkStatus.FAILED_MAX_ATTEMPTS : AccountLinkStatus.PENDING,
-          failureReason: willFail ? "MAX_ATTEMPTS_REACHED" : "INVALID_OTP",
-        },
-      });
-      throw new CustomerSecurityError("Código de verificación incorrecto.", 400, "INVALID_OTP");
-    }
-
-    // Si fue un intento sintético (anti-enumeración donde el cliente no existía en BD)
-    if (!attempt.clientId) {
-      await prisma.customerAccountLinkAttempt.update({
-        where: { id: challengeId },
-        data: { status: AccountLinkStatus.CANCELLED, failureReason: "SYNTHETIC_REJECTED" },
-      });
-      throw new CustomerSecurityError("No fue posible validar la información de vinculación.", 404, "CLIENT_NOT_FOUND");
-    }
-
-    const clientId = attempt.clientId;
-
-    // Transacción atómica: vincular cliente y otorgar permisos de acceso canónico
-    await prisma.$transaction(async (tx) => {
-      // 1. Actualizar Client
-      await tx.client.update({
-        where: { id: clientId },
-        data: { clerkUserId },
-      });
-
-      // 2. Marcar intento como verificado
-      await tx.customerAccountLinkAttempt.update({
-        where: { id: challengeId },
-        data: {
-          status: AccountLinkStatus.VERIFIED,
-          verifiedAt: new Date(),
-        },
-      });
-
-      // 3. Crear o renovar CustomerAccessGrant como PRIMARY_HOLDER
-      const existingGrant = await tx.customerAccessGrant.findFirst({
-        where: {
-          clerkUserId,
-          clientId,
-          applicationId: null,
-          applicantId: null,
-        },
-      });
-
-      if (existingGrant) {
-        await tx.customerAccessGrant.update({
-          where: { id: existingGrant.id },
-          data: {
-            revokedAt: null,
-            revokedReason: null,
-            canViewApplication: true,
-            canViewDocuments: true,
-            canUploadDocuments: true,
-            canMessageAdvisor: true,
-          },
-        });
-      } else {
-        await tx.customerAccessGrant.create({
-          data: {
-            clerkUserId,
-            clientId,
-            grantRole: CustomerGrantRole.PRIMARY_HOLDER,
-            canViewApplication: true,
-            canViewDocuments: true,
-            canUploadDocuments: true,
-            canMessageAdvisor: true,
-          },
-        });
-      }
-
-      // 4. Registrar auditoría inmutable
-      await tx.accessAuditEvent.create({
-        data: {
-          clerkUserId,
-          action: "CUSTOMER_ACCOUNT_LINKED",
-          resourceType: "Client",
-          resourceId: clientId,
-          ipAddress: attempt.ipAddress || "127.0.0.1",
-          userAgent: attempt.userAgent || "Fintera Customer Portal",
-          decision: "GRANTED",
-          reason: "Vinculación exitosa mediante verificación OTP",
-          metadata: {
-            challengeId,
-            verificationChannel: attempt.verificationChannel,
-            linkedAt: new Date().toISOString(),
-          },
-        },
-      });
-
-      // 5. Marcar sobre de entrega OTP como consumido
-      await tx.otpDeliveryEnvelope.updateMany({
-        where: { challengeId },
-        data: {
-          status: "CONSUMED",
-          consumedAt: new Date(),
-        },
-      });
-    });
-
-    return { success: true, clientId };
+    throw new CustomerSecurityError("Use el vínculo de correo verificado o solicite ayuda a su asesor.", 409, "VERIFIED_IDENTITY_REQUIRED");
   }
 
   /**
@@ -622,7 +308,8 @@ export class CustomerIdentityService {
   public static async verifyApplicationAccess(
     clerkUserId: string,
     applicationId: string,
-    requiredPermission: "VIEW" | "UPLOAD" | "MESSAGE" = "VIEW"
+    requiredPermission: "VIEW" | "DOCUMENT_VIEW" | "UPLOAD" | "MESSAGE" = "VIEW",
+    db: Prisma.TransactionClient = prisma
   ): Promise<{
     isAuthorized: boolean;
     grantRole: CustomerGrantRole;
@@ -634,7 +321,7 @@ export class CustomerIdentityService {
     }
 
     // 1. Obtener la solicitud
-    const app = await prisma.crmCreditApplication.findUnique({
+    const app = await db.crmCreditApplication.findUnique({
       where: { id: applicationId },
       include: { client: true },
     });
@@ -656,7 +343,7 @@ export class CustomerIdentityService {
     // 2.5 Si accede mediante Magic Tracking Token HMAC-SHA256 (BOLA estricto al clientId y applicationId)
     const magicActor = parseMagicActorId(clerkUserId);
     if (magicActor) {
-      if (app.id === magicActor.applicationId && app.clientId === magicActor.clientId) {
+      if (requiredPermission === "VIEW" && app.id === magicActor.applicationId && app.clientId === magicActor.clientId) {
         return {
           isAuthorized: true,
           grantRole: CustomerGrantRole.PRIMARY_HOLDER,
@@ -673,9 +360,11 @@ export class CustomerIdentityService {
 
     // 3. Si tiene un CustomerAccessGrant activo
     const now = new Date();
-    const grant = await prisma.customerAccessGrant.findFirst({
+    const grant = await db.customerAccessGrant.findFirst({
       where: {
         clerkUserId,
+        clientId: app.clientId,
+        effectiveAt: { lte: now },
         revokedAt: null,
         AND: [
           { OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
@@ -697,6 +386,9 @@ export class CustomerIdentityService {
       );
     }
 
+    if ((grant.grantRole === CustomerGrantRole.CO_APPLICANT && !grant.applicantId) || (requiredPermission === "VIEW" && !grant.canViewApplication) || (requiredPermission === "DOCUMENT_VIEW" && !grant.canViewDocuments)) {
+      throw new CustomerSecurityError("No tiene permiso para consultar este recurso.", 403, "VIEW_FORBIDDEN");
+    }
     // Validar permiso requerido
     if (requiredPermission === "UPLOAD" && !grant.canUploadDocuments) {
       throw new CustomerSecurityError("No tiene permiso para cargar documentos.", 403, "UPLOAD_FORBIDDEN");

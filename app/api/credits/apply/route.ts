@@ -1,8 +1,8 @@
+import { issueIntakeTracking } from "@/lib/portal/intake-tracking-access";
 import { NextRequest, NextResponse } from "next/server";
-import { ApplicationService } from "@/lib/crm/application-service";
+import { ApplicationService, IntakeContactConflictError } from "@/lib/crm/application-service";
 import {
   MAGIC_TRACK_COOKIE_NAME,
-  signMagicTrackingToken,
 } from "@/lib/auth/magic-tracking-token";
 import { ResendNotificationService } from "@/lib/notifications/resend-notification-service";
 
@@ -42,17 +42,13 @@ export async function POST(req: NextRequest) {
       consentHabeasData: true,
     });
 
-    const trackingToken = signMagicTrackingToken({
-      applicationId: intakeResult.applicationId,
-      clientId: intakeResult.clientId,
-      fileNumber: intakeResult.fileNumber,
-    });
+    const trackingToken = await issueIntakeTracking(req, intakeResult);
 
-    const portalMagicUrl = `/portal?trackToken=${encodeURIComponent(trackingToken)}`;
-    const documentsMagicUrl = `/portal/documentos?trackToken=${encodeURIComponent(trackingToken)}&applicationId=${encodeURIComponent(intakeResult.applicationId)}`;
+    const portalMagicUrl = trackingToken ? `/portal?trackToken=${encodeURIComponent(trackingToken)}` : "/portal";
+    const documentsMagicUrl = `/portal/documentos?applicationId=${encodeURIComponent(intakeResult.applicationId)}`;
 
     try {
-      await ResendNotificationService.sendApplicationWelcomeNotification({
+      if (!intakeResult.isExistingClient && !intakeResult.isDuplicateRetry) await ResendNotificationService.sendApplicationWelcomeNotification({
         applicationId: intakeResult.applicationId,
         clientId: intakeResult.clientId,
         clientEmail: personalInfo.email || "cliente@finterasoluciones.co",
@@ -77,7 +73,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
 
-    res.cookies.set(MAGIC_TRACK_COOKIE_NAME, trackingToken, {
+    if (trackingToken) res.cookies.set(MAGIC_TRACK_COOKIE_NAME, trackingToken, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
@@ -87,6 +83,7 @@ export async function POST(req: NextRequest) {
 
     return res;
   } catch (err: any) {
+    if (err instanceof IntakeContactConflictError) return NextResponse.json({ error: err.message, code: err.code }, { status: 409 });
     console.error("[API credits/apply] Error:", err);
     return NextResponse.json(
       { error: err.message || "Error al procesar la solicitud de crédito." },

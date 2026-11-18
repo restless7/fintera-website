@@ -77,6 +77,11 @@ export interface IntakeResult {
   message: string;
 }
 
+export class IntakeContactConflictError extends Error {
+  readonly code = "CONTACT_VERIFICATION_REQUIRED";
+  constructor() { super("Para actualizar los datos de un titular existente, solicite verificación asistida."); }
+}
+
 export class ApplicationService {
   /**
    * Genera el siguiente identificador de radicado institucional (e.g. FNT-2026-00003)
@@ -106,6 +111,15 @@ export class ApplicationService {
     const monthlyIncome = Math.max(100000, Number(payload.monthlyIncome) || 3000000);
     const obligations = Number(payload.existingFinancialObligations) || 0;
 
+    // Public intake is not proof of ownership of an existing identification document.
+    const canonicalClient = await prisma.client.findUnique({
+      where: { documentType_documentNumber: { documentType: docType, documentNumber: docNum } },
+      select: { email: true, phone: true },
+    });
+    if (canonicalClient && (canonicalClient.email.trim().toLowerCase() !== email || canonicalClient.phone.trim() !== phone)) {
+      throw new IntakeContactConflictError();
+    }
+
     // 1. Verificación de Idempotencia Robusta (Remediation A)
     const effectiveIdempotencyKey = payload.idempotencyKey || 
       `intent_${docType}_${docNum}_${requestedAmount}_${termMonths}_${Math.floor(Date.now() / (10 * 60 * 1000))}`;
@@ -116,6 +130,7 @@ export class ApplicationService {
       requestedAmount,
       termMonths,
       productCategory: payload.productCategory || "VIVIENDA_NO_VIS",
+      email, phone,
     };
 
     const idempotencyCheck = await IdempotencyService.checkOrAcquireKey({
@@ -184,6 +199,7 @@ export class ApplicationService {
           data: {
             documentType: docType,
             documentNumber: docNum,
+            portalContactRecordedAt: new Date(),
             firstName,
             secondName,
             firstLastName,
@@ -196,16 +212,9 @@ export class ApplicationService {
             preferredContactMethods: ["WHATSAPP", "EMAIL", "PHONE"],
           },
         });
-      } else {
-        // Actualizar datos de contacto si cambiaron
-        client = await tx.client.update({
-          where: { id: client.id },
-          data: {
-            email,
-            phone,
-            residenceCity: payload.residenceCity || client.residenceCity,
-          },
-        });
+      } else if (client.email.trim().toLowerCase() !== email || client.phone.trim() !== phone) {
+        // Recheck inside the transaction; never overwrite canonical contact or Clerk binding.
+        throw new IntakeContactConflictError();
       }
 
       // 2.2 Consentimiento Ley 1581 (Habeas Data)

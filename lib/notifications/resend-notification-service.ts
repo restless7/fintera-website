@@ -288,7 +288,7 @@ export class ResendNotificationService {
     });
 
     const portalUrl = `${baseUrl}/portal?trackToken=${encodeURIComponent(token)}`;
-    const docsUrl = `${baseUrl}/portal/documentos?trackToken=${encodeURIComponent(token)}&applicationId=${encodeURIComponent(params.applicationId)}`;
+    const docsUrl = `${baseUrl}/portal/documentos?applicationId=${encodeURIComponent(params.applicationId)}`;
 
     const html = buildInstitutionalEmailHtml({
       eyebrow: "Confirmación de Radicación Digital",
@@ -296,7 +296,7 @@ export class ResendNotificationService {
       greeting: `Hola ${params.clientName},`,
       bodyHtml: `
         <p>Hemos recibido tu solicitud de financiación para la línea <strong>${params.productCategory.replace(/_/g, " ")}</strong> por un monto de <strong>$${params.requestedAmount.toLocaleString("es-CO")} COP</strong>.</p>
-        <p>Tu Bóveda Documental en Supabase ya está habilitada para que puedas cargar los soportes de tu solicitud y seguir en tiempo real los 6 hitos de aprobación bancaria.</p>
+        <p>Para cargar soportes, inicia sesión con tu correo principal verificado y confirma la vinculación de tu cuenta. Si tu expediente requiere verificación asistida, tu asesor te acompañará. El seguimiento muestra únicamente los avances publicados.</p>
       `,
       ctaLabel: "Cargar Soportes en Bóveda Documental",
       ctaUrl: docsUrl,

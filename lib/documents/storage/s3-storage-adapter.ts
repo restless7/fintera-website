@@ -9,7 +9,6 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   DeleteObjectCommand,
-  CopyObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "stream";
@@ -22,7 +21,7 @@ import {
   DownloadAuthorization,
 } from "./storage-adapter.interface";
 import { getStorageConfig } from "./storage-config";
-import { SupabaseStorageAdapter, getSupabaseStorageConfig } from "./supabase-storage-adapter";
+import { SupabaseStorageAdapter } from "./supabase-storage-adapter";
 
 export class S3StorageAdapter implements StorageAdapter {
   private client: S3Client;
@@ -129,7 +128,7 @@ export class S3StorageAdapter implements StorageAdapter {
   /**
    * Descarga el buffer completo del objeto
    */
-  async getObjectBuffer(storageKey: string, isQuarantine?: boolean): Promise<Buffer> {
+  async getObjectBuffer(storageKey: string, isQuarantine?: boolean, maxBytes = 15728640): Promise<Buffer> {
     const bucket = this.resolveBucket(isQuarantine);
     const res = await this.client.send(
       new GetObjectCommand({
@@ -144,8 +143,12 @@ export class S3StorageAdapter implements StorageAdapter {
 
     const stream = res.Body as Readable;
     const chunks: Buffer[] = [];
+    let size = 0;
     for await (const chunk of stream) {
-      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+      const bytes = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+      size += bytes.length;
+      if (size > maxBytes) { stream.destroy(); throw new Error("Storage object exceeds size limit"); }
+      chunks.push(bytes);
     }
     return Buffer.concat(chunks);
   }
@@ -203,30 +206,11 @@ export class S3StorageAdapter implements StorageAdapter {
   async promoteQuarantinedObject(params: {
     quarantineKey: string;
     cleanKey: string;
+    scannedBuffer?: Buffer;
     metadata?: Record<string, string>;
   }): Promise<void> {
-    const sourceBucket = this.config.bucketQuarantine;
-    const targetBucket = this.config.bucketClean;
-
-    // 1. Copiar objeto a la zona limpia
-    await this.client.send(
-      new CopyObjectCommand({
-        Bucket: targetBucket,
-        Key: params.cleanKey,
-        CopySource: encodeURIComponent(`${sourceBucket}/${params.quarantineKey}`),
-        Metadata: params.metadata,
-        MetadataDirective: params.metadata ? "REPLACE" : "COPY",
-        ServerSideEncryption: this.config.serverSideEncryption,
-      })
-    );
-
-    // 2. Eliminar copia de cuarentena
-    await this.client.send(
-      new DeleteObjectCommand({
-        Bucket: sourceBucket,
-        Key: params.quarantineKey,
-      })
-    );
+    if (!params.scannedBuffer) throw new Error("Promotion requires the exact scanned buffer");
+    await this.putObject({ storageKey: params.cleanKey, buffer: params.scannedBuffer, contentType: params.metadata?.detectedMimeType || "application/octet-stream", metadata: params.metadata, isQuarantine: false });
   }
 
   /**
@@ -302,15 +286,15 @@ export class S3StorageAdapter implements StorageAdapter {
 
 // Instancia singleton por defecto
 function createCanonicalStorageAdapter(): StorageAdapter {
+  if (process.env.FINTERA_DOCUMENT_STORAGE_URL || process.env.FINTERA_DOCUMENT_STORAGE_SERVICE_ROLE_KEY || process.env.FINTERA_DOCUMENT_BUCKET_QUARANTINE || process.env.FINTERA_DOCUMENT_BUCKET_CLEAN) return new SupabaseStorageAdapter();
   const provider = (process.env.STORAGE_PROVIDER || "supabase").toLowerCase();
-  const supabaseConfig = getSupabaseStorageConfig();
-  if (provider === "supabase" && supabaseConfig) {
-    return new SupabaseStorageAdapter(supabaseConfig);
-  }
-  if (supabaseConfig && !process.env.S3_ACCESS_KEY_ID) {
-    return new SupabaseStorageAdapter(supabaseConfig);
-  }
-  return new S3StorageAdapter();
+  if (provider === "supabase") return new SupabaseStorageAdapter();
+  if (provider === "s3" && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY) return new S3StorageAdapter();
+  throw new Error("Selected storage provider configuration unavailable");
 }
 
-export const storageAdapter: StorageAdapter = createCanonicalStorageAdapter();
+// Resolve lazily: build can import server modules without provisioning storage credentials.
+let canonicalStorage: StorageAdapter | undefined;
+export const storageAdapter: StorageAdapter = new Proxy({} as StorageAdapter, {
+  get(_target, key) { canonicalStorage ??= createCanonicalStorageAdapter(); const value = canonicalStorage[key as keyof StorageAdapter]; return typeof value === "function" ? value.bind(canonicalStorage) : value; },
+});

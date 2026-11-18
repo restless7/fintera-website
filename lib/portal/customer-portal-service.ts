@@ -15,8 +15,8 @@ export interface CustomerDashboardApplicationSummary {
   id: string;
   fileNumber: string;
   productCategory: string;
-  requestedAmount: number;
-  termMonths: number;
+  requestedAmount: number | null;
+  termMonths: number | null;
   createdAt: Date;
   status: string;
   overallPublicStage: string;
@@ -41,6 +41,7 @@ export interface CustomerDashboardApplicationSummary {
 }
 
 export interface CustomerDashboardResponse {
+  isStatusOnly?: boolean;
   isLinked: boolean;
   client: {
     fullName: string;
@@ -57,6 +58,11 @@ export class CustomerPortalService {
    * Genera el Dashboard seguro para el cliente autenticado
    */
   public static async getCustomerDashboard(clerkUserId: string): Promise<CustomerDashboardResponse> {
+    const tracking = parseMagicActorId(clerkUserId);
+    if (tracking) {
+      const app = await prisma.crmCreditApplication.findFirst({ where: { id: tracking.applicationId, clientId: tracking.clientId }, select: { id: true, fileNumber: true, productCategory: true, createdAt: true, status: true } });
+      return { isStatusOnly: true, isLinked: false, client: null, applications: app ? [{ ...app, requestedAmount: null, termMonths: null, overallPublicStage: "Solicitud recibida; inicie sesión para consultar el detalle.", overallProgressPercentage: 0, assignedAdvisor: null, bankCases: [], actionRequiredAlerts: [] }] : [] };
+    }
     const context = await CustomerIdentityService.resolveCustomerContext(clerkUserId);
 
     if (!context.isLinked && context.grants.length === 0) {
@@ -84,6 +90,11 @@ export class CustomerPortalService {
 
     // Agregar solicitudes autorizadas por CustomerAccessGrant (co-deudores)
     for (const grant of context.grants) {
+      if (!grant.canViewApplication) continue;
+      if (!grant.applicationId) {
+        const delegated = await prisma.crmCreditApplication.findMany({ where: { clientId: grant.clientId }, select: { id: true } });
+        for (const app of delegated) if (!applicationIds.includes(app.id)) applicationIds.push(app.id);
+      }
       if (grant.applicationId && !applicationIds.includes(grant.applicationId)) {
         applicationIds.push(grant.applicationId);
       }
@@ -105,6 +116,13 @@ export class CustomerPortalService {
       };
     }
 
+    // Recheck the canonical application/client relation for every delegated candidate.
+    const checked: string[] = [];
+    for (const id of applicationIds) {
+      try { await CustomerIdentityService.verifyApplicationAccess(clerkUserId, id, "VIEW"); checked.push(id); }
+      catch (error) { if (!(error instanceof CustomerSecurityError)) throw error; }
+    }
+    applicationIds = checked;
     // Consultar las solicitudes autorizadas con proyección estricta (allowlist)
     const rawApplications = await prisma.crmCreditApplication.findMany({
       where: { id: { in: applicationIds } },
@@ -167,7 +185,7 @@ export class CustomerPortalService {
 
       const bankCases = app.bankApplications.map((b) => {
         const latestEvent = b.publishedEvents[0];
-        const publicInfo = getPublicStageInfo(b.stage);
+        const publicInfo = latestEvent ? getPublicStageInfo(latestEvent.canonicalStage) : { publicTitle: "Solicitud recibida", publicDescription: "Su asesor publicará los avances verificados de esta solicitud.", badgeVariant: "neutral", milestoneIndex: 0 };
 
         const title = latestEvent ? latestEvent.publicStageTitle : publicInfo.publicTitle;
         const explanation = latestEvent ? latestEvent.publicExplanation : publicInfo.publicDescription;
@@ -175,14 +193,6 @@ export class CustomerPortalService {
 
         if (actionNote) {
           actionAlerts.push(`[${b.bankId.toUpperCase()}] ${actionNote}`);
-        }
-
-        // Revisar si hay documentos con rechazo o pendientes
-        const hasRejections = b.documentRequirements.some((r) =>
-          r.reviews.some((rev) => rev.status === "REJECTED")
-        );
-        if (hasRejections) {
-          actionAlerts.push(`[${b.bankId.toUpperCase()}] Se requiere subsanar uno o más documentos observados.`);
         }
 
         return {
@@ -199,17 +209,15 @@ export class CustomerPortalService {
       });
 
       // Cálculo de avance basado en hitos bancarios verificados (no división ingenua por 9)
-      let highestMilestone = 1;
+      let highestMilestone = 0;
       for (const b of app.bankApplications) {
-        const info = getPublicStageInfo(b.stage);
-        if (info.milestoneIndex > highestMilestone) {
-          highestMilestone = info.milestoneIndex;
-        }
+        const published = b.publishedEvents[0];
+        if (published) highestMilestone = Math.max(highestMilestone, getPublicStageInfo(published.canonicalStage).milestoneIndex);
       }
       const overallProgressPercentage = Math.round((highestMilestone / PUBLIC_MILESTONES.length) * 100);
 
       // Determinar etapa consolidada amigable
-      const primaryBankCase = bankCases[0];
+      const primaryBankCase = bankCases.find(b => { const source = app.bankApplications.find(a => a.id === b.id); const event = source?.publishedEvents[0]; return event && getPublicStageInfo(event.canonicalStage).milestoneIndex === highestMilestone; }) || bankCases[0];
       const overallPublicStage = primaryBankCase ? primaryBankCase.publicStageTitle : "En trámite";
 
       return {
@@ -226,7 +234,7 @@ export class CustomerPortalService {
           ? {
               name: `${app.assignedAdvisor.firstName} ${app.assignedAdvisor.lastName}`,
               email: app.assignedAdvisor.email,
-              phone: "WhatsApp Institucional Fintera (+57 300 912 8800)",
+              phone: "",
             }
           : null,
         bankCases,
@@ -253,6 +261,7 @@ export class CustomerPortalService {
    * Obtiene el detalle autorizado de una solicitud con verificación BOLA
    */
   public static async getCustomerApplicationDetail(clerkUserId: string, applicationId: string) {
+    if (parseMagicActorId(clerkUserId)) throw new CustomerSecurityError("Inicie sesión y vincule su cuenta para consultar el detalle.", 403, "LINK_REQUIRED");
     const auth = await CustomerIdentityService.verifyApplicationAccess(clerkUserId, applicationId, "VIEW");
 
     const app = await prisma.crmCreditApplication.findUnique({
@@ -333,12 +342,13 @@ export class CustomerPortalService {
         ? {
             name: `${app.assignedAdvisor.firstName} ${app.assignedAdvisor.lastName}`,
             email: app.assignedAdvisor.email,
-            phone: "+57 300 912 8800",
+            phone: "",
           }
         : null,
       applicants: visibleApplicants,
       bankApplications: app.bankApplications.map((b) => {
-        const publicInfo = getPublicStageInfo(b.stage);
+        const latestEvent = b.publishedEvents[b.publishedEvents.length - 1];
+        const publicInfo = latestEvent ? getPublicStageInfo(latestEvent.canonicalStage) : { publicTitle: "Solicitud recibida", publicDescription: "Su asesor publicará los avances verificados.", badgeVariant: "neutral" };
         return {
           id: b.id,
           bankId: b.bankId,
@@ -348,9 +358,9 @@ export class CustomerPortalService {
           badgeVariant: publicInfo.badgeVariant,
           bankFilingNumber: b.bankFilingNumber,
           filingDate: b.filingDate,
-          approvedAmount: b.approvedAmount,
-          approvedRateEA: b.approvedRateEA,
-          approvedTermMonths: b.approvedTermMonths,
+          approvedAmount: latestEvent && getPublicStageInfo(latestEvent.canonicalStage).milestoneIndex >= 4 ? b.approvedAmount : null,
+          approvedRateEA: latestEvent && getPublicStageInfo(latestEvent.canonicalStage).milestoneIndex >= 4 ? b.approvedRateEA : null,
+          approvedTermMonths: latestEvent && getPublicStageInfo(latestEvent.canonicalStage).milestoneIndex >= 4 ? b.approvedTermMonths : null,
           timeline: b.publishedEvents.map((pe) => ({
             id: pe.id,
             stageTitle: pe.publicStageTitle,

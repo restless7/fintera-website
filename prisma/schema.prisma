@@ -123,6 +123,7 @@ model AppUser {
   bankStageTransitions BankStageTransitionEvent[]
   activities            CrmActivity[]
   auditEvents           AccessAuditEvent[]
+  customerDocumentReviews CustomerDocumentReview[]
   uploadedDocumentVersions DocumentVersion[] @relation("UploadedDocumentVersions")
   reviewedDocumentBankReviews DocumentBankReview[] @relation("ReviewerDocumentBankReviews")
   publishedEvents       CustomerPublishedEvent[]
@@ -182,6 +183,7 @@ model Client {
   residenceDepartment     String
   residenceAddress        String
   isPEP                   Boolean                 @default(false)
+  portalContactRecordedAt DateTime?               @map("portal_contact_recorded_at")
   clerkUserId             String?                 @unique // Vinculación verificada tras registro en portal
   applications            CrmCreditApplication[]
   consentRecords          ClientConsentRecord[]
@@ -236,6 +238,8 @@ model CrmCreditApplication {
   simulationSnapshot    SimulationSnapshot?
   activities            CrmActivity[]
   auditEvents           AccessAuditEvent[]
+  customerDocumentRequirements CustomerDocumentRequirement[]
+  documentProfiles ApplicantDocumentProfile[]
   documentAssets        DocumentAsset[]
   documentUploadIntents DocumentUploadIntent[]
   accessGrants          CustomerAccessGrant[]
@@ -268,12 +272,15 @@ model Applicant {
   totalLiabilities      Float                 @default(0)
   occupation            String                // "asalariado" | "independiente" | "pensionado" | "otro"
   companyName           String?
+  documentProfile ApplicantDocumentProfile?
+  customerRequirements CustomerDocumentRequirement[]
   documentAssets        DocumentAsset[]
   bankDocumentRequirements BankDocumentRequirement[]
   accessGrants          CustomerAccessGrant[]
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
 
+  @@unique([id, applicationId])
   @@index([applicationId])
   @@map("applicants")
 }
@@ -805,6 +812,7 @@ model DocumentVersion {
   uploadedAt            DateTime                @default(now())
   supersededAt          DateTime?               @map("superseded_at")
 
+  customerEvidence CustomerDocumentEvidence[]
   evidenceLinks         DocumentRequirementEvidence[]
   bankReviews           DocumentBankReview[]
   accessAudits          DocumentAccessAudit[]
@@ -851,6 +859,7 @@ model BankDocumentRequirement {
   applicant               Applicant?                       @relation(fields: [applicantId], references: [id], onDelete: SetNull)
   requirementDefinitionId String                           @map("requirement_definition_id")
   requirementDefinition   DocumentRequirementDefinition   @relation(fields: [requirementDefinitionId], references: [id])
+  revision                Int                              @default(0)
   requirementVersion      String                           @default("v1.0") @map("requirement_version")
   isMandatory             Boolean                          @default(true) @map("is_mandatory")
   applicabilityStatus     RequirementApplicabilityStatus   @default(APPLICABLE) @map("applicability_status")
@@ -919,6 +928,19 @@ model DocumentUploadIntent {
   asset                 DocumentAsset?          @relation(fields: [assetId], references: [id], onDelete: SetNull)
   requirementId         String?                 @map("requirement_id")
   requirement           BankDocumentRequirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  applicantId           String?                 @map("applicant_id")
+  customerRequirementId String?                 @map("customer_requirement_id")
+  customerRequirement   CustomerDocumentRequirement? @relation(fields: [customerRequirementId], references: [id], onDelete: Restrict)
+  declaredCategory      DocumentCategory?        @map("declared_category")
+  declaredTitle         String?                  @map("declared_title")
+  expectedRevision      Int?                     @map("expected_revision")
+  replaceVersionId      String?                  @map("replace_version_id")
+  processedVersionId    String?                  @unique @map("processed_version_id")
+  queuedAt              DateTime?                @map("queued_at")
+  processingToken       String?                  @map("processing_token")
+  leaseUntil            DateTime?                @map("lease_until")
+  processingErrorCode   String?                  @map("processing_error_code")
+  queuedActorRole       String?                  @map("queued_actor_role")
   generatedStorageKey   String                  @unique @map("generated_storage_key")
   declaredFileName      String                  @map("declared_file_name")
   declaredMimeType      String                  @map("declared_mime_type")
@@ -930,6 +952,8 @@ model DocumentUploadIntent {
   createdAt             DateTime                @default(now())
 
   @@index([applicationId, status])
+  @@index([status, queuedAt, leaseUntil])
+  @@index([customerRequirementId])
   @@map("document_upload_intents")
 }
 
@@ -1538,3 +1562,82 @@ model ResearchDesk {
   @@map("fintera_research_desks")
 }
 
+
+// General vivienda policy is separate from bank-specific requirements.
+model ApplicantDocumentProfile {
+  id String @id @default(uuid())
+  applicationId String @map("application_id")
+  application CrmCreditApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  applicantId String @unique @map("applicant_id")
+  applicant Applicant @relation(fields: [applicantId, applicationId], references: [id, applicationId], onDelete: Restrict)
+  occupation String @default("UNKNOWN")
+  declaresIncomeTax Boolean? @map("declares_income_tax")
+  propertyRentalIncome Boolean? @map("property_rental_income")
+  vehicleRentalIncome Boolean? @map("vehicle_rental_income")
+  chamberOfCommerceApplies Boolean? @map("chamber_of_commerce_applies")
+  annualFinancialStatementsApply Boolean? @map("annual_financial_statements_apply")
+  revision Int @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([applicantId, applicationId])
+  @@index([applicationId])
+  @@map("applicant_document_profiles")
+}
+model CustomerDocumentRequirement {
+  id String @id @default(uuid())
+  applicationId String @map("application_id")
+  application CrmCreditApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  applicantId String @map("applicant_id")
+  applicant Applicant @relation(fields: [applicantId, applicationId], references: [id, applicationId], onDelete: Restrict)
+  code String
+  slotKey String @map("slot_key")
+  catalogVersion String @map("catalog_version")
+  title String
+  description String
+  category DocumentCategory
+  periodLabel String? @map("period_label")
+  applicability String
+  applicabilityReason String @map("applicability_reason")
+  isMandatory Boolean @default(true) @map("is_mandatory")
+  revision Int @default(0)
+  evidence CustomerDocumentEvidence[]
+  uploadIntents DocumentUploadIntent[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([applicantId, code, slotKey, catalogVersion])
+  @@index([applicationId, applicantId])
+  @@map("customer_document_requirements")
+}
+model CustomerDocumentEvidence {
+  id String @id @default(uuid())
+  requirementId String @map("requirement_id")
+  requirement CustomerDocumentRequirement @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+  documentVersionId String @map("document_version_id")
+  documentVersion DocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Restrict)
+  reviews CustomerDocumentReview[]
+  createdAt DateTime @default(now()) @map("created_at")
+  @@unique([requirementId, documentVersionId])
+  @@index([documentVersionId])
+  @@map("customer_document_evidence")
+}
+model CustomerDocumentReview {
+  id String @id @default(uuid())
+  evidenceId String @map("evidence_id")
+  evidence CustomerDocumentEvidence @relation(fields: [evidenceId], references: [id], onDelete: Restrict)
+  reviewerUserId String @map("reviewer_user_id")
+  reviewer AppUser @relation(fields: [reviewerUserId], references: [id], onDelete: Restrict)
+  status DocumentReviewStatus
+  publicReason String @map("public_reason")
+  reviewVersion Int @map("review_version")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@unique([evidenceId, reviewVersion])
+  @@index([reviewerUserId])
+  @@map("customer_document_reviews")
+}
+
+model DocumentWorkerHeartbeat {
+  workerId String @id @map("worker_id")
+  lastSeenAt DateTime @map("last_seen_at")
+  scannerReady Boolean @map("scanner_ready")
+  scannerEngine String? @map("scanner_engine")
+  @@map("document_worker_heartbeats")
+}

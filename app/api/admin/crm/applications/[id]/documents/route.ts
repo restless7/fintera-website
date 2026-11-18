@@ -1,3 +1,8 @@
+import { z } from "zod";
+import { CustomerDocumentService } from "@/lib/portal/customer-document-service";
+import { CustomerLinkService } from "@/lib/portal/customer-link-service";
+import { staffReviewInput } from "@/lib/portal/portal-validation";
+import { portalApiError, readPortalJson } from "@/lib/portal/portal-api-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { adminJson, authorizeAdminApi, verifyDocumentReferences } from "@/lib/auth/admin-api";
 import prisma from "@/lib/prisma";
@@ -111,7 +116,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       bankReadiness[bankApp.id] = readiness;
     }
 
+    const customerRequirements = await prisma.customerDocumentRequirement.findMany({ where: { applicationId }, include: { applicant: { select: { firstName: true, lastName: true } }, evidence: { include: { documentVersion: { include: { asset: true } }, reviews: { orderBy: { reviewVersion: "desc" }, take: 1 } } } } });
+    const pendingUploads = (await prisma.documentUploadIntent.findMany({ where: { applicationId, createdByUserId: actorUserId, status: "AWAITING_UPLOAD" }, orderBy: { createdAt: "desc" } })).map(intent => ({ id: intent.id, fileName: intent.declaredFileName, status: intent.processingErrorCode ? "PROCESSING_ERROR" : intent.processingToken ? "PROCESSING" : intent.queuedAt ? "QUEUED" : intent.expiresAt > new Date() ? "AWAITING_UPLOAD" : "EXPIRED", message: intent.processingErrorCode ? "La verificación no se completó. El archivo permanece aislado; consulte el estado antes de repetir." : intent.queuedAt ? "Archivo recibido en cola para verificación de seguridad. Aún no está aprobado." : "Carga pendiente de confirmación." }));
     return adminJson({
+      pendingUploads,
+      customerRequirements,
+      canLinkCustomerIdentity: authorization.context.isSuperAdmin && !application.client.clerkUserId,
       success: true,
       applicationId,
       fileNumber: application.fileNumber,
@@ -150,7 +160,19 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Expediente no encontrado" }, { status: 404 });
     }
 
-    const body = await req.json();
+    const body = await readPortalJson(req) as Record<string, any>;
+    if (["REVIEW_CUSTOMER_DOCUMENT", "LINK_CUSTOMER_IDENTITY"].includes(body.action)) {
+      if (req.headers.get("origin") !== req.nextUrl.origin || req.headers.get("sec-fetch-site") === "cross-site") return NextResponse.json({ error: "Origen no autorizado" }, { status: 403 });
+      const operation = await authorizeAdminApi("crm:document:review", applicationId);
+      if (operation.response) return operation.response;
+      if (body.action === "REVIEW_CUSTOMER_DOCUMENT") {
+        const { action: _action, ...input } = body;
+        return NextResponse.json(await CustomerDocumentService.reviewCustomerDocument(applicationId, operation.context.userId, staffReviewInput.parse(input)));
+      }
+      if (!operation.context.isSuperAdmin) return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+      const input = z.object({ action: z.literal("LINK_CUSTOMER_IDENTITY"), email: z.string().email().max(320), reason: z.string().trim().min(10).max(2000), confirm: z.literal(true) }).strict().parse(body);
+      return NextResponse.json(await CustomerLinkService.bindExistingClient(applicationId, operation.context.clerkUserId, input.email, input.reason));
+    }
     const action = body.action;
     const validActions = ["MATERIALIZE_REQUIREMENTS", "CREATE_UPLOAD_INTENT", "CONFIRM_UPLOAD", "ATTACH_TO_REQUIREMENT", "REVIEW"];
     if (validActions.includes(action)) {
@@ -223,7 +245,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           return NextResponse.json(confirmResult, { status: 422 });
         }
 
-        return NextResponse.json(confirmResult, { status: 200 });
+        return NextResponse.json(confirmResult, { status: confirmResult.queued ? 202 : 200 });
       }
 
       case "ATTACH_TO_REQUIREMENT": {
@@ -283,6 +305,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         );
     }
   } catch (error: any) {
+    if (error?.name === "CustomerSecurityError" || error?.name === "ZodError" || error?.code === "P2034") return portalApiError(error);
     console.error("[CRM Documents API] Error POST:", error);
     return NextResponse.json(
       { error: "Error en la operación documental", detail: error.message },

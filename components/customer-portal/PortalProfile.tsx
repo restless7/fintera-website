@@ -1,0 +1,12 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowRight, Mail, UserRound } from "lucide-react";
+import { PortalLinkAccount } from "./PortalLinkAccount";
+import { PortalEmpty, PortalError, PortalLoading, PortalPageHeader } from "./PortalPrimitives";
+import { PortalApiFailure, portalErrorMessage, usePortalRead, type PortalDashboard } from "./portal-api";
+
+export function PortalProfile() {
+  const { data, error, loading, reload } = usePortalRead<PortalDashboard>("/api/portal/dashboard");
+  return <><PortalPageHeader eyebrow="MI PERFIL" title="Tus datos y tu cuenta" description="Consulta la información vinculada a tus solicitudes y encuentra ayuda si necesitas actualizarla." />{loading ? <PortalLoading label="Consultando tu información…" /> : error ? error instanceof PortalApiFailure && error.status === 401 ? <PortalLinkAccount onLinked={reload} /> : <PortalError message={portalErrorMessage(error)} onRetry={reload} /> : !data?.isLinked || !data.client ? <PortalLinkAccount onLinked={reload} /> : <div className="portal-stack"><section className="portal-card"><div className="portal-card-header"><div className="flex items-center gap-3"><span className="portal-product-icon"><UserRound size={23} aria-hidden="true" /></span><h2>Información de contacto</h2></div></div><dl className="portal-profile-facts"><div><dt>Nombre</dt><dd>{data.client.fullName}</dd></div><div><dt>Documento de identidad</dt><dd>{data.client.documentType} {data.client.documentNumberMasked}</dd></div><div><dt>Correo registrado</dt><dd>{data.client.email}</dd></div><div><dt>Teléfono registrado</dt><dd>{data.client.phoneMasked}</dd></div></dl><p className="portal-field-hint mt-5">Mostramos parte de tu documento y teléfono para cuidar tu información.</p></section><section className="portal-card portal-guide-card"><h2>Actividad y requisitos documentales</h2><p>Las respuestas sobre tu actividad y los documentos que aplican se registran para cada solicitante dentro del expediente.</p><Link href="/portal/documentos" className="portal-text-link">Revisar mi información documental <ArrowRight size={15} aria-hidden="true" /></Link></section><PortalEmpty title="¿Necesitas corregir un dato?" description="Contacta a Fintera para revisar la información registrada en tu expediente. Tu cuenta de acceso se gestiona desde el menú de perfil de la cabecera." action={<Link className="portal-button portal-button-secondary" href="/contacto"><Mail size={16} aria-hidden="true" />Contactar a Fintera</Link>} /></div>}</>;
+}

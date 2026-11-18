@@ -1,10 +1,10 @@
+import { issueIntakeTracking } from "@/lib/portal/intake-tracking-access";
 import { NextRequest, NextResponse } from "next/server";
 import { creditRequestSchema } from "@/app/lib/validation/creditRequestSchema";
-import { ApplicationService } from "@/lib/crm/application-service";
+import { ApplicationService, IntakeContactConflictError } from "@/lib/crm/application-service";
 import { IdempotencyConflictError } from "@/lib/crm/idempotency-service";
 import {
   MAGIC_TRACK_COOKIE_NAME,
-  signMagicTrackingToken,
 } from "@/lib/auth/magic-tracking-token";
 import { ResendNotificationService } from "@/lib/notifications/resend-notification-service";
 
@@ -71,17 +71,13 @@ export async function POST(request: NextRequest) {
       propertyValue: body.propertyValue,
     });
 
-    const trackingToken = signMagicTrackingToken({
-      applicationId: intakeResult.applicationId,
-      clientId: intakeResult.clientId,
-      fileNumber: intakeResult.fileNumber,
-    });
+    const trackingToken = await issueIntakeTracking(request, intakeResult);
 
-    const portalMagicUrl = `/portal?trackToken=${encodeURIComponent(trackingToken)}`;
-    const documentsMagicUrl = `/portal/documentos?trackToken=${encodeURIComponent(trackingToken)}&applicationId=${encodeURIComponent(intakeResult.applicationId)}`;
+    const portalMagicUrl = trackingToken ? `/portal?trackToken=${encodeURIComponent(trackingToken)}` : "/portal";
+    const documentsMagicUrl = `/portal/documentos?applicationId=${encodeURIComponent(intakeResult.applicationId)}`;
 
     // Despachar correo institucional de bienvenida + Magic Link vía Resend (o encolar en Outbox si aún no hay key)
-    await ResendNotificationService.sendApplicationWelcomeNotification({
+    if (!intakeResult.isExistingClient && !intakeResult.isDuplicateRetry) await ResendNotificationService.sendApplicationWelcomeNotification({
       applicationId: intakeResult.applicationId,
       clientId: intakeResult.clientId,
       fileNumber: intakeResult.fileNumber,
@@ -111,7 +107,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
 
-    response.cookies.set(MAGIC_TRACK_COOKIE_NAME, trackingToken, {
+    if (trackingToken) response.cookies.set(MAGIC_TRACK_COOKIE_NAME, trackingToken, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
@@ -121,6 +117,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error: any) {
+    if (error instanceof IntakeContactConflictError) return NextResponse.json({ error: error.message, code: error.code }, { status: 409 });
     console.error("[Credit Request] Error:", {
       name: error.name,
       message: error.message,

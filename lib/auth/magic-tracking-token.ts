@@ -21,12 +21,9 @@ export interface MagicTrackingTokenPayload {
 }
 
 function getSigningSecret(): string {
-  return (
-    process.env.CUSTOMER_LINK_SECRET ||
-    process.env.CLERK_SECRET_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    "fintera_magic_tracking_hmac_secret_2026_enterprise"
-  );
+  const secret = process.env.CUSTOMER_LINK_SECRET || process.env.CLERK_SECRET_KEY;
+  if (!secret) throw new Error("Tracking signing configuration unavailable");
+  return secret;
 }
 
 export function signMagicTrackingToken(params: {
@@ -63,8 +60,10 @@ export function verifyMagicTrackingToken(token?: string | null): MagicTrackingTo
   }
 
   const [, payloadB64, providedSig] = parts;
+  let secret: string;
+  try { secret = getSigningSecret(); } catch { return null; }
   const expectedSig = crypto
-    .createHmac("sha256", getSigningSecret())
+    .createHmac("sha256", secret)
     .update(`fintera_track_v1.${payloadB64}`)
     .digest("base64url");
 

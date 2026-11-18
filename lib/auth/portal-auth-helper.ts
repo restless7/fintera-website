@@ -10,7 +10,6 @@
 
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
 import {
   extractMagicTrackingTokenFromRequest,
   encodeMagicActorId,
@@ -22,21 +21,10 @@ export async function resolvePortalClerkUserId(req: NextRequest): Promise<string
   try {
     const session = await auth();
     if (session && session.userId) {
-      // Si también trae un Magic Tracking Token válido y la cuenta Clerk aún no está vinculada,
-      // usar el contexto verificado del Magic Token para no bloquear su experiencia post-radicación
-      if (magicPayload) {
-        const linked = await prisma.client.findFirst({
-          where: { clerkUserId: session.userId },
-          select: { id: true },
-        });
-        if (!linked) {
-          return encodeMagicActorId(magicPayload);
-        }
-      }
       return session.userId;
     }
   } catch {
-    // Sesión Clerk no disponible en este request; evaluar Magic Tracking Token firmado
+    return null; // SDK failure never downgrades identity to a bearer.
   }
 
   if (magicPayload) {

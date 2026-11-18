@@ -1,4 +1,5 @@
 "use client";
+import { CustomerDocumentReviewPanel } from "@/components/admin/CustomerDocumentReviewPanel";
 
 import React, { useCallback, useEffect, useState, use } from "react";
 import Link from "next/link";
@@ -10,6 +11,9 @@ import { CaseNavigation } from "@/components/admin/CaseNavigation";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useAdminPermissions } from "@/components/admin/AdminShell";
 import { DocumentDialog } from "@/components/admin/DocumentDialog";
+
+interface PendingUploadReceipt { id: string; fileName: string; status: string; message: string; }
+interface AdminUploadAttempt { intentId: string; binaryUploaded: boolean; status: string; message: string; }
 
 interface DocumentWorkspaceProps {
   params: Promise<{ id: string }>;
@@ -52,6 +56,8 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
   const [uploadFile, setUploadFile] = useAdminDraft<File | null>(`documents:${applicationId}:uploadFile`, null);
   const [uploading, setUploading] = useAdminDraft(`documents:${applicationId}:uploading`, false);
   const [uploadStatusMsg, setUploadStatusMsg] = useAdminDraft<string | null>(`documents:${applicationId}:uploadStatusMsg`, null);
+
+  const [uploadAttempt, setUploadAttempt] = useAdminDraft<AdminUploadAttempt | null>(`documents:${applicationId}:uploadAttempt`, null);
 
   // Datos para revisión
   const [reviewTarget, setReviewTarget] = useAdminDraft<{
@@ -117,6 +123,7 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
     setUploadFile(null);
     setUploadTargetReqId(null);
     setUploadStatusMsg(null);
+    if (uploadAttempt && !uploadAttempt.binaryUploaded) setUploadAttempt(null);
   };
   const closeReview = () => {
     if (reviewSubmitting || (isReviewDirty && !window.confirm("¿Descartar los cambios de esta revisión?"))) return;
@@ -157,76 +164,67 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
     }
   };
 
-  // Manejar Carga de Archivo (PUT firmado + confirmación antivirus)
-  const handleUploadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (uploading || !canUpload) return;
-    if (!uploadFile) {
-      alert("Seleccione un archivo");
-      return;
-    }
-
+  // La recepción en cola y la validación del archivo son estados diferentes.
+  const confirmAdminUpload = async (intentId: string) => {
+    const response = await fetch(`/api/admin/crm/applications/${applicationId}/documents`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "CONFIRM_UPLOAD", intentId }),
+    });
+    const result = await response.json();
+    if (!response.ok || result.success !== true) throw new Error(result.message || result.error || "No se pudo confirmar la recepción del archivo.");
+    const queued = response.status === 202 || result.queued === true;
+    setUploadAttempt({ intentId, binaryUploaded: true, status: queued ? "QUEUED" : "CONFIRMED", message: result.message || (queued ? "Archivo recibido en cola. La validación y la revisión siguen pendientes." : "Archivo validado. Consulte su revisión documental.") });
+    return result;
+  };
+  const refreshPendingUploads = async () => {
+    if (uploading) return;
     try {
-      setUploading(true);
-      setUploadStatusMsg("1/3 Solicitando autorización de carga privada...");
-
-      // 1. Crear intención de subida
-      const intentRes = await fetch(`/api/admin/crm/applications/${applicationId}/documents`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "CREATE_UPLOAD_INTENT",
-          category: uploadCategory,
-          title: uploadFile.name,
-          declaredFileName: uploadFile.name,
-          declaredMimeType: uploadFile.type || "application/pdf",
-          maxAllowedBytes: 15 * 1024 * 1024,
-          applicantId: uploadApplicantId || undefined,
-          requirementId: uploadTargetReqId || undefined,
-        }),
-      });
-
-      const intentJson = await intentRes.json();
-      if (!intentRes.ok) throw new Error(intentJson.error || "Fallo al autorizar subida");
-
-      // 2. Subir bytes directamente a la zona de cuarentena S3
-      setUploadStatusMsg("2/3 Transfiriendo archivo cifrado a zona de cuarentena...");
-      const putRes = await fetch(intentJson.uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": uploadFile.type || "application/octet-stream",
-        },
-        body: uploadFile,
-      });
-
-      if (!putRes.ok) throw new Error(`Fallo de almacenamiento S3 (HTTP ${putRes.status})`);
-
-      // 3. Confirmar e inspeccionar antivirus
-      setUploadStatusMsg("3/3 Ejecutando escaneo antivirus completo y validación de integridad...");
-      const confirmRes = await fetch(`/api/admin/crm/applications/${applicationId}/documents`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "CONFIRM_UPLOAD",
-          intentId: intentJson.intentId,
-        }),
-      });
-
-      const confirmJson = await confirmRes.json();
-      if (!confirmRes.ok) {
-        throw new Error(confirmJson.message || confirmJson.error || "El archivo fue rechazado por seguridad");
+      const current = await readDocumentWorkspace(applicationId);
+      applyWorkspaceData(current);
+      if (uploadAttempt) {
+        const pending = (current.pendingUploads || []).find((item: PendingUploadReceipt) => item.id === uploadAttempt.intentId);
+        if (pending) setUploadAttempt(value => value ? { ...value, status: pending.status, message: pending.message } : value);
+        else setUploadAttempt(value => value ? { ...value, message: "El envío ya no figura entre los pendientes. Revise las versiones del expediente; si la confirmación quedó incierta, consulte el mismo envío antes de repetir la carga." } : value);
       }
-
-      setIsUploadModalOpen(false);
-      setUploadFile(null);
-      setUploadStatusMsg(null);
-      await fetchWorkspace();
-    } catch (err: any) {
-      alert(`Error en la carga: ${err.message}`);
-    } finally {
-      setUploading(false);
-      setUploadStatusMsg(null);
+    } catch (failure: unknown) { setError(failure instanceof Error ? failure.message : "No pudimos actualizar los envíos pendientes."); }
+  };
+  const recoverUploadConfirmation = async () => {
+    if (!uploadAttempt?.binaryUploaded || uploading || !canUpload) return;
+    setUploading(true);
+    try { await confirmAdminUpload(uploadAttempt.intentId); setUploadFile(null); setIsUploadModalOpen(false); await fetchWorkspace(); }
+    catch (failure: unknown) { setUploadStatusMsg(failure instanceof Error ? failure.message : "Consulte el resultado antes de repetir el envío."); }
+    finally { setUploading(false); }
+  };
+  const handleUploadSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (uploading || !canUpload) return;
+    if (uploadAttempt?.binaryUploaded && ["UNCERTAIN", "AWAITING_UPLOAD"].includes(uploadAttempt.status)) {
+      setUploadStatusMsg("Consulte la confirmación del envío anterior antes de crear otra carga."); return;
     }
+    if (!uploadFile || uploadFile.size <= 0 || uploadFile.size > 15 * 1024 * 1024) { setUploadStatusMsg("Seleccione un archivo de hasta 15 MB."); return; }
+    let attempt: AdminUploadAttempt | null = null;
+    try {
+      setUploading(true); setUploadStatusMsg("1/3 Preparando autorización de carga…");
+      const intentResponse = await fetch(`/api/admin/crm/applications/${applicationId}/documents`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "CREATE_UPLOAD_INTENT", category: uploadCategory, title: uploadFile.name, declaredFileName: uploadFile.name, declaredMimeType: uploadFile.type || "application/pdf", maxAllowedBytes: 15 * 1024 * 1024, applicantId: uploadApplicantId || undefined, requirementId: uploadTargetReqId || undefined }),
+      });
+      const intent = await intentResponse.json();
+      if (!intentResponse.ok || !intent.intentId || !intent.uploadUrl || intent.uploadMethod !== "PUT") throw new Error(intent.error || "No se pudo autorizar el envío.");
+      attempt = { intentId: intent.intentId, binaryUploaded: false, status: "AWAITING_UPLOAD", message: "Transferencia pendiente de confirmación." };
+      setUploadAttempt(attempt); setUploadStatusMsg("2/3 Transfiriendo el archivo…");
+      const put = await fetch(intent.uploadUrl, { method: intent.uploadMethod, headers: intent.uploadHeaders, body: uploadFile });
+      if (!put.ok) throw new Error("La transferencia no se completó. Consulte el estado de este intento.");
+      attempt = { ...attempt, binaryUploaded: true }; setUploadAttempt(attempt);
+      setUploadStatusMsg("3/3 Confirmando recepción para validación…");
+      await confirmAdminUpload(intent.intentId);
+      setIsUploadModalOpen(false); setUploadFile(null); setUploadStatusMsg(null);
+      await fetchWorkspace();
+    } catch (failure: unknown) {
+      const message = failure instanceof Error ? failure.message : "No se pudo confirmar el resultado del envío.";
+      setUploadStatusMsg(message);
+      if (attempt) setUploadAttempt({ ...attempt, status: "UNCERTAIN", message: attempt.binaryUploaded ? "El archivo se transfirió, pero no se pudo confirmar el resultado. Consulte este mismo envío antes de repetirlo." : "La transferencia no quedó confirmada. Actualice el estado antes de preparar otra carga." });
+    } finally { setUploading(false); }
   };
 
   // Manejar Revisión Humana
@@ -403,6 +401,10 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
         />
         <CaseNavigation applicationId={applicationId} fileNumber={fileNumber} documents />
         {error && <p role="alert" className="rounded-lg border border-rose-800 bg-rose-950/30 p-4 text-sm text-rose-300">{error}</p>}
+
+        <CustomerDocumentReviewPanel applicationId={applicationId} requirements={data.customerRequirements || []} canLink={!!data.canLinkCustomerIdentity} onRefresh={fetchWorkspace} />
+
+        {(uploadAttempt || (data.pendingUploads || []).length > 0) && <section className="admin-card space-y-4" aria-labelledby="admin-pending-uploads-title"><div className="flex flex-wrap items-center justify-between gap-3"><h2 id="admin-pending-uploads-title" className="font-semibold text-white">Recepción y validación de archivos</h2><button type="button" className="admin-button" disabled={uploading} onClick={() => { void refreshPendingUploads(); }}>Actualizar envíos</button></div>{uploadAttempt && <div role="status" className="rounded-lg border border-sky-800 bg-sky-950/30 p-3 text-sm text-sky-100"><p>{uploadAttempt.message}</p><p className="mt-2 break-all text-xs text-sky-200">Envío: {uploadAttempt.intentId}</p>{uploadAttempt.binaryUploaded && ["UNCERTAIN", "AWAITING_UPLOAD"].includes(uploadAttempt.status) && <button type="button" className="admin-button mt-3" disabled={uploading || !canUpload} onClick={() => { void recoverUploadConfirmation(); }}>Consultar confirmación del mismo envío</button>}</div>}<ul className="space-y-3">{(data.pendingUploads || []).map((pending: PendingUploadReceipt) => <li key={pending.id} className="rounded-lg border border-slate-700 p-3"><div className="flex flex-wrap justify-between gap-2"><strong className="break-all text-sm text-white">{pending.fileName}</strong><span className="text-xs text-slate-300">{({ AWAITING_UPLOAD: "Pendiente de confirmación", QUEUED: "En cola", PROCESSING: "Validando", PROCESSING_ERROR: "Revisar envío", EXPIRED: "Autorización vencida" } as Record<string,string>)[pending.status] || pending.status}</span></div><p className="mt-2 text-xs text-slate-300">{pending.message}</p><p className="mt-2 break-all text-[11px] text-slate-400">{pending.id}</p></li>)}</ul><p className="text-xs text-slate-400">La recepción o la validación del archivo no sustituye la revisión documental.</p></section>}
 
         {/* Readiness Bar por Banco */}
         {selectedBankApp && readiness && (
@@ -864,7 +866,7 @@ export default function DocumentWorkspacePage({ params }: DocumentWorkspaceProps
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-lg"
                   disabled={uploading}
                 >
-                  {uploading ? "Procesando e Inspeccionando..." : "Subir y Analizar"}
+                  {uploading ? "Enviando…" : "Enviar archivo"}
                 </button>
               </div>
             </form>

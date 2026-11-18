@@ -39,7 +39,6 @@ export async function POST(req: NextRequest) {
       maskedDestination: result.maskedDestination,
       verificationChannel: result.verificationChannel,
       expiresAt: result.expiresAt,
-      testOtpPreview: result.testOtpPreview,
     });
   } catch (err: any) {
     if (err instanceof CustomerSecurityError) {

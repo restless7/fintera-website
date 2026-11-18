@@ -18,6 +18,7 @@ import path from "path";
 import crypto from "crypto";
 import { execSync } from "child_process";
 import prisma from "../lib/prisma";
+import { DocumentProcessingWorker } from "../lib/documents/document-processing-worker";
 import {
   UserRole,
   BankStage,
@@ -484,13 +485,14 @@ async function runGateFAcceptanceSuite() {
       clerkUserId: clerkUserA,
       applicationId: appA.id,
       requirementId: reqCedulaA.id,
+      scope: "BANK_ADDITIONAL", mode: "ADD", expectedRevision: (await prisma.bankDocumentRequirement.findUniqueOrThrow({ where: { id: reqCedulaA.id } })).revision,
       fileName: "cedula_titular.pdf",
       mimeType: "application/pdf",
       fileSize: 1024 * 50, // 50 KB
     });
 
     assert(uploadIntentClean.uploadUrl.includes("http"), "D.1.1: Genera URL pre-firmada directa a almacenamiento");
-    assert(uploadIntentClean.storageKey.startsWith("quarantine/"), "D.1.2: El destino inicial es obligatoriamente el almacén de CUARENTENA");
+    assert((await prisma.documentUploadIntent.findUniqueOrThrow({ where: { id: uploadIntentClean.intentId } })).generatedStorageKey.startsWith("quarantine/"), "D.1.2: El destino inicial es obligatoriamente el almacén de CUARENTENA");
 
     // D.2: Subida de archivo limpio (PDF sintético válido)
     const validPdfBuffer = Buffer.from("%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n");
@@ -506,14 +508,18 @@ async function runGateFAcceptanceSuite() {
       intentId: uploadIntentClean.intentId,
     });
 
-    assert(cleanConfirmation.success === true, "D.3.1: Confirmación de carga exitosa para evidencia limpia");
-    assert(cleanConfirmation.scanStatus === DocumentScanStatus.CLEAN, "D.3.2: Motor ClamAV certifica el archivo como CLEAN");
+    assert(cleanConfirmation.accepted === true, "D.3.1: Archivo aceptado en cola, no certificado por el API");
+    const claim = await DocumentProcessingWorker.claimNext();
+    if (!claim || claim.intentId !== uploadIntentClean.intentId) throw new Error("Aislar la cola antes de ejecutar esta suite");
+    const processed = await DocumentProcessingWorker.processClaim(claim.intentId, claim.token);
+    const cleanState = await CustomerDocumentService.getIntent(clerkUserA, uploadIntentClean.intentId);
+    assert(processed.committed && cleanState.status === "CONFIRMED", "D.3.2: Worker real certifica y confirma el archivo");
 
     // D.4: Descarga de documento limpio genera URL de corta duración
-    assert(!!cleanConfirmation.version?.id, "D.4.1: Versión inmutable creada en la base de datos");
+    assert(!!cleanState.versionId, "D.4.1: Versión inmutable creada en la base de datos");
     const downloadAuth = await CustomerDocumentService.getCustomerDownloadUrl({
       clerkUserId: clerkUserA,
-      versionId: cleanConfirmation.version!.id,
+      versionId: cleanState.versionId!,
     });
     assert(downloadAuth.downloadUrl.includes("http"), "D.4.2: Emite URL pre-firmada de lectura de 5 minutos");
 
@@ -522,6 +528,7 @@ async function runGateFAcceptanceSuite() {
       clerkUserId: clerkUserA,
       applicationId: appA.id,
       requirementId: reqExtractosA.id,
+      scope: "BANK_ADDITIONAL", mode: "ADD", expectedRevision: (await prisma.bankDocumentRequirement.findUniqueOrThrow({ where: { id: reqExtractosA.id } })).revision,
       fileName: "extracto_con_virus.pdf",
       mimeType: "application/pdf",
       fileSize: 1024,
@@ -543,10 +550,12 @@ async function runGateFAcceptanceSuite() {
         clerkUserId: clerkUserA,
         intentId: uploadIntentMalware.intentId,
       });
-      if (malwareConfirm.scanStatus === DocumentScanStatus.INFECTED) {
-        malwareDetected = true;
-        malwareVersionId = (malwareConfirm as any)?.version?.id || null;
-      }
+      assert(malwareConfirm.accepted, "D.5.1: Malware recibido en cuarentena sin aprobación anticipada");
+      const claim = await DocumentProcessingWorker.claimNext();
+      if (!claim || claim.intentId !== uploadIntentMalware.intentId) throw new Error("Aislar la cola antes de ejecutar esta suite");
+      const result = await DocumentProcessingWorker.processClaim(claim.intentId, claim.token);
+      malwareDetected = !result.committed && result.code === "MALWARE_BLOCKED";
+      malwareVersionId = (await CustomerDocumentService.getIntent(clerkUserA, uploadIntentMalware.intentId)).versionId;
     } catch (e: any) {
       malwareDetected = true;
     }

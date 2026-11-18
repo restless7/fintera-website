@@ -1,10 +1,6 @@
-/**
- * FASE 6.4: GATE E-R — ENTERPRISE CLAMAV ANTIVIRUS & THREAT SCANNER
- * Integración con demonio oficial ClamAV vía protocolo TCP INSTREAM (Puerto 3310)
- * + Validación estructural y Desarme de Contenido Activo (PDF CDR)
- * Regla E-ARCH-04: FAIL-CLOSED en toda falla de scanner, timeout o indisponibilidad
- */
-
+/** Real ClamAV VERSION + INSTREAM inspection. Any unavailable, stale or malformed
+ * engine response retains the document. PDF active-content checks reject content;
+ * they do not reconstruct or sanitize a PDF. */
 import net from "net";
 
 export interface AntivirusScanResult {
@@ -15,7 +11,6 @@ export interface AntivirusScanResult {
   details?: string;
   isEngineVerified?: boolean;
 }
-
 export interface AntivirusScannerOptions {
   host?: string;
   port?: number;
@@ -23,287 +18,115 @@ export interface AntivirusScannerOptions {
   forceOffline?: boolean;
   forceTimeout?: boolean;
 }
-
 export interface ClamAvEngineStatus {
   isOnline: boolean;
   versionString: string;
   host: string;
   port: number;
   signaturesCount?: number;
+  databaseVersion?: number;
+  signaturesBuiltAt?: string;
   error?: string;
 }
 
 export class AntivirusScanner {
   private static readonly DEFAULT_HOST = process.env.CLAMAV_HOST || "127.0.0.1";
-  private static readonly DEFAULT_PORT = parseInt(process.env.CLAMAV_PORT || "3310", 10);
-  private static readonly DEFAULT_TIMEOUT_MS = 15000;
+  private static readonly DEFAULT_PORT = Number(process.env.CLAMAV_PORT || "3310");
+  // Daily signatures may span a weekend interruption; beyond 72 hours scans stop.
+  // A definition timestamp over 15 minutes ahead also fails closed (clock skew).
+  private static readonly MAX_SIGNATURE_AGE_MS = 72 * 60 * 60 * 1000;
+  private static readonly MAX_FUTURE_SKEW_MS = 15 * 60 * 1000;
 
-  // Cadena oficial EICAR para pruebas antivirus estándar (RFC/EICAR)
-  private static readonly EICAR_SIGNATURE = Buffer.from(
-    "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*",
-    "ascii"
-  );
-
-  /**
-   * Consulta el estado y versión del demonio ClamAV activo
-   */
   public static async getEngineStatus(options: AntivirusScannerOptions = {}): Promise<ClamAvEngineStatus> {
     const host = options.host || this.DEFAULT_HOST;
     const port = options.port || this.DEFAULT_PORT;
-    const timeoutMs = options.timeoutMs || 3000;
-
-    if (options.forceOffline) {
-      return {
-        isOnline: false,
-        versionString: "ClamAV-Daemon-Offline",
-        host,
-        port,
-        error: "Simulated offline state",
-      };
+    let versionString = "ClamAV-Unavailable";
+    try {
+      if (options.forceOffline) throw new Error("SCANNER_UNAVAILABLE");
+      if (options.forceTimeout) throw new Error("SCANNER_TIMEOUT");
+      versionString = await this.request(host, port, options.timeoutMs || 3000, "VERSION");
+      const match = /^ClamAV (\d+\.\d+\.\d+(?:[-\w.]*)?)\/(\d+)\/([A-Z][a-z]{2} [A-Z][a-z]{2}\s+\d{1,2} \d{2}:\d{2}:\d{2} \d{4})$/.exec(versionString);
+      if (!match) throw new Error("SCANNER_VERSION_INVALID");
+      const builtAt = Date.parse(`${match[3]} UTC`);
+      const age = Date.now() - builtAt;
+      if (!Number.isFinite(builtAt) || age > this.MAX_SIGNATURE_AGE_MS || age < -this.MAX_FUTURE_SKEW_MS) throw new Error("SCANNER_SIGNATURES_STALE_OR_CLOCK_INVALID");
+      const databaseVersion = Number(match[2]);
+      if (!Number.isSafeInteger(databaseVersion) || databaseVersion <= 0) throw new Error("SCANNER_DATABASE_VERSION_INVALID");
+      return { isOnline: true, versionString, host, port, databaseVersion, signaturesBuiltAt: new Date(builtAt).toISOString() };
+    } catch (error) {
+      return { isOnline: false, versionString, host, port, error: error instanceof Error ? error.message : "SCANNER_UNAVAILABLE" };
     }
-
-    return new Promise((resolve) => {
-      const socket = new net.Socket();
-      let response = "";
-      let hasTimedOut = false;
-
-      socket.setTimeout(timeoutMs);
-
-      socket.on("timeout", () => {
-        hasTimedOut = true;
-        socket.destroy();
-        resolve({
-          isOnline: false,
-          versionString: "Timeout-Waiting-ClamAV",
-          host,
-          port,
-          error: `Conexión a ClamAV en ${host}:${port} excedió tiempo límite (${timeoutMs}ms)`,
-        });
-      });
-
-      socket.connect(port, host, () => {
-        socket.write("zVERSION\0");
-      });
-
-      socket.on("data", (chunk) => {
-        response += chunk.toString("utf-8");
-      });
-
-      socket.on("end", () => {
-        const cleaned = response.replace(/\0/g, "").trim();
-        resolve({
-          isOnline: true,
-          versionString: cleaned || "ClamAV-Daemon-Active",
-          host,
-          port,
-        });
-      });
-
-      socket.on("error", (err) => {
-        if (!hasTimedOut) {
-          resolve({
-            isOnline: false,
-            versionString: "ClamAV-Unavailable",
-            host,
-            port,
-            error: err.message,
-          });
-        }
-      });
-    });
   }
 
-  /**
-   * Ejecuta el escaneo del archivo COMPLETO con el motor ClamAV real y CDR heurístico
-   * Regla E-ARCH-04: Fail-closed (si falla o da error, no se libera el documento)
-   */
-  public static async scanFile(
-    fileBuffer: Buffer,
-    options: AntivirusScannerOptions = {}
-  ): Promise<AntivirusScanResult> {
-    const startTime = Date.now();
-    const host = options.host || this.DEFAULT_HOST;
-    const port = options.port || this.DEFAULT_PORT;
-    const timeoutMs = options.timeoutMs || this.DEFAULT_TIMEOUT_MS;
-
+  public static async scanFile(fileBuffer: Buffer, options: AntivirusScannerOptions = {}): Promise<AntivirusScanResult> {
+    const started = Date.now();
+    let scannerEngine = "ClamAV-Unverified";
+    const denied = (threatName: string, details: string, verified = false): AntivirusScanResult => ({ isClean: false, threatName, scannerEngine, scanDurationMs: Date.now() - started, details, isEngineVerified: verified });
+    if (!fileBuffer?.length) return denied("EMPTY_PAYLOAD", "El archivo está vacío.");
+    if (options.forceOffline) return denied("SCANNER_UNAVAILABLE_FAIL_CLOSED", "El verificador no está disponible.");
+    if (options.forceTimeout) return denied("SCANNER_TIMEOUT_FAIL_CLOSED", "La verificación excedió el tiempo permitido.");
     try {
-      // 1. Verificación básica de tamaño y contenido
-      if (!fileBuffer || fileBuffer.length === 0) {
-        return {
-          isClean: false,
-          threatName: "EMPTY_PAYLOAD",
-          scannerEngine: "Fintera-Validator",
-          scanDurationMs: Date.now() - startTime,
-          details: "El archivo está vacío o corrupto",
-          isEngineVerified: false,
-        };
+      const status = await this.getEngineStatus(options);
+      scannerEngine = status.versionString;
+      if (!status.isOnline) return denied("SCANNER_UNAVAILABLE_FAIL_CLOSED", "No fue posible verificar el motor y la vigencia de sus firmas.");
+      const response = await this.request(status.host, status.port, options.timeoutMs || 15000, "INSTREAM", fileBuffer);
+      if (response !== "stream: OK") {
+        const infected = /^stream: (.+) FOUND$/.exec(response);
+        if (infected) return denied(infected[1], "El motor antivirus detectó una amenaza.", true);
+        return denied("SCANNER_ERROR_FAIL_CLOSED", "El verificador devolvió una respuesta inválida.");
       }
-
-      // 2. Detección inmediata de firma estándar EICAR en bytes crudos
-      if (fileBuffer.includes(this.EICAR_SIGNATURE)) {
-        return {
-          isClean: false,
-          threatName: "Eicar-Test-Signature",
-          scannerEngine: "ClamAV 1.5.4",
-          scanDurationMs: Date.now() - startTime,
-          details: "Firma estándar de virus de prueba detectada (EICAR.TestFile)",
-          isEngineVerified: true,
-        };
-      }
-
-      // 3. Simulación controlada de fallos para pruebas negativas de resiliencia
-      if (options.forceOffline) {
-        return {
-          isClean: false,
-          threatName: "SCANNER_UNAVAILABLE_FAIL_CLOSED",
-          scannerEngine: "ClamAV-Daemon-Offline",
-          scanDurationMs: Date.now() - startTime,
-          details: "El motor antivirus ClamAV está fuera de línea. Retención preventiva (fail-closed).",
-          isEngineVerified: false,
-        };
-      }
-
-      if (options.forceTimeout) {
-        return {
-          isClean: false,
-          threatName: "SCANNER_TIMEOUT_FAIL_CLOSED",
-          scannerEngine: "ClamAV-Daemon-Timeout",
-          scanDurationMs: Date.now() - startTime,
-          details: "La inspección antivirus excedió el límite de tiempo. Retención preventiva (fail-closed).",
-          isEngineVerified: false,
-        };
-      }
-
-      // 3. Inspección mediante demonio ClamAV vía socket TCP (protocolo zINSTREAM)
-      const clamResult = await this.scanWithClamAvDaemon(fileBuffer, host, port, timeoutMs);
-
-      if (!clamResult.isClean) {
-        return {
-          isClean: false,
-          threatName: clamResult.threatName || "Infection-Detected",
-          scannerEngine: clamResult.engineVersion,
-          scanDurationMs: Date.now() - startTime,
-          details: `Amenaza detectada por motor antivirus ClamAV: ${clamResult.threatName}`,
-          isEngineVerified: true,
-        };
-      }
-
-      // 4. Capa Heurística Complementaria: Desarme y Reconstrucción de Contenido (PDF CDR)
-      // Detección de acciones activas que un antivirus de firmas podría no etiquetar
-      const asciiContent = fileBuffer.toString("latin1");
-      const maliciousPdfActions = [
+      const content = fileBuffer.toString("latin1");
+      const activeContent = [
         { pattern: /\/Launch\b/i, threat: "Exploit.PDF.ActiveContent.LaunchCommand" },
         { pattern: /\/JavaScript\b/i, threat: "Trojan.PDF.ActiveContent.EmbeddedJavaScript" },
         { pattern: /\/JS\s*\(/i, threat: "Trojan.PDF.ActiveContent.EmbeddedJavaScript" },
         { pattern: /\/EmbeddedFiles\b/i, threat: "Heuristic.PDF.HiddenPayload" },
       ];
-
-      for (const check of maliciousPdfActions) {
-        if (check.pattern.test(asciiContent)) {
-          return {
-            isClean: false,
-            threatName: check.threat,
-            scannerEngine: `${clamResult.engineVersion} + Fintera-PDF-CDR`,
-            scanDurationMs: Date.now() - startTime,
-            details: `Contenido activo sospechoso en estructura de PDF (${check.threat}). Bloqueado por política CDR.`,
-            isEngineVerified: true,
-          };
-        }
-      }
-
-      // 5. Archivo Certificado Limpio por ClamAV + CDR
-      return {
-        isClean: true,
-        scannerEngine: clamResult.engineVersion,
-        scanDurationMs: Date.now() - startTime,
-        details: "Escaneo completo ClamAV + CDR finalizado exitosamente. Cero amenazas detectadas.",
-        isEngineVerified: true,
-      };
-    } catch (error: any) {
-      // Regla de Oro: FAIL-CLOSED
-      console.error("[AntivirusScanner] Error en motor de escaneo:", error);
-      return {
-        isClean: false,
-        threatName: "SCANNER_ERROR_FAIL_CLOSED",
-        scannerEngine: "ClamAV-Daemon-Error",
-        scanDurationMs: Date.now() - startTime,
-        details: `Falla o desconexión en escáner antivirus: ${error.message}. Documento retenido preventivamente por fail-closed.`,
-        isEngineVerified: false,
-      };
+      for (const check of activeContent) if (check.pattern.test(content)) return denied(check.threat, "Se rechazó contenido activo sospechoso. El archivo no fue modificado.", true);
+      return { isClean: true, scannerEngine, scanDurationMs: Date.now() - started, details: "ClamAV no detectó amenazas; la comprobación de contenido activo no detectó patrones prohibidos.", isEngineVerified: true };
+    } catch {
+      return denied("SCANNER_ERROR_FAIL_CLOSED", "La verificación no pudo completarse. El documento permanece retenido.");
     }
   }
 
-  /**
-   * Comunicación socket TCP directa con ClamAV daemon vía comando INSTREAM
-   */
-  private static async scanWithClamAvDaemon(
-    buffer: Buffer,
-    host: string,
-    port: number,
-    timeoutMs: number
-  ): Promise<{ isClean: boolean; threatName?: string; engineVersion: string }> {
+  private static request(host: string, port: number, timeoutMs: number, command: "VERSION" | "INSTREAM", buffer?: Buffer): Promise<string> {
     return new Promise((resolve, reject) => {
       const socket = new net.Socket();
-      let response = "";
-      let hasTimedOut = false;
-      let engineVersion = "ClamAV 1.5.4";
-
-      socket.setTimeout(timeoutMs);
-
-      socket.on("timeout", () => {
-        hasTimedOut = true;
+      let settled = false;
+      let response = Buffer.alloc(0);
+      const finish = (error?: Error, value?: string) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(deadline);
         socket.destroy();
-        reject(new Error(`Timeout de escaneo en socket ClamAV (${timeoutMs}ms)`));
-      });
-
-      socket.connect(port, host, () => {
-        // Enviar comando zINSTREAM\0
-        socket.write("zINSTREAM\0");
-
-        // Enviar buffer en bloques de máximo 64 KB con prefijo de longitud Big-Endian de 4 bytes
-        const CHUNK_SIZE = 64 * 1024;
-        let offset = 0;
-
-        while (offset < buffer.length) {
-          const chunkEnd = Math.min(offset + CHUNK_SIZE, buffer.length);
-          const chunk = buffer.subarray(offset, chunkEnd);
-          const chunkLengthHeader = Buffer.alloc(4);
-          chunkLengthHeader.writeUInt32BE(chunk.length, 0);
-
-          socket.write(chunkLengthHeader);
-          socket.write(chunk);
-          offset = chunkEnd;
-        }
-
-        // Marcador final: Bloque de longitud cero (4 bytes 0x00000000)
-        const endMarker = Buffer.alloc(4);
-        endMarker.writeUInt32BE(0, 0);
-        socket.write(endMarker);
-      });
-
-      socket.on("data", (data) => {
-        response += data.toString("utf-8");
-      });
-
-      socket.on("end", () => {
-        const cleanResponse = response.replace(/\0/g, "").trim();
-
-        if (cleanResponse.includes("OK")) {
-          resolve({ isClean: true, engineVersion });
-        } else if (cleanResponse.includes("FOUND")) {
-          // Extraer nombre de amenaza: stream: <ThreatName> FOUND
-          const match = cleanResponse.match(/stream:\s*(.+?)\s*FOUND/i);
-          const threatName = match ? match[1] : "Malware-Signature-Found";
-          resolve({ isClean: false, threatName, engineVersion });
-        } else {
-          reject(new Error(`Respuesta desconocida de ClamAV: ${cleanResponse}`));
+        if (error) reject(error); else resolve(value!);
+      };
+      const deadline = setTimeout(() => finish(new Error("SCANNER_TIMEOUT")), timeoutMs);
+      socket.on("error", () => finish(new Error("SCANNER_SOCKET_ERROR")));
+      socket.on("end", () => finish(new Error("SCANNER_INCOMPLETE_RESPONSE")));
+      socket.on("close", () => { if (!settled) finish(new Error("SCANNER_CONNECTION_CLOSED")); });
+      socket.on("data", chunk => {
+        response = Buffer.concat([response, chunk]);
+        if (response.length > 65536) return finish(new Error("SCANNER_RESPONSE_TOO_LARGE"));
+        const end = response.indexOf(0);
+        if (end >= 0) {
+          if (end !== response.length - 1) return finish(new Error("SCANNER_MULTIPLE_RESPONSES"));
+          finish(undefined, response.subarray(0, end).toString("utf8"));
         }
       });
-
-      socket.on("error", (err) => {
-        if (!hasTimedOut) {
-          reject(err);
-        }
+      socket.connect(port, host, async () => {
+        const write = (data: Buffer | string) => new Promise<void>((done, fail) => socket.write(data, error => error ? fail(error) : done()));
+        try {
+          await write(`z${command}\0`);
+          if (buffer) {
+            for (let offset = 0; offset < buffer.length; offset += 65536) {
+              const chunk = buffer.subarray(offset, offset + 65536);
+              const length = Buffer.alloc(4); length.writeUInt32BE(chunk.length);
+              await write(length); await write(chunk);
+            }
+            await write(Buffer.alloc(4));
+          }
+        } catch { finish(new Error("SCANNER_WRITE_ERROR")); }
       });
     });
   }

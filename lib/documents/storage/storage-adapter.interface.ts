@@ -30,6 +30,9 @@ export interface ObjectMetadata {
 
 export interface UploadAuthorization {
   uploadUrl: string;
+  uploadMethod?: "PUT";
+  uploadHeaders?: Record<string, string>;
+  providerExpiresAt?: Date;
   storageKey: string;
   bucket: string;
   expiresAt: Date;
@@ -58,7 +61,7 @@ export interface StorageAdapter {
 
   getObjectMetadata(storageKey: string, isQuarantine?: boolean): Promise<ObjectMetadata>;
 
-  getObjectBuffer(storageKey: string, isQuarantine?: boolean): Promise<Buffer>;
+  getObjectBuffer(storageKey: string, isQuarantine?: boolean, maxBytes?: number): Promise<Buffer>;
 
   getObjectStream(storageKey: string, isQuarantine?: boolean): Promise<Readable>;
 
@@ -73,6 +76,7 @@ export interface StorageAdapter {
   promoteQuarantinedObject(params: {
     quarantineKey: string;
     cleanKey: string;
+    scannedBuffer?: Buffer;
     metadata?: Record<string, string>;
   }): Promise<void>;
 

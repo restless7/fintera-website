@@ -27,10 +27,13 @@ export interface SupabaseStorageConfig {
 }
 
 export function getSupabaseStorageConfig(): SupabaseStorageConfig | null {
-  const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "")
+  const dedicated = [process.env.FINTERA_DOCUMENT_STORAGE_URL, process.env.FINTERA_DOCUMENT_STORAGE_SERVICE_ROLE_KEY, process.env.FINTERA_DOCUMENT_BUCKET_QUARANTINE, process.env.FINTERA_DOCUMENT_BUCKET_CLEAN];
+  if (dedicated.some(Boolean) && !dedicated.every(Boolean)) throw new Error("Dedicated document storage configuration incomplete");
+  const supabaseUrl = (process.env.FINTERA_DOCUMENT_STORAGE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "")
     .trim()
     .replace(/\/+$/, "");
   const serviceRoleKey = (
+    process.env.FINTERA_DOCUMENT_STORAGE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SERVICE_KEY ||
     ""
@@ -43,8 +46,8 @@ export function getSupabaseStorageConfig(): SupabaseStorageConfig | null {
   return {
     supabaseUrl,
     serviceRoleKey,
-    quarantineBucket: process.env.SUPABASE_BUCKET_QUARANTINE || "fintera-documents-quarantine",
-    cleanBucket: process.env.SUPABASE_BUCKET_CLEAN || "fintera-documents-clean",
+    quarantineBucket: process.env.FINTERA_DOCUMENT_BUCKET_QUARANTINE || process.env.SUPABASE_BUCKET_QUARANTINE || "fintera-documents-quarantine",
+    cleanBucket: process.env.FINTERA_DOCUMENT_BUCKET_CLEAN || process.env.SUPABASE_BUCKET_CLEAN || "fintera-documents-clean",
     defaultPresignUploadTtlSeconds: 600, // 10 min
     defaultPresignDownloadTtlSeconds: 300, // 5 min
     maxPresignDownloadTtlSeconds: 900, // 15 min
@@ -108,19 +111,20 @@ export class SupabaseStorageAdapter implements StorageAdapter {
     const res = await fetch(
       `${this.config.supabaseUrl}/storage/v1/object/upload/sign/${bucket}/${encodedKey}`,
       {
+        signal: AbortSignal.timeout(30000),
         method: "POST",
         headers: this.getAuthHeaders({
           "Content-Type": "application/json",
-          "x-upsert": "true",
+          "x-upsert": "false",
         }),
         body: JSON.stringify({}),
       }
     );
 
     if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
+
       throw new Error(
-        `[SupabaseStorageAdapter] Error generando URL firmada de carga (${res.status}): ${errBody}`
+        `[SupabaseStorageAdapter] Error generando URL firmada de carga (${res.status}): provider request failed`
       );
     }
 
@@ -133,12 +137,14 @@ export class SupabaseStorageAdapter implements StorageAdapter {
 
     return {
       uploadUrl,
+      uploadMethod: "PUT",
+      uploadHeaders: { "Content-Type": declaredMimeType },
+      providerExpiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
       storageKey,
       bucket,
       expiresAt,
       declaredMimeType,
       maxAllowedBytes,
-      serverSideEncryption: "AES256",
     };
   }
 
@@ -167,6 +173,7 @@ export class SupabaseStorageAdapter implements StorageAdapter {
     const res = await fetch(
       `${this.config.supabaseUrl}/storage/v1/object/info/${bucket}/${encodedKey}`,
       {
+        signal: AbortSignal.timeout(30000),
         method: "GET",
         headers: this.getAuthHeaders(),
       }
@@ -185,59 +192,47 @@ export class SupabaseStorageAdapter implements StorageAdapter {
         contentType: info.contentType || info.metadata?.mimetype || "application/octet-stream",
         etag: info.etag || info.metadata?.eTag || "supabase-etag",
         lastModified: info.updated_at ? new Date(info.updated_at) : new Date(),
-        serverSideEncryption: "AES256",
-      };
+        };
     }
 
-    // Fallback: consultar con GET directo si /object/info no está habilitado
-    const getRes = await fetch(
-      `${this.config.supabaseUrl}/storage/v1/object/${bucket}/${encodedKey}`,
-      {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      }
-    );
-
-    if (!getRes.ok) {
-      throw new Error(
-        `[SupabaseStorageAdapter] Objeto no encontrado en ${bucket}/${storageKey} (${getRes.status})`
-      );
-    }
-
-    const buf = await getRes.arrayBuffer();
-    return {
-      contentLength: buf.byteLength,
-      contentType: getRes.headers.get("content-type") || "application/octet-stream",
-      etag: getRes.headers.get("etag")?.replace(/"/g, "") || "supabase-etag",
-      lastModified: new Date(),
-      serverSideEncryption: "AES256",
-    };
+    throw new Error(`Storage metadata unavailable (${res.status})`);
   }
 
   /**
    * 4. Descarga el contenido binario completo para validación Magic Bytes, SHA-256 y ClamAV
    */
-  public async getObjectBuffer(storageKey: string, isQuarantine = false): Promise<Buffer> {
+  public async getObjectBuffer(storageKey: string, isQuarantine = false, maxBytes = 15 * 1024 * 1024): Promise<Buffer> {
     const bucket = this.getBucket(isQuarantine);
     const encodedKey = this.encodeKeyPath(storageKey);
 
     const res = await fetch(
       `${this.config.supabaseUrl}/storage/v1/object/${bucket}/${encodedKey}`,
       {
+        signal: AbortSignal.timeout(30000),
         method: "GET",
         headers: this.getAuthHeaders(),
       }
     );
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => "");
+
       throw new Error(
-        `[SupabaseStorageAdapter] Error descargando buffer de ${bucket}/${storageKey} (${res.status}): ${errText}`
+        `[SupabaseStorageAdapter] Error descargando buffer de ${bucket}/${storageKey} (${res.status}): provider request failed`
       );
     }
 
-    const arrayBuffer = await res.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+    const declared = Number(res.headers.get("content-length") || 0);
+    if (declared > maxBytes) { await res.body?.cancel(); throw new Error("Storage object exceeds size limit"); }
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("Storage body unavailable");
+    const chunks: Uint8Array[] = []; let size = 0;
+    while (true) {
+      const { done, value } = await reader.read(); if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) { await reader.cancel(); throw new Error("Storage object exceeds size limit"); }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks, size);
   }
 
   /**
@@ -266,19 +261,20 @@ export class SupabaseStorageAdapter implements StorageAdapter {
     const res = await fetch(
       `${this.config.supabaseUrl}/storage/v1/object/${bucket}/${encodedKey}`,
       {
+        signal: AbortSignal.timeout(30000),
         method: "POST",
         headers: this.getAuthHeaders({
           "Content-Type": contentType || "application/octet-stream",
-          "x-upsert": "true",
+          "x-upsert": "false",
         }),
         body: new Uint8Array(buffer),
       }
     );
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => "");
+
       throw new Error(
-        `[SupabaseStorageAdapter] Error en putObject ${bucket}/${storageKey} (${res.status}): ${errText}`
+        `[SupabaseStorageAdapter] Error en putObject ${bucket}/${storageKey} (${res.status}): provider request failed`
       );
     }
 
@@ -294,13 +290,15 @@ export class SupabaseStorageAdapter implements StorageAdapter {
   public async promoteQuarantinedObject(params: {
     quarantineKey: string;
     cleanKey: string;
+    scannedBuffer?: Buffer;
     metadata?: Record<string, string>;
   }): Promise<void> {
     const { quarantineKey, cleanKey, metadata } = params;
     const contentType = metadata?.detectedMimeType || "application/octet-stream";
 
     // 1. Descargar de cuarentena
-    const buffer = await this.getObjectBuffer(quarantineKey, true);
+    const buffer = params.scannedBuffer;
+    if (!buffer) throw new Error("Promotion requires the exact scanned buffer");
 
     // 2. Subir a bóveda limpia (fintera-documents-clean)
     await this.putObject({
@@ -312,7 +310,7 @@ export class SupabaseStorageAdapter implements StorageAdapter {
     });
 
     // 3. Eliminar de cuarentena
-    await this.deleteObject(quarantineKey, true);
+    // The caller removes quarantine only after the database COMMIT ACK.
   }
 
   /**
@@ -341,6 +339,7 @@ export class SupabaseStorageAdapter implements StorageAdapter {
     const res = await fetch(
       `${this.config.supabaseUrl}/storage/v1/object/sign/${bucket}/${encodedKey}`,
       {
+        signal: AbortSignal.timeout(30000),
         method: "POST",
         headers: this.getAuthHeaders({
           "Content-Type": "application/json",
@@ -350,9 +349,9 @@ export class SupabaseStorageAdapter implements StorageAdapter {
     );
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => "");
+
       throw new Error(
-        `[SupabaseStorageAdapter] Error firmando URL de descarga (${res.status}): ${errText}`
+        `[SupabaseStorageAdapter] Error firmando URL de descarga (${res.status}): provider request failed`
       );
     }
 
@@ -383,15 +382,16 @@ export class SupabaseStorageAdapter implements StorageAdapter {
     const res = await fetch(
       `${this.config.supabaseUrl}/storage/v1/object/${bucket}/${encodedKey}`,
       {
+        signal: AbortSignal.timeout(30000),
         method: "DELETE",
         headers: this.getAuthHeaders(),
       }
     );
 
     if (!res.ok && res.status !== 404) {
-      const errText = await res.text().catch(() => "");
+
       console.warn(
-        `[SupabaseStorageAdapter] Advertencia eliminando ${bucket}/${storageKey} (${res.status}): ${errText}`
+        `[SupabaseStorageAdapter] Advertencia eliminando ${bucket}/${storageKey} (${res.status}): provider request failed`
       );
     }
   }
@@ -405,7 +405,8 @@ export class SupabaseStorageAdapter implements StorageAdapter {
       const res = await fetch(
         `${this.config.supabaseUrl}/storage/v1/bucket/${this.config.cleanBucket}`,
         {
-          method: "GET",
+          signal: AbortSignal.timeout(30000),
+        method: "GET",
           headers: this.getAuthHeaders(),
         }
       );
