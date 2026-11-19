@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import { motion } from "framer-motion";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
@@ -148,7 +149,7 @@ export default function TerminosPage() {
                     <div className="text-slate-600 leading-relaxed space-y-2">
                       <p>Para consultas sobre estos términos:</p>
                       <p><strong className="text-slate-900">Correo:</strong> legal@fintera.com.co</p>
-                      <p><strong className="text-slate-900">Teléfono:</strong> +57 (300) 123-4567</p>
+                      <p><strong className="text-slate-900">Teléfono:</strong> {PUBLIC_CONTACT.phoneDisplay}</p>
                     </div>
                   </section>
 

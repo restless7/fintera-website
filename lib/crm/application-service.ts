@@ -64,6 +64,7 @@ export interface CreditRequestIntakePayload {
   ipAddress?: string;
   userAgent?: string;
   consentHabeasData?: boolean;
+  consentVersion?: string;
 }
 
 export interface IntakeResult {
@@ -224,7 +225,7 @@ export class ApplicationService {
           consentType: ConsentType.HABEAS_DATA_LEY_1581,
           ipAddress: payload.ipAddress || "127.0.0.1",
           userAgent: payload.userAgent || "Web Browser",
-          version: "2026.V2",
+          version: payload.consentVersion || "2026.V2",
         },
       });
 

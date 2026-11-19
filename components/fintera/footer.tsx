@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
@@ -23,8 +24,11 @@ const footerLinks = {
     { name: "Prensa", href: "/nosotros#prensa" },
   ],
   contacto: [
-    { name: "Formulario de Contacto", href: "/contacto#formulario" },
-    { name: "WhatsApp", href: "https://wa.me/573001234567" },
+    { name: "Mi portal", href: "/portal" },
+    { name: "Crear cuenta", href: "/onboarding/sign-up" },
+    { name: "Iniciar una solicitud", href: "/solicitar" },
+    { name: "Canales de contacto", href: "/contacto#formulario" },
+    { name: `WhatsApp ${PUBLIC_CONTACT.phoneDisplay}`, href: PUBLIC_CONTACT.whatsappUrl },
     { name: "Correo Corporativo", href: "mailto:info@fintera.com.co" },
   ],
   legal: [

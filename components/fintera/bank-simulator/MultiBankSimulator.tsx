@@ -154,35 +154,9 @@ export default function MultiBankSimulator() {
     document.body.removeChild(link);
   };
 
-  // Funnel Handoff: Save sanitized simulation parameters to local storage with 2-hour TTL
-  const handleApplyWithBank = (bankId?: string) => {
-    const targetBank = bankId && bankId in ALLIED_BANKS ? ALLIED_BANKS[bankId as BankId] : (selectedBankId !== "all" ? ALLIED_BANKS[selectedBankId as BankId] : undefined);
-    const calc = singleBankCalculation?.bankId === bankId ? singleBankCalculation : comparisonResult?.calculations.find(c => c.bankId === bankId);
-    const expiresAt = Date.now() + 2 * 60 * 60 * 1000; // 2 hours TTL
-    const funnelPayload = {
-      creditTypes: [`${targetBank?.name || "Banco Aliado"} - ${PRODUCT_LABELS[selectedProduct].label}`],
-      requestedAmount: loanAmount,
-      termMonths: String(termYears * 12),
-      monthlyIncome: calc?.consolidatedMonthlyIncome || monthlyIncome,
-      residenceCity: "Bogotá",
-      birthCountry: "Colombia",
-      residenceCountry: "Colombia",
-      simulatedBank: targetBank?.name,
-      simulatedRateEA: calc ? `${(calc.rateEA * 100).toFixed(2)}%` : "11.5%",
-      simulatedMonthlyPayment: calc ? calc.initialMonthlyTotalPayment : 0,
-      existingObligations: existingFinancialObligations,
-      hasCoApplicant: hasCoApplicant,
-      sourceDocument: calc?.traceability.sourceDocument || "",
-      effectiveDate: calc?.traceability.effectiveDate || "",
-    };
-
-    localStorage.setItem("fintera_credit_request", JSON.stringify({
-      data: funnelPayload,
-      timestamp: Date.now(),
-      expiresAt: expiresAt,
-    }));
-
-    window.location.href = "/credit-request";
+  // Simulated rates and assumptions are not data for a real service request.
+  const handleApplyWithBank = (_bankId?: string) => {
+    window.location.href = "/solicitar";
   };
 
   return (

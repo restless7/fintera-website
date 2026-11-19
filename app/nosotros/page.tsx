@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Navbar } from "@/app/components/ui/Navbar";
@@ -412,7 +413,7 @@ export default function NosotrosPage() {
                     </p>
                     <div className="bg-fintera-50 p-6 rounded-lg mb-8">
                       <p className="text-slate-700"><strong>Email:</strong> <a href="mailto:prensa@fintera.com.co" className="text-fintera-600 hover:underline">prensa@fintera.com.co</a></p>
-                      <p className="text-slate-700"><strong>Teléfono:</strong> +57 (300) 123-4567</p>
+                      <p className="text-slate-700"><strong>Teléfono:</strong> {PUBLIC_CONTACT.phoneDisplay}</p>
                       <p className="text-slate-700"><strong>Horario de atención:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</p>
                     </div>
 

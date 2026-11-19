@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import { motion } from "framer-motion";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
@@ -152,7 +153,7 @@ export default function CumplimientoPage() {
                     </p>
                     <div className="bg-slate-50 p-6 rounded-lg">
                       <p className="text-slate-700 mb-2"><strong>Email:</strong> <a href="mailto:cumplimiento@fintera.com.co" className="text-fintera-600 hover:underline">cumplimiento@fintera.com.co</a></p>
-                      <p className="text-slate-700"><strong>Línea Ética:</strong> +57 (300) 123-4567</p>
+                      <p className="text-slate-700"><strong>Línea Ética:</strong> {PUBLIC_CONTACT.phoneDisplay}</p>
                       <p className="text-sm text-slate-500 mt-3">Todas las denuncias son tratadas con confidencialidad y protección al denunciante según la Ley 1712 de 2014.</p>
                     </div>
                   </section>

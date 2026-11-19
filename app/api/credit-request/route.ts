@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
       productCategory: validatedData.creditTypes?.[0] || "VIVIENDA_NO_VIS",
       ipAddress,
       userAgent,
-      consentHabeasData: true,
+      consentHabeasData: validatedData.processingConsent,
+      consentVersion: validatedData.processingConsentVersion,
       // Metadatos de simulación si se envían en el body
       simulatedBankId: body.simulatedBankId,
       simulatedProductType: body.simulatedProductType,

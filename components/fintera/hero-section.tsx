@@ -138,7 +138,7 @@ export default function HeroSection() {
                   className="px-8 py-4 rounded-xl shadow-lg shadow-fintera-500/25 transition-all duration-300 transform hover:scale-105"
                   onClick={() => document.getElementById('prequalification')?.scrollIntoView({ behavior: 'smooth' })}
                 >
-                  Precalíficate Ahora
+                  Iniciar mi solicitud
                   <ArrowRightIcon className="ml-2 h-5 w-5" />
                 </Button>
 
@@ -185,15 +185,17 @@ export default function HeroSection() {
                       <div className="w-3 h-3 bg-green-500 rounded-full opacity-80"></div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="text-fintera-600 text-sm font-medium">Panel de Créditos</div>
+                      <div className="text-fintera-600 text-sm font-medium">Ejemplo de seguimiento</div>
                     </div>
                   </div>
+
+                  <p className="mb-4 max-w-xs text-xs leading-relaxed text-slate-600">Ejemplo ilustrativo; no representa una aprobación ni una oferta de crédito.</p>
 
                   {/* Credit Overview */}
                   <div className="bg-gradient-to-r from-fintera-50 to-gradient-from/10 rounded-2xl p-4 mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-sm font-medium text-slate-700">Monto Disponible</h3>
-                      <span className="text-xs text-green-600">Aprobado</span>
+                      <h3 className="text-sm font-medium text-slate-700">Monto de ejemplo</h3>
+                      <span className="text-xs text-slate-600">Ilustrativo</span>
                     </div>
                     <div className="text-2xl font-bold text-slate-900 mb-2">$120.500.000</div>
 
@@ -228,7 +230,7 @@ export default function HeroSection() {
                       whileHover={{ scale: 1.02 }}
                     >
                       <div className="text-xs text-slate-600 mb-1">Tasa Referencia Vivienda</div>
-                      <div className="text-lg font-semibold text-slate-900">Desde 10.5% E.A.</div>
+                      <div className="text-lg font-semibold text-slate-900">Por consultar</div>
                       <div className="text-xs text-green-600">Sujeto a evaluación</div>
                     </motion.div>
 
@@ -236,7 +238,7 @@ export default function HeroSection() {
                       className="bg-white/60 border border-fintera-100 rounded-xl p-3"
                       whileHover={{ scale: 1.02 }}
                     >
-                      <div className="text-xs text-slate-600 mb-1">Viabilidad Documental</div>
+                      <div className="text-xs text-slate-600 mb-1">Avance de ejemplo</div>
                       <div className="text-lg font-semibold text-slate-900">92%</div>
                       <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
                         <motion.div

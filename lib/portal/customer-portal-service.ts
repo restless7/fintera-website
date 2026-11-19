@@ -5,6 +5,8 @@
  */
 
 import prisma from "@/lib/prisma";
+import { CustomerOnboardingService } from "@/lib/onboarding/service";
+import type { CustomerServiceRequestDTO } from "@/lib/onboarding/contracts";
 import { BankStage, CustomerGrantRole } from "@/prisma/generated/client";
 import { CustomerIdentityService, CustomerSecurityError } from "@/lib/auth/customer-identity-service";
 import { parseMagicActorId } from "@/lib/auth/magic-tracking-token";
@@ -43,6 +45,7 @@ export interface CustomerDashboardApplicationSummary {
 export interface CustomerDashboardResponse {
   isStatusOnly?: boolean;
   isLinked: boolean;
+  serviceRequests: CustomerServiceRequestDTO[];
   client: {
     fullName: string;
     documentType: string;
@@ -61,12 +64,14 @@ export class CustomerPortalService {
     const tracking = parseMagicActorId(clerkUserId);
     if (tracking) {
       const app = await prisma.crmCreditApplication.findFirst({ where: { id: tracking.applicationId, clientId: tracking.clientId }, select: { id: true, fileNumber: true, productCategory: true, createdAt: true, status: true } });
-      return { isStatusOnly: true, isLinked: false, client: null, applications: app ? [{ ...app, requestedAmount: null, termMonths: null, overallPublicStage: "Solicitud recibida; inicie sesión para consultar el detalle.", overallProgressPercentage: 0, assignedAdvisor: null, bankCases: [], actionRequiredAlerts: [] }] : [] };
+      return { serviceRequests: [], isStatusOnly: true, isLinked: false, client: null, applications: app ? [{ ...app, requestedAmount: null, termMonths: null, overallPublicStage: "Solicitud recibida; inicie sesión para consultar el detalle.", overallProgressPercentage: 0, assignedAdvisor: null, bankCases: [], actionRequiredAlerts: [] }] : [] };
     }
+    const serviceRequests = (await CustomerOnboardingService.state(clerkUserId, null)).requests;
     const context = await CustomerIdentityService.resolveCustomerContext(clerkUserId);
 
     if (!context.isLinked && context.grants.length === 0) {
       return {
+        serviceRequests,
         isLinked: false,
         client: null,
         applications: [],
@@ -102,7 +107,8 @@ export class CustomerPortalService {
 
     if (applicationIds.length === 0) {
       return {
-        isLinked: context.isLinked,
+        serviceRequests,
+      isLinked: context.isLinked,
         client: context.client
           ? {
               fullName: `${context.client.firstName} ${context.client.firstLastName}`,
@@ -243,6 +249,7 @@ export class CustomerPortalService {
     });
 
     return {
+      serviceRequests,
       isLinked: context.isLinked,
       client: context.client
         ? {

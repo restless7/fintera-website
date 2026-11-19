@@ -58,7 +58,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     <aside className="portal-sidebar" aria-label="Espacio del cliente">
       <Link href="/portal" className="portal-brand" aria-label="Fintera, inicio del portal">
         <Image src="/images/shieldlogo.png" alt="" width={36} height={36} />
-        <span><strong>FINTERA</strong><span>Tu espacio de vivienda</span></span>
+        <span><strong>FINTERA</strong><span>Tu espacio financiero</span></span>
       </Link>
       <p className="portal-nav-caption">MI ESPACIO</p>
       <nav aria-label="Navegación principal del portal" className="portal-nav">
@@ -71,7 +71,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
       <header className="portal-topbar">
         <Link href="/portal" className="portal-mobile-brand" aria-label="Fintera, inicio del portal"><Image src="/images/shieldlogo.png" alt="" width={30} height={30} /><span>FINTERA</span></Link>
         <p className="portal-location"><span>Portal de clientes</span><span aria-hidden="true">/</span><strong>{current?.label || "Mi espacio"}</strong></p>
-        <div className="portal-account"><Link href="/contacto" className="portal-help-link" aria-label="Ayuda y contacto"><LifeBuoy size={17} aria-hidden="true" /><span>Ayuda</span></Link><UserButton afterSignOutUrl="/sign-in" /></div>
+        <div className="portal-account"><Link href="/contacto" className="portal-help-link" aria-label="Ayuda y contacto"><LifeBuoy size={17} aria-hidden="true" /><span>Ayuda</span></Link><UserButton afterSignOutUrl="/onboarding/sign-in" /></div>
       </header>
       <main id="portal-main" tabIndex={-1} className="portal-main">{trackingError ? <PortalError title="No pudimos activar este enlace de seguimiento" message={trackingError} onRetry={() => { setTracking(null); setRetry(value => value + 1); }} /> : trackingPending ? <PortalLoading label="Activando la consulta de tu solicitud…" /> : children}</main>
       <footer className="portal-footer"><span>Fintera · Claridad para tu próximo paso.</span><div><Link href="/legal/privacidad">Privacidad</Link><Link href="/contacto">Contacto</Link></div></footer>

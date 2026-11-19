@@ -1,4 +1,5 @@
 "use client";
+import { ServiceRequestQueue } from "./ServiceRequestQueue";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -414,13 +415,18 @@ export function CommercialWorkspace() {
           </button>
         }
       />
+      <nav aria-label="Gestión de entrada" className="flex flex-wrap gap-2">
+        <button type="button" className="admin-button" aria-current={tab === "service" ? "page" : undefined} onClick={() => navigate("service")}>Solicitudes de servicio</button>
+        <button type="button" className="admin-button" aria-current={tab !== "service" ? "page" : undefined} onClick={() => navigate("leads")}>Captaciones y expedientes</button>
+      </nav>
+      {tab === "service" && <ServiceRequestQueue />}
       <CommercialPendingCommands />
       <CommercialFeedback
         loading={resource.loading}
         error={resource.error}
         onReload={resource.reload}
       />
-      {state && (
+      {state && tab !== "service" && (
         <div className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-3">
             {[

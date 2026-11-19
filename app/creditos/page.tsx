@@ -285,7 +285,7 @@ export default function CreditosPage() {
 
                       {/* CTA */}
                       <div className="flex flex-col sm:flex-row gap-4">
-                        <Link href="/credit-request" className="flex-1">
+                        <Link href="/solicitar" className="flex-1">
                           <Button
                             className={`w-full h-12 bg-gradient-to-r ${credit.gradient} hover:opacity-90 text-white font-semibold rounded-xl shadow-lg`}
                           >
@@ -331,7 +331,7 @@ export default function CreditosPage() {
                     Hablar con un Asesor
                   </Button>
                 </Link>
-                <Link href="/credit-request">
+                <Link href="/solicitar">
                   <Button
                     size="lg"
                     variant="outline"

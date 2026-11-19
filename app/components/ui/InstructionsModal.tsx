@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Phone, Upload, X, MessageCircle } from "lucide-react";
 
@@ -21,11 +22,11 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70]"
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -112,13 +113,13 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                           Envía ambos documentos firmados directamente por WhatsApp:
                         </p>
                         <a
-                          href="https://wa.me/573244444430?text=Hola%2C%20adjunto%20mis%20documentos%20firmados%20para%20la%20solicitud%20de%20cr%C3%A9dito."
+                          href={`${PUBLIC_CONTACT.whatsappUrl}?text=Hola%2C%20adjunto%20mis%20documentos%20firmados%20para%20la%20solicitud%20de%20cr%C3%A9dito.`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
                         >
                           <MessageCircle className="w-4 h-4" />
-                          +57 324 444 4430
+                          {PUBLIC_CONTACT.phoneDisplay}
                         </a>
                       </div>
                     </div>
@@ -136,7 +137,7 @@ export function InstructionsModal({ isOpen, onClose }: InstructionsModalProps) {
                           Comunícate con nosotros y te guiaremos en el proceso:
                         </p>
                         <a
-                          href="tel:+5716012345"
+                          href={PUBLIC_CONTACT.telephoneUrl}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
                         >
                           <Phone className="w-4 h-4" />

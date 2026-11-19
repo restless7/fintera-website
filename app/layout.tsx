@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
+import { OnboardingProvider } from "@/components/customer-onboarding/OnboardingProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import "./globals.css";
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     "servicios financieros",
   ],
   icons: {
-    icon: "/images/logo.ico",
+    icon: "/favicon.ico",
   },
   authors: [{ name: "FINTERA" }],
   creator: "FINTERA",
@@ -73,7 +74,7 @@ export default function RootLayout({
       <html lang="es" className="scroll-smooth">
         <body className={`${inter.className} antialiased`}>
           <GoogleAnalytics />
-          {children}
+          <OnboardingProvider>{children}</OnboardingProvider>
           <Toaster richColors position="top-right" />
         </body>
       </html>

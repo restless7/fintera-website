@@ -1,45 +1,43 @@
 "use client";
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
 import {
   EnvelopeIcon,
   PhoneIcon,
   MapPinIcon,
   ClockIcon,
   ChatBubbleLeftRightIcon,
-  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 
 const contactMethods = [
   {
     icon: PhoneIcon,
     title: "Teléfono",
-    detail: "+57 (300) 123-4567",
+    detail: PUBLIC_CONTACT.phoneDisplay,
     description: "Lun - Vie: 8:00 AM - 6:00 PM",
-    link: "tel:+573001234567",
+    link: PUBLIC_CONTACT.telephoneUrl,
     gradient: "from-blue-500 to-cyan-500",
   },
   {
     icon: EnvelopeIcon,
     title: "Correo Electrónico",
     detail: "info@fintera.com.co",
-    description: "Respuesta en 24 horas",
+    description: "Canal de atención",
     link: "mailto:info@fintera.com.co",
     gradient: "from-cyan-500 to-blue-600",
   },
   {
     icon: ChatBubbleLeftRightIcon,
     title: "WhatsApp",
-    detail: "+57 300 123-4567",
-    description: "Chat en tiempo real",
-    link: "https://wa.me/573001234567",
+    detail: PUBLIC_CONTACT.phoneDisplay,
+    description: "Canal oficial",
+    link: PUBLIC_CONTACT.whatsappUrl,
     gradient: "from-green-500 to-cyan-500",
   },
   {
@@ -76,22 +74,6 @@ const faqs = [
 ];
 
 export default function ContactoPage() {
-  const [formState, setFormState] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aquí iría la lógica de envío del formulario
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 5000);
-  };
-
   return (
     <>
       <Navbar />
@@ -127,7 +109,7 @@ export default function ContactoPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                <span className="text-fintera-600 text-sm font-semibold tracking-wider uppercase">
+                <span className="text-blue-800 text-sm font-semibold tracking-wider uppercase">
                   Contáctanos
                 </span>
               </motion.div>
@@ -176,7 +158,7 @@ export default function ContactoPage() {
                         <method.icon className="w-7 h-7 text-white" />
                       </div>
                       <h3 className="text-lg font-bold text-slate-900 mb-2">{method.title}</h3>
-                      <p className="text-fintera-600 font-semibold mb-1">{method.detail}</p>
+                      <p className="text-blue-800 font-semibold mb-1">{method.detail}</p>
                       <p className="text-sm text-slate-500">{method.description}</p>
                     </CardContent>
                   </Card>
@@ -186,7 +168,7 @@ export default function ContactoPage() {
 
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-2 gap-12 mb-20">
-              {/* Contact Form */}
+              {/* Official contact channels */}
               <motion.div
                 id="formulario"
                 initial={{ opacity: 0, x: -50 }}
@@ -196,105 +178,14 @@ export default function ContactoPage() {
               >
                 <Card className="border-fintera-100/50 shadow-xl">
                   <CardContent className="p-8">
-                    <h2 className="text-2xl font-bold text-slate-900 mb-6">Envíanos un Mensaje</h2>
-                    
-                    {isSubmitted ? (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-center py-12"
-                      >
-                        <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">¡Mensaje Enviado!</h3>
-                        <p className="text-slate-600">
-                          Hemos recibido tu mensaje. Nuestro equipo te contactará pronto.
-                        </p>
-                      </motion.div>
-                    ) : (
-                      <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Nombre Completo *
-                          </label>
-                          <Input
-                            type="text"
-                            required
-                            value={formState.name}
-                            onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                            placeholder="Juan Pérez"
-                            className="h-12"
-                          />
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              Correo Electrónico *
-                            </label>
-                            <Input
-                              type="email"
-                              required
-                              value={formState.email}
-                              onChange={(e) => setFormState({ ...formState, email: e.target.value })}
-                              placeholder="juan@ejemplo.com"
-                              className="h-12"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              Teléfono *
-                            </label>
-                            <Input
-                              type="tel"
-                              required
-                              value={formState.phone}
-                              onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
-                              placeholder="+57 300 123 4567"
-                              className="h-12"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Asunto *
-                          </label>
-                          <Input
-                            type="text"
-                            required
-                            value={formState.subject}
-                            onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
-                            placeholder="¿En qué podemos ayudarte?"
-                            className="h-12"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Mensaje *
-                          </label>
-                          <textarea
-                            required
-                            value={formState.message}
-                            onChange={(e) => setFormState({ ...formState, message: e.target.value })}
-                            placeholder="Cuéntanos tu consulta..."
-                            rows={6}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-fintera-500 focus:ring-2 focus:ring-fintera-500/20 outline-none transition-all"
-                          />
-                        </div>
-
-                        <Button
-                          type="submit"
-                          className="w-full h-12 bg-gradient-to-r from-fintera-600 to-cyan-500 hover:opacity-90 text-white font-semibold rounded-xl shadow-lg"
-                        >
-                          Enviar Mensaje
-                        </Button>
-
-                        <p className="text-sm text-slate-500 text-center">
-                          Responderemos tu consulta en un máximo de 24 horas hábiles
-                        </p>
-                      </form>
-                    )}
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">Hablemos por nuestros canales oficiales</h2>
+                    <p className="text-slate-600 leading-relaxed mb-6">Elige cómo comunicarte con FINTERA. WhatsApp y correo se abren en sus aplicaciones; el mensaje se envía cuando lo confirmes allí.</p>
+                    <div className="flex flex-col gap-3">
+                      <a href={PUBLIC_CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" className="rounded-xl bg-blue-700 px-5 py-3 text-center font-semibold text-white hover:bg-blue-800">Escribir por WhatsApp</a>
+                      <a href="mailto:info@fintera.com.co" className="rounded-xl border border-slate-300 px-5 py-3 text-center font-semibold text-blue-800">Escribir a info@fintera.com.co</a>
+                      <a href={PUBLIC_CONTACT.telephoneUrl} className="rounded-xl border border-slate-300 px-5 py-3 text-center font-semibold text-blue-800">Llamar al {PUBLIC_CONTACT.phoneDisplay}</a>
+                    </div>
+                    <p className="mt-5 text-sm leading-relaxed text-slate-600">Si quieres iniciar un proceso, puedes <a href="/solicitar" className="font-semibold text-blue-800 underline">registrar una solicitud breve</a> y consultar su estado desde Mi portal.</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -317,16 +208,15 @@ export default function ContactoPage() {
                       Chatea con Nosotros
                     </h3>
                     <p className="text-slate-600 mb-6 leading-relaxed">
-                      ¿Necesitas una respuesta rápida? Contáctanos directamente por WhatsApp 
-                      y un asesor te atenderá de inmediato.
+                      Puedes comunicarte con nuestro equipo por el WhatsApp oficial de FINTERA.
                     </p>
                     <a 
-                      href="https://wa.me/573001234567"
+                      href={PUBLIC_CONTACT.whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       <Button
-                        className="bg-green-600 hover:bg-green-700 text-white font-semibold h-12 px-8 rounded-xl shadow-lg"
+                        className="bg-green-800 hover:bg-green-900 text-white font-semibold h-12 px-8 rounded-xl shadow-lg"
                       >
                         Abrir WhatsApp
                       </Button>
@@ -354,7 +244,7 @@ export default function ContactoPage() {
                       </div>
                       <div className="flex justify-between">
                         <span>Domingos:</span>
-                        <span className="text-slate-400">Cerrado</span>
+                        <span className="text-slate-600">Cerrado</span>
                       </div>
                     </div>
                   </CardContent>
@@ -411,7 +301,7 @@ export default function ContactoPage() {
                     <Card className="border-fintera-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
                       <CardContent className="p-6">
                         <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-start gap-3">
-                          <span className="text-fintera-600 flex-shrink-0">Q.</span>
+                          <span className="text-blue-800 flex-shrink-0">Q.</span>
                           {faq.question}
                         </h3>
                         <p className="text-slate-600 leading-relaxed pl-7">

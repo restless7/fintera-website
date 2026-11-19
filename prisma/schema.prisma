@@ -109,6 +109,8 @@ enum MessageSenderType {
 // ============================================================================
 
 model AppUser {
+  customerServiceRequests CustomerServiceRequest[]
+
   id                    String              @id @default(uuid())
   clerkUserId           String              @unique
   email                 String              @unique
@@ -139,6 +141,8 @@ model AppUser {
 }
 
 model Team {
+  customerServiceRequests CustomerServiceRequest[]
+
   revision      Int                 @default(0)
   id            String              @id @default(uuid())
   name          String              @unique
@@ -216,6 +220,8 @@ model ClientConsentRecord {
 // ============================================================================
 
 model CrmCreditApplication {
+  customerServiceRequests CustomerServiceRequest[]
+
   commercialRevision Int @default(0) @map("commercial_revision")
   commercialLeads CommercialLead[]
   commercialContacts CommercialContact[]
@@ -1877,4 +1883,50 @@ model CommercialNotification {
   @@index([applicationId, createdAt])
   @@index([status, createdAt])
   @@map("commercial_notifications")
+}
+
+// Customer-owned service request. Never substitutes for a qualified Client or bank case.
+model CustomerServiceRequest {
+  id String @id @default(uuid())
+  idempotencyKey String @unique @map("idempotency_key")
+  payloadHash String @map("payload_hash")
+  browserProofHash String @map("browser_proof_hash")
+  abuseHash String @map("abuse_hash")
+  creditKind String @map("credit_kind")
+  amountCOP Decimal @map("amount_cop") @db.Decimal(18, 2)
+  name String
+  activity String
+  phone String
+  email String
+  quickSnapshot Json @map("quick_snapshot")
+  quickConsent Json @map("quick_consent")
+  claimExpiresAt DateTime @map("claim_expires_at") @db.Timestamptz(3)
+  claimedClerkUserId String? @map("claimed_clerk_user_id")
+  claimedAt DateTime? @map("claimed_at") @db.Timestamptz(3)
+  revision Int @default(0)
+  status String @default("DRAFT")
+  formalSnapshot Json? @map("formal_snapshot")
+  formalPayloadHash String? @map("formal_payload_hash")
+  submissionCommandId String? @unique @map("submission_command_id")
+  formalReceipts Json? @map("formal_receipts")
+  submittedAt DateTime? @map("submitted_at") @db.Timestamptz(3)
+  assignedAdvisorId String? @map("assigned_advisor_id")
+  assignedAdvisor AppUser? @relation(fields: [assignedAdvisorId], references: [id], onDelete: Restrict)
+  teamId String? @map("team_id")
+  team Team? @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  nextActionAt DateTime? @map("next_action_at") @db.Timestamptz(3)
+  publicMessage String? @map("public_message")
+  applicationId String? @map("application_id")
+  application CrmCreditApplication? @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([createdAt])
+  @@index([claimedClerkUserId, createdAt])
+  @@index([browserProofHash, createdAt])
+  @@index([abuseHash, createdAt])
+  @@index([email, createdAt])
+  @@index([assignedAdvisorId, createdAt])
+  @@index([teamId, createdAt])
+  @@map("customer_service_requests")
 }

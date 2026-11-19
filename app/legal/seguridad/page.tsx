@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import { motion } from "framer-motion";
 import { Navbar } from "@/app/components/ui/Navbar";
 import Footer from "@/components/fintera/footer";
@@ -112,7 +113,7 @@ export default function SeguridadPage() {
                     <div className="bg-red-50 border-l-4 border-red-500 p-4 mt-3">
                       <p className="text-slate-700 font-semibold">Contáctanos inmediatamente:</p>
                       <p className="text-slate-600">Email: <a href="mailto:seguridad@fintera.com.co" className="text-fintera-600 hover:underline">seguridad@fintera.com.co</a></p>
-                      <p className="text-slate-600">Teléfono: +57 (300) 123-4567</p>
+                      <p className="text-slate-600">Teléfono: {PUBLIC_CONTACT.phoneDisplay}</p>
                     </div>
                   </section>
 

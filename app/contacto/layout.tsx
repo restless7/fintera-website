@@ -1,8 +1,9 @@
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contacto | Escríbenos o Llámanos | FINTERA Colombia",
-  description: "Contáctanos para resolver tus dudas sobre créditos. Teléfono: +57 300 123-4567, Email: info@fintera.com.co, WhatsApp disponible. Atención: Lun-Vie 8AM-6PM, Sáb 9AM-1PM.",
+  description: `Contáctanos para resolver tus dudas sobre créditos. Teléfono y WhatsApp: ${PUBLIC_CONTACT.phoneDisplay}. Email: info@fintera.com.co. Atención: Lun-Vie 8AM-6PM, Sáb 9AM-1PM.`,
   keywords: [
     "contacto fintera",
     "teléfono fintera",

@@ -1,0 +1,32 @@
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+  body:has(.service-receipt) {
+    background: #fff;
+  }
+  body:has(.service-receipt) nav,
+  body:has(.service-receipt) .receipt-toolbar,
+  body:has(.service-receipt) .customer-onboarding > div > p,
+  body:has(.service-receipt) .customer-onboarding ~ footer {
+    display: none !important;
+  }
+  body:has(.service-receipt) .customer-onboarding {
+    padding: 0;
+    background: #fff;
+    min-height: auto;
+  }
+  .service-receipt {
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .service-receipt .receipt-section {
+    break-inside: avoid;
+  }
+  .service-receipt footer {
+    display: block;
+  }
+}

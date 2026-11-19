@@ -1,6 +1,9 @@
 import { z } from "zod";
+import { LEGACY_PROCESSING_CONSENT_VERSION } from "@/lib/onboarding/contracts";
 
 export const creditRequestSchema = z.object({
+  processingConsent: z.literal(true),
+  processingConsentVersion: z.literal(LEGACY_PROCESSING_CONSENT_VERSION),
   // 1. Solicitud de crédito
   requestDate: z.preprocess(
     (val) => {

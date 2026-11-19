@@ -7,6 +7,7 @@
  * domain_outbox_events con estado PENDING (AWAITING_RESEND_API_KEY) sin interrumpir la transacción.
  */
 
+import { PUBLIC_CONTACT } from "@/lib/public-contact";
 import prisma from "@/lib/prisma";
 import { signMagicTrackingToken } from "@/lib/auth/magic-tracking-token";
 
@@ -120,7 +121,7 @@ function buildInstitutionalEmailHtml(params: {
           <tr>
             <td style="background-color:#0F172A;padding:20px 32px;color:#94A3B8;font-size:11px;line-height:1.5;">
               <div>© ${new Date().getFullYear()} FINTERA Soluciones Financieras S.A.S. · Colombia</div>
-              <div style="margin-top:4px;">Línea de Atención Directa WhatsApp: +57 324 444 4430 · www.finterasoluciones.co</div>
+              <div style="margin-top:4px;">Línea de Atención Directa WhatsApp: ${PUBLIC_CONTACT.phoneDisplay} · www.finterasoluciones.co</div>
             </td>
           </tr>
         </table>
