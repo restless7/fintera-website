@@ -9,6 +9,7 @@
 import { ContentTypeKey, FinteraContentPillarKey } from "./content-types";
 import { LinkedinCalendarPostSpec } from "./linkedin-strategy";
 import { ResearchSignal } from "./research/types";
+import { buildLinkedinCalendarId } from "./linkedin-calendar";
 
 export interface MonthCalendarConfig {
   monthName: string;
@@ -57,8 +58,12 @@ export function generateAgnosticMonthCalendar(params: {
   const signalsByPillar: Record<FinteraContentPillarKey, ResearchSignal[]> = {
     VIVIENDA_B2C: params.signals.filter((s) => s.pillar === "VIVIENDA_B2C"),
     FACTORING_B2B: params.signals.filter((s) => s.pillar === "FACTORING_B2B"),
-    AUTORIDAD_MERCADO: params.signals.filter((s) => s.pillar === "AUTORIDAD_MERCADO"),
-    CONFIANZA_OPORTUNIDADES: params.signals.filter((s) => s.pillar === "CONFIANZA_OPORTUNIDADES"),
+    AUTORIDAD_MERCADO: params.signals.filter(
+      (s) => s.pillar === "AUTORIDAD_MERCADO",
+    ),
+    CONFIANZA_OPORTUNIDADES: params.signals.filter(
+      (s) => s.pillar === "CONFIANZA_OPORTUNIDADES",
+    ),
   };
 
   const getSignalFor = (pillar: FinteraContentPillarKey, idx: number) => {
@@ -83,7 +88,10 @@ export function generateAgnosticMonthCalendar(params: {
           contentType: "TUTORIAL" as ContentTypeKey,
           objective:
             "Explicar el modelo de acompañamiento técnico multibanco frente al riesgo de presentar solicitudes a ciegas.",
-          sources: ["Superintendencia Financiera de Colombia (SFC)", "Asobancaria"],
+          sources: [
+            "Superintendencia Financiera de Colombia (SFC)",
+            "Asobancaria",
+          ],
           sig: getSignalFor("CONFIANZA_OPORTUNIDADES", 0),
         },
         {
@@ -149,7 +157,11 @@ export function generateAgnosticMonthCalendar(params: {
           contentType: "TUTORIAL" as ContentTypeKey,
           objective:
             "Diferenciar la cesión de derechos económicos sobre facturas frente al endeudamiento bancario en balance.",
-          sources: ["DIAN (RADIAN)", "Superintendencia de Sociedades", "Bancóldex"],
+          sources: [
+            "DIAN (RADIAN)",
+            "Superintendencia de Sociedades",
+            "Bancóldex",
+          ],
           sig: getSignalFor("FACTORING_B2B", 1),
         },
         {
@@ -292,8 +304,12 @@ export function generateAgnosticMonthCalendar(params: {
 
   for (const w of weeksSpecs) {
     for (const p of w.posts) {
-      const dayAbbr = p.day.slice(0, 3).toLowerCase();
-      const id = `cal_${params.year}_m${params.monthIndex + 1}_w${w.week}_${dayAbbr}`;
+      const id = buildLinkedinCalendarId({
+        year: params.year,
+        month: params.monthIndex + 1,
+        week: w.week,
+        day: p.day,
+      });
       const sigData = p.sig;
 
       const draftOutlineMarkdown = `## ${p.title}
@@ -327,8 +343,8 @@ ${
           p.pillar === "VIVIENDA_B2C"
             ? "Simula tu crédito de vivienda con criterio financiero"
             : p.pillar === "FACTORING_B2B"
-            ? "Solicita un diagnóstico de liquidez empresarial"
-            : "Conversemos sobre tu necesidad de financiación",
+              ? "Solicita un diagnóstico de liquidez empresarial"
+              : "Conversemos sobre tu necesidad de financiación",
         ctaUrlWithUtm: `/insights?utm_source=linkedin&utm_medium=organic&utm_campaign=${id}`,
         draftOutlineMarkdown,
       });
@@ -337,4 +353,3 @@ ${
 
   return generatedSpecs;
 }
-

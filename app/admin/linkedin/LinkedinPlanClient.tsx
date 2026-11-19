@@ -1,6 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import {
+  CALENDAR_EDITORIAL_STATUS,
+  CALENDAR_QA_STATUS,
+  calendarItemMatchesIdentity,
+  isDevelopedCalendarItem,
+  parseLinkedinCalendarId,
+  resolveLinkedinCalendarItems,
+} from "@/lib/linkedin-calendar";
 import Link from "next/link";
 import {
   Calendar,
@@ -46,12 +54,16 @@ export function LinkedinPlanClient({
   const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(10); // Noviembre (0-indexed = 10)
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedWeek, setSelectedWeek] = useState<1 | 2 | 3 | 4>(1);
-  const [developingSlotId, setDevelopingSlotId] = useState<string | null>(null);
+  const inFlightSlots = useRef(new Set<string>());
+  const [developingSlotIds, setDevelopingSlotIds] = useState<
+    Record<string, boolean>
+  >({});
+  const [statusIsError, setStatusIsError] = useState(false);
   const [generatedSlotItems, setGeneratedSlotItems] = useState<
     Record<string, FinteraContentItem>
   >({});
   const [copiedProfileField, setCopiedProfileField] = useState<string | null>(
-    null
+    null,
   );
   const [utmCampaign, setUtmCampaign] = useState("vivienda_nov2026");
   const [utmTarget, setUtmTarget] = useState("/simulador");
@@ -72,43 +84,14 @@ export function LinkedinPlanClient({
     return activeMonthCalendar.filter((p) => p.week === selectedWeek);
   }, [activeMonthCalendar, selectedWeek]);
 
-  // Sincronización persistente de piezas editoriales desarrolladas con los slots del calendario agnóstico
-  const resolvedSlotItems = useMemo(() => {
-    const map: Record<string, FinteraContentItem> = { ...generatedSlotItems };
-
-    for (const slot of activeMonthCalendar) {
-      if (map[slot.id]) continue;
-
-      const slotTitleNorm = slot.title.trim().toLowerCase();
-      const slotSlug = slot.title
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-
-      const matched = existingItems.find((item) => {
-        const meta = (item.typeMetadata || {}) as Record<string, unknown>;
-        if (meta.calendarPostId === slot.id) return true;
-        if (item.title.trim().toLowerCase() === slotTitleNorm) return true;
-        if (item.slug === slotSlug) return true;
-        if (
-          meta.linkedinWeek === slot.week &&
-          typeof meta.linkedinDay === "string" &&
-          meta.linkedinDay.toLowerCase() === slot.day.toLowerCase()
-        ) {
-          return true;
-        }
-        return false;
-      });
-
-      if (matched) {
-        map[slot.id] = matched;
-      }
-    }
-
-    return map;
-  }, [generatedSlotItems, activeMonthCalendar, existingItems]);
+  const resolvedSlotItems = useMemo(
+    () =>
+      resolveLinkedinCalendarItems([
+        ...existingItems,
+        ...Object.values(generatedSlotItems),
+      ]),
+    [generatedSlotItems, existingItems],
+  );
 
   const monthLabel = `${SPANISH_MONTHS[selectedMonthIndex]} ${selectedYear}`;
 
@@ -123,37 +106,68 @@ export function LinkedinPlanClient({
   };
 
   const handleDevelopCalendarPost = async (slot: LinkedinCalendarPostSpec) => {
-    setDevelopingSlotId(slot.id);
+    if (inFlightSlots.current.has(slot.id)) return;
+    const identity = parseLinkedinCalendarId(slot.id);
+    if (!identity) return;
+    const contextLabel = `${SPANISH_MONTHS[identity.month - 1]} ${identity.year} · semana ${identity.week} · ${identity.day}`;
+    inFlightSlots.current.add(slot.id);
+    setDevelopingSlotIds((previous) => ({ ...previous, [slot.id]: true }));
     setStatusMessage(null);
+    setStatusIsError(false);
     try {
       const res = await fetch("/api/admin/content/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           calendarPostId: slot.id,
-          pillar: slot.pillar,
-          contentType: slot.contentType,
-          topic: slot.title,
           publishImmediately: true,
+          retryFailed:
+            resolvedSlotItems[slot.id]?.typeMetadata
+              .calendarGenerationStatus === "FAILED",
         }),
       });
       const data = await res.json();
-      if (data.success && data.item) {
-        setGeneratedSlotItems((prev) => ({
-          ...prev,
-          [slot.id]: data.item,
-        }));
-        setStatusMessage(
-          `Publicación desarrollada y aprobada por QA Gate (${data.item.qaScore}/100): "${data.item.title}"`
+      const recoveryMessages: Record<string, string> = {
+        CALENDAR_SLOT_PENDING_OR_RETRY_REQUIRED: "Existe un resultado pendiente. Recarga para consultar el artículo antes de iniciar otra solicitud.",
+        CALENDAR_SLOT_AMBIGUOUS: "Hay varias piezas asociadas al mismo espacio. Revísalas en el Centro Editorial antes de continuar.",
+        CALENDAR_RESULT_UNCERTAIN: "No se pudo confirmar el guardado. Recarga para consultar el resultado; no se iniciará otra generación automáticamente.",
+        CALENDAR_GENERATION_UNAVAILABLE: "Los proveedores no devolvieron un artículo confirmado. Recarga y decide si quieres reintentar.",
+        CALENDAR_GENERATION_FAILED: "No se pudo desarrollar el artículo. Recarga y decide si quieres reintentar.",
+        CALENDAR_SERVICE_UNAVAILABLE: "El servicio editorial no está disponible. Recarga para consultar el estado antes de reintentar.",
+      };
+      if (!res.ok || !data.success || !data.item)
+        throw new Error(
+          recoveryMessages[data.error] ||
+            "No se confirmó el resultado; recarga para consultar la asignación antes de reintentar.",
         );
-      }
+      const item = data.item as FinteraContentItem;
+      if (
+        !item.typeMetadata ||
+        typeof item.content !== "string" ||
+        !calendarItemMatchesIdentity(item, identity) ||
+        !isDevelopedCalendarItem(item)
+      )
+        throw new Error(
+          "La respuesta no corresponde a esta publicación del calendario.",
+        );
+      // Bind to the request's immutable slot, never to the month visible when its response arrives.
+      setGeneratedSlotItems((previous) => ({ ...previous, [slot.id]: item }));
+      setStatusMessage(
+        `${contextLabel}: ${data.reused ? "artículo existente recuperado" : "artículo desarrollado"}. Estado editorial: ${CALENDAR_EDITORIAL_STATUS[item.status]}; QA: ${CALENDAR_QA_STATUS[item.qaStatus]}.`,
+      );
+    } catch (error) {
+      setStatusIsError(true);
+      setStatusMessage(
+        `${contextLabel}: ${error instanceof Error ? error.message : "No se pudo confirmar el resultado. Recarga antes de reintentar."}`,
+      );
     } finally {
-      setDevelopingSlotId(null);
+      inFlightSlots.current.delete(slot.id);
+      setDevelopingSlotIds((previous) => ({ ...previous, [slot.id]: false }));
     }
   };
 
   const computedUtmUrl = `https://www.finterasoluciones.co${utmTarget}?utm_source=linkedin&utm_medium=organic&utm_campaign=${encodeURIComponent(
-    utmCampaign || "posicionamiento_90d"
+    utmCampaign || "posicionamiento_90d",
   )}`;
 
   return (
@@ -191,9 +205,16 @@ export function LinkedinPlanClient({
       </div>
 
       {statusMessage && (
-        <div className="admin-card flex items-center justify-between border-sky-500/40 bg-sky-950/30 px-4 py-3 text-sm text-sky-200">
+        <div
+          role={statusIsError ? "alert" : "status"}
+          className="admin-card flex items-center justify-between border-sky-500/40 bg-sky-950/30 px-4 py-3 text-sm text-sky-200"
+        >
           <div className="flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-sky-400" />
+            {statusIsError ? (
+              <ShieldAlert size={16} />
+            ) : (
+              <CheckCircle2 size={16} className="text-sky-400" />
+            )}
             <span>{statusMessage}</span>
           </div>
           <button
@@ -224,7 +245,7 @@ export function LinkedinPlanClient({
               onClick={() =>
                 handleCopyText(
                   "perfil_completo",
-                  `${FINTERA_LINKEDIN_PROFILE_SPEC.companyHeadline}\n\n${FINTERA_LINKEDIN_PROFILE_SPEC.companyDescription}`
+                  `${FINTERA_LINKEDIN_PROFILE_SPEC.companyHeadline}\n\n${FINTERA_LINKEDIN_PROFILE_SPEC.companyDescription}`,
                 )
               }
               className="admin-button text-xs"
@@ -248,12 +269,14 @@ export function LinkedinPlanClient({
                 onClick={() =>
                   handleCopyText(
                     "titular",
-                    FINTERA_LINKEDIN_PROFILE_SPEC.companyHeadline
+                    FINTERA_LINKEDIN_PROFILE_SPEC.companyHeadline,
                   )
                 }
                 className="text-xs text-sky-400 hover:underline"
               >
-                {copiedProfileField === "titular" ? "Copiado" : "Copiar titular"}
+                {copiedProfileField === "titular"
+                  ? "Copiado"
+                  : "Copiar titular"}
               </button>
             </div>
             <p className="mt-1 text-sm font-semibold text-slate-100">
@@ -340,8 +363,8 @@ export function LinkedinPlanClient({
         <div className="flex items-center gap-2">
           <Target size={16} className="text-sky-400" />
           <h2 className="text-sm font-semibold text-slate-100">
-            Sección 2 y 10 · Objetivos para los Primeros 90 Días y Lanzamiento de
-            Piezas Insignia
+            Sección 2 y 10 · Objetivos para los Primeros 90 Días y Lanzamiento
+            de Piezas Insignia
           </h2>
         </div>
 
@@ -381,15 +404,17 @@ export function LinkedinPlanClient({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-slate-100">
-                  Sección 5 · Calendario Editorial Agnóstico &amp; Motor de Señales
+                  Sección 5 · Calendario Editorial Agnóstico &amp; Motor de
+                  Señales
                 </h2>
                 <span className="admin-status admin-status-info text-[11px]">
                   {monthLabel} · 16 Publicaciones
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Genera en tiempo real la cadencia editorial para cualquier mes del año
-                nutrida de las 14 fuentes primarias oficiales y las señales de mercado.
+                Genera en tiempo real la cadencia editorial para cualquier mes
+                del año nutrida de las 14 fuentes primarias oficiales y las
+                señales de mercado.
               </p>
             </div>
           </div>
@@ -397,11 +422,15 @@ export function LinkedinPlanClient({
           {/* Month & Year Selectors + Week Selector */}
           <div className="flex flex-wrap items-center gap-2">
             <select
+              aria-label="Mes del calendario"
               value={selectedMonthIndex}
               onChange={(e) => {
                 const idx = Number(e.target.value);
                 setSelectedMonthIndex(idx);
-                setUtmCampaign(`vivienda_${SPANISH_MONTHS[idx].toLowerCase()}${selectedYear}`);
+                setCarouselModalItem(null);
+                setUtmCampaign(
+                  `vivienda_${SPANISH_MONTHS[idx].toLowerCase()}${selectedYear}`,
+                );
               }}
               className="admin-input py-1 text-xs font-semibold"
             >
@@ -413,11 +442,15 @@ export function LinkedinPlanClient({
             </select>
 
             <select
+              aria-label="Año del calendario"
               value={selectedYear}
               onChange={(e) => {
                 const yr = Number(e.target.value);
                 setSelectedYear(yr);
-                setUtmCampaign(`vivienda_${SPANISH_MONTHS[selectedMonthIndex].toLowerCase()}${yr}`);
+                setCarouselModalItem(null);
+                setUtmCampaign(
+                  `vivienda_${SPANISH_MONTHS[selectedMonthIndex].toLowerCase()}${yr}`,
+                );
               }}
               className="admin-input py-1 text-xs font-semibold"
             >
@@ -432,7 +465,10 @@ export function LinkedinPlanClient({
               <button
                 key={w}
                 type="button"
-                onClick={() => setSelectedWeek(w)}
+                onClick={() => {
+                  setSelectedWeek(w);
+                  setCarouselModalItem(null);
+                }}
                 className={`admin-button text-xs ${
                   selectedWeek === w ? "admin-button-primary" : ""
                 }`}
@@ -445,8 +481,14 @@ export function LinkedinPlanClient({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {weekPosts.map((slot) => {
-            const generatedItem = resolvedSlotItems[slot.id];
-            const isDeveloping = developingSlotId === slot.id;
+            const assignedItem = resolvedSlotItems[slot.id];
+            const generatedItem =
+              assignedItem && isDevelopedCalendarItem(assignedItem)
+                ? assignedItem
+                : undefined;
+            const isPending =
+              assignedItem?.typeMetadata.calendarGenerationStatus === "PENDING";
+            const isDeveloping = Boolean(developingSlotIds[slot.id]);
             return (
               <div
                 key={slot.id}
@@ -485,15 +527,24 @@ export function LinkedinPlanClient({
                   {generatedItem ? (
                     <div className="space-y-2">
                       <div className="rounded bg-emerald-950/40 px-2.5 py-1.5 text-xs text-emerald-300">
-                        ✔ Desarrollada · QA: {generatedItem.qaScore}/100
+                        ✔ Desarrollada · {CALENDAR_EDITORIAL_STATUS[generatedItem.status]} · QA:{" "}
+                        {CALENDAR_QA_STATUS[generatedItem.qaStatus]}
                       </div>
                       <Link
-                        href={`/insights/${generatedItem.slug}`}
+                        href={
+                          generatedItem.status === "PUBLISHED"
+                            ? `/insights/${generatedItem.slug}`
+                            : "/admin/content"
+                        }
                         target="_blank"
                         className="admin-button w-full justify-center text-xs"
                       >
                         <ExternalLink size={12} />
-                        <span>Ver publicación generada</span>
+                        <span>
+                          {generatedItem.status === "PUBLISHED"
+                            ? "Ver publicación generada"
+                            : "Abrir Centro Editorial"}
+                        </span>
                       </Link>
                       <button
                         type="button"
@@ -508,7 +559,7 @@ export function LinkedinPlanClient({
                     <div className="space-y-2">
                       <button
                         type="button"
-                        disabled={isDeveloping}
+                        disabled={isDeveloping || isPending}
                         onClick={() => handleDevelopCalendarPost(slot)}
                         className="admin-button admin-button-primary w-full justify-center text-xs"
                       >
@@ -516,29 +567,19 @@ export function LinkedinPlanClient({
                         <span>
                           {isDeveloping
                             ? "Desarrollando..."
-                            : "Desarrollar esta publicación"}
+                            : isPending
+                              ? "Resultado pendiente · recarga para consultar"
+                              : assignedItem?.typeMetadata
+                                    .calendarGenerationStatus === "FAILED"
+                                ? "Reintentar esta publicación"
+                                : "Desarrollar esta publicación"}
                         </span>
                       </button>
-                      {existingItems[0] && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setCarouselModalItem({
-                              ...existingItems[0],
-                              title: slot.title,
-                              subtitle: slot.objective,
-                              excerpt: slot.objective,
-                              pillar: slot.pillar,
-                              contentType: slot.contentType,
-                              content: slot.draftOutlineMarkdown,
-                            })
-                          }
-                          className="admin-button w-full justify-center text-xs"
-                        >
-                          <FileDown size={12} />
-                          <span>Vista Previa Carrusel PDF</span>
-                        </button>
-                      )}
+                      <p className="text-xs text-slate-400">
+                        El carrusel estará disponible cuando exista un artículo
+                        confirmado para este período. Las piezas históricas sin
+                        mes verificable siguen en el Centro Editorial.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -691,7 +732,9 @@ export function LinkedinPlanClient({
             Conversión Comercial hacia el CRM
           </h3>
           <ul className="space-y-1 text-xs text-slate-300">
-            <li>• Clics al sitio web con parámetros UTM (`utm_source=linkedin`)</li>
+            <li>
+              • Clics al sitio web con parámetros UTM (`utm_source=linkedin`)
+            </li>
             <li>• Consultas recibidas por mensaje directo y formularios</li>
             <li>• Solicitudes de crédito de vivienda y diagnósticos B2B</li>
           </ul>
@@ -724,4 +767,3 @@ export function LinkedinPlanClient({
     </div>
   );
 }
-

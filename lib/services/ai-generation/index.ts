@@ -26,7 +26,22 @@ import {
   stripCalendarPrefixFromText,
   upsertFinteraContent,
 } from "../../blog";
-import { FINTERA_MONTH_1_CALENDAR } from "../../linkedin-strategy";
+import {
+  FINTERA_MONTH_1_CALENDAR,
+  type LinkedinCalendarPostSpec,
+} from "../../linkedin-strategy";
+import {
+  generateAgnosticMonthCalendar,
+  SPANISH_MONTHS,
+} from "../../linkedin-generator";
+import { parseLinkedinCalendarId } from "../../linkedin-calendar";
+import {
+  CalendarGenerationError,
+  reserveCalendarGeneration,
+  findExistingCalendarArticle,
+  failCalendarGeneration,
+  type CalendarClaim,
+} from "./calendar-claims";
 import { researchSignalEngine } from "../../research/signal-engine";
 
 // Load Homelab .hermes/.env if present (matches packages/apex-website/scripts/hermes-content-agent.ts)
@@ -69,6 +84,7 @@ export interface GenerateFinteraDraftInput {
   calendarPostId?: string;
   signalId?: string;
   publishImmediately?: boolean;
+  retryFailed?: boolean;
 }
 
 async function generateWithHermesHomelab(
@@ -252,21 +268,89 @@ async function generateWithQwen(
 }
 
 export async function generateFinteraContentDraft(
-  input: GenerateFinteraDraftInput
+  input: GenerateFinteraDraftInput,
+): Promise<{
+  item: FinteraContentItem;
+  providerUsed: string;
+  modelUsed: string;
+  reused?: boolean;
+}> {
+  if (input.calendarPostId === undefined) return generateDraft(input);
+  const identity = parseLinkedinCalendarId(input.calendarPostId);
+  if (!identity)
+    throw new CalendarGenerationError("INVALID_CALENDAR_SLOT", 400);
+  const slots = generateAgnosticMonthCalendar({
+    year: identity.year,
+    monthIndex: identity.month - 1,
+    signals: await researchSignalEngine.getSignalsWithDb(),
+  });
+  const slot = slots.find((entry) => entry.id === identity.id);
+  if (!slot) throw new CalendarGenerationError("INVALID_CALENDAR_SLOT", 400);
+  const reservation = await reserveCalendarGeneration(
+    slot,
+    input.retryFailed === true,
+  );
+  if ("existing" in reservation)
+    return {
+      item: reservation.existing,
+      providerUsed: "Persisted",
+      modelUsed: reservation.existing.aiModel || "",
+      reused: true,
+    };
+  let persistenceAttempted = false;
+  try {
+    return await generateDraft(input, {
+      slot,
+      claim: reservation.claim,
+      beforePersistence: () => {
+        persistenceAttempted = true;
+      },
+    });
+  } catch (error) {
+    // A lost write ACK may already have produced the durable article. Re-read; never regenerate.
+    try {
+      const durable = await findExistingCalendarArticle(identity.id);
+      if (durable)
+        return {
+          item: durable,
+          providerUsed: "Persisted",
+          modelUsed: durable.aiModel || "",
+          reused: true,
+        };
+      if (!persistenceAttempted)
+        await failCalendarGeneration(reservation.claim);
+    } catch {
+      throw new CalendarGenerationError("CALENDAR_RESULT_UNCERTAIN", 503);
+    }
+    if (persistenceAttempted)
+      throw new CalendarGenerationError("CALENDAR_RESULT_UNCERTAIN", 503);
+    if (error instanceof CalendarGenerationError) throw error;
+    throw new CalendarGenerationError("CALENDAR_GENERATION_FAILED", 503);
+  }
+}
+
+async function generateDraft(
+  input: GenerateFinteraDraftInput,
+  calendar?: {
+    slot: LinkedinCalendarPostSpec;
+    claim: CalendarClaim;
+    beforePersistence: () => void;
+  },
 ): Promise<{
   item: FinteraContentItem;
   providerUsed: string;
   modelUsed: string;
 }> {
-  const calendarSlot = input.calendarPostId
-    ? FINTERA_MONTH_1_CALENDAR.find((c) => c.id === input.calendarPostId)
-    : undefined;
+  const calendarSlot = calendar?.slot;
+  const cutoffDate = calendar
+    ? `${SPANISH_MONTHS[calendar.claim.identity.month - 1]} ${calendar.claim.identity.year}`
+    : "Octubre 2026";
 
   const signal = input.signalId
     ? researchSignalEngine.getSignals().find((s) => s.id === input.signalId)
     : researchSignalEngine.getSignals({
-      pillar: calendarSlot?.pillar || input.pillar,
-    })[0];
+        pillar: calendarSlot?.pillar || input.pillar,
+      })[0];
 
   const pillar: FinteraContentPillarKey =
     calendarSlot?.pillar || input.pillar || signal?.pillar || "VIVIENDA_B2C";
@@ -288,7 +372,7 @@ export async function generateFinteraContentDraft(
   const systemPrompt = `Eres el Director de Criterio Financiero de FINTERA Soluciones Financieras (https://www.finterasoluciones.co/) en Colombia.
 Escribe en español profesional, claro y ejecutivo siguiendo estrictamente la Regla Editorial de FINTERA:
 1. Usa fuentes primarias oficiales de Colombia e internacionales (Superintendencia Financiera de Colombia SFC, Banco de la República, DANE, Fondo Nacional del Ahorro FNA, DIAN / RADIAN, Superintendencia de Sociedades, Asobancaria, Camacol, Confecámaras, Bancóldex, IFC, OCDE, Banco Mundial, FCI).
-2. Indica explícitamente "Fecha de corte: Octubre 2026".
+2. ${calendar ? `El período editorial solicitado es ${cutoffDate}. Cita la fecha real de cada fuente; no presentes ese período como una verificación de datos futuros ni inventes cifras.` : 'Indica explícitamente "Fecha de corte: Octubre 2026".'}
 3. Separa el dato publicado por las fuentes oficiales de la interpretación y criterio financiero de FINTERA.
 4. Si incluyes cifras o ejemplos numéricos, aclara que son simulaciones ilustrativas con supuestos transparentes y no resultados garantizados.
 5. NUNCA prometas "aprobación garantizada", "liquidez garantizada" ni pidas datos confidenciales en comentarios públicos.
@@ -333,6 +417,8 @@ Estructura el documento en Markdown limpio (sin bloques de código JSON envolven
     }
   }
 
+  if (!generatedMarkdown && calendar)
+    throw new CalendarGenerationError("CALENDAR_GENERATION_UNAVAILABLE", 503);
   if (!generatedMarkdown) {
     generatedMarkdown = buildDeterministicFinteraDraft({
       title,
@@ -343,46 +429,59 @@ Estructura el documento en Markdown limpio (sin bloques de código JSON envolven
     });
   }
 
-  let item = await upsertFinteraContent({
-    title,
-    subtitle,
-    content: generatedMarkdown,
-    contentType,
-    pillar,
-    cutoffDate: "Octubre 2026",
-    status: input.publishImmediately ? "PUBLISHED" : "DRAFT",
-    aiGenerated: true,
-    aiModel: `${providerUsed}/${modelUsed}`,
-    typeMetadata: {
-      calendarPostId: input.calendarPostId || calendarSlot?.id,
-      linkedinWeek: calendarSlot?.week,
-      linkedinDay: calendarSlot?.day,
-      linkedinFormat: calendarSlot?.format,
-      ctaUrlWithUtm: calendarSlot?.ctaUrlWithUtm,
-    },
-    tags:
-      pillar === "VIVIENDA_B2C"
-        ? [
-          "Crédito de Vivienda",
-          "Superfinanciera",
-          "Capacidad de Endeudamiento",
-          "UVR vs Pesos",
-        ]
-        : pillar === "FACTORING_B2B"
+  calendar?.beforePersistence();
+  let item = await upsertFinteraContent(
+    {
+      ...(calendar ? { id: calendar.claim.id, slug: calendar.claim.slug } : {}),
+      title,
+      subtitle,
+      content: generatedMarkdown,
+      contentType,
+      pillar,
+      cutoffDate,
+      status: input.publishImmediately ? "PUBLISHED" : "DRAFT",
+      aiGenerated: true,
+      aiModel: `${providerUsed}/${modelUsed}`,
+      typeMetadata: {
+        calendarPostId: calendarSlot?.id,
+        ...(calendar
+          ? {
+              linkedinYear: calendar.claim.identity.year,
+              linkedinMonth: calendar.claim.identity.month,
+              calendarGenerationStatus: "READY",
+              calendarGenerationClaim: calendar.claim.token,
+            }
+          : {}),
+        linkedinWeek: calendarSlot?.week,
+        linkedinDay: calendarSlot?.day,
+        linkedinFormat: calendarSlot?.format,
+        ctaUrlWithUtm: calendarSlot?.ctaUrlWithUtm,
+      },
+      tags:
+        pillar === "VIVIENDA_B2C"
           ? [
-            "Factoring",
-            "RADIAN",
-            "DIAN",
-            "Liquidez Empresarial",
-            "Capital de Trabajo",
-          ]
-          : [
-            "Análisis Financiero",
-            "Banco de la República",
-            "FINTERA",
-            "Colombia",
-          ],
-  });
+              "Crédito de Vivienda",
+              "Superfinanciera",
+              "Capacidad de Endeudamiento",
+              "UVR vs Pesos",
+            ]
+          : pillar === "FACTORING_B2B"
+            ? [
+                "Factoring",
+                "RADIAN",
+                "DIAN",
+                "Liquidez Empresarial",
+                "Capital de Trabajo",
+              ]
+            : [
+                "Análisis Financiero",
+                "Banco de la República",
+                "FINTERA",
+                "Colombia",
+              ],
+    },
+    calendar ? { calendarClaim: calendar.claim } : {},
+  );
 
   // Dedicated Creative Pipeline: Automatically generate a bespoke cover image for every newly created article
   try {
@@ -767,4 +866,3 @@ export async function generateFinteraCreativeImage(
     item: updatedItem,
   };
 }
-

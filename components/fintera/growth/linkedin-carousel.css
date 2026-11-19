@@ -1,0 +1,98 @@
+/* Editor chrome follows the admin theme; artwork colors follow its actual image. */
+.fintera-carousel-studio,
+.fintera-carousel-studio .carousel-studio-heading {
+  color: var(--admin-text-primary, #0a2342);
+}
+.fintera-carousel-studio .carousel-studio-label,
+.fintera-carousel-studio .carousel-studio-copy {
+  color: var(--admin-text-secondary, #334155);
+}
+.fintera-carousel-studio .carousel-caption {
+  background: var(--admin-surface-subtle, #f0f7ff);
+  border-color: var(--admin-border, rgba(14, 165, 233, 0.18));
+}
+.fintera-carousel-slide {
+  --deck-text: #ffffff;
+  --deck-body: #f1f5f9;
+  --deck-muted: #cbd5e1;
+  --deck-accent: #00c4b3;
+  --deck-warm: #ffd447;
+  --deck-line: rgba(255, 255, 255, 0.22);
+  --deck-chip-bg: rgba(255, 212, 71, 0.15);
+  --deck-chip-line: rgba(255, 212, 71, 0.5);
+  --deck-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  color: var(--deck-text);
+  text-align: left;
+  text-shadow: var(--deck-shadow);
+}
+.fintera-carousel-slide[data-tone="light"] {
+  --deck-text: #0a2342;
+  --deck-body: #0a2342;
+  --deck-muted: #334155;
+  --deck-accent: #006b62;
+  --deck-warm: #805600;
+  --deck-line: rgba(10, 35, 66, 0.25);
+  --deck-chip-bg: rgba(128, 86, 0, 0.08);
+  --deck-chip-line: rgba(128, 86, 0, 0.5);
+  --deck-shadow: none;
+}
+.fintera-carousel-slide .carousel-brand,
+.fintera-carousel-slide .carousel-heading,
+.fintera-carousel-slide .carousel-link {
+  color: var(--deck-text);
+}
+.fintera-carousel-slide .carousel-prose {
+  color: var(--deck-body);
+  text-align: justify;
+  text-align-last: start;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.fintera-carousel-slide .carousel-eyebrow,
+.fintera-carousel-slide .carousel-country {
+  color: var(--deck-accent);
+}
+.fintera-carousel-slide .carousel-number {
+  color: var(--deck-warm);
+  border-color: var(--deck-chip-line);
+  background: var(--deck-chip-bg);
+}
+.fintera-carousel-slide .carousel-top,
+.fintera-carousel-slide .carousel-bottom {
+  border-color: var(--deck-line);
+}
+.fintera-carousel-slide .carousel-icon {
+  background: #0a2342;
+}
+.fintera-carousel-slide .carousel-footer,
+.fintera-carousel-slide .carousel-link span {
+  color: var(--deck-muted);
+}
+.fintera-carousel-slide .carousel-link {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.4;
+  text-shadow: var(--deck-shadow);
+}
+.fintera-carousel-slide .carousel-link strong {
+  display: block;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.fintera-carousel-slide .carousel-link span {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.fintera-carousel-slide .carousel-link:focus-visible {
+  outline: 2px solid var(--deck-warm);
+  outline-offset: 4px;
+}
+.fintera-carousel-slide .carousel-privacy {
+  padding-top: 10px;
+  border-top: 1px solid var(--deck-line);
+}

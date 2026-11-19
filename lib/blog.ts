@@ -301,19 +301,22 @@ En FINTERA no prometemos aprobaciones sin evaluar tu perfil. Nuestro equipo anal
       primarySources: [
         {
           institution: "Superintendencia Financiera de Colombia (SFC)",
-          documentTitle: "Tasas de interés efectivas anuales de vivienda por entidad",
+          documentTitle:
+            "Tasas de interés efectivas anuales de vivienda por entidad",
           url: "https://www.superfinanciera.gov.co",
           cutoffDate: "Octubre 2026",
         },
         {
           institution: "Banco de la República",
-          documentTitle: "Estadísticas de inflación (IPC), UVR y política monetaria",
+          documentTitle:
+            "Estadísticas de inflación (IPC), UVR y política monetaria",
           url: "https://www.banrep.gov.co",
           cutoffDate: "Octubre 2026",
         },
         {
           institution: "DANE & Fondo Nacional del Ahorro (FNA)",
-          documentTitle: "Indicadores de vivienda nueva y modalidades de financiación",
+          documentTitle:
+            "Indicadores de vivienda nueva y modalidades de financiación",
           url: "https://www.dane.gov.co",
           cutoffDate: "Octubre 2026",
         },
@@ -416,19 +419,22 @@ En FINTERA distinguimos con total claridad entre el contenido educativo sobre me
       primarySources: [
         {
           institution: "DIAN (Dirección de Impuestos y Aduanas Nacionales)",
-          documentTitle: "Documentación oficial de Facturación Electrónica y RADIAN",
+          documentTitle:
+            "Documentación oficial de Facturación Electrónica y RADIAN",
           url: "https://www.dian.gov.co",
           cutoffDate: "Octubre 2026",
         },
         {
           institution: "OCDE",
-          documentTitle: "Financing SMEs and Entrepreneurs 2026 — Capítulo Colombia",
+          documentTitle:
+            "Financing SMEs and Entrepreneurs 2026 — Capítulo Colombia",
           url: "https://www.oecd.org",
           cutoffDate: "Octubre 2026",
         },
         {
           institution: "Superintendencia de Sociedades & IFC",
-          documentTitle: "Marco normativo del factoring y financiamiento de cadenas productivas",
+          documentTitle:
+            "Marco normativo del factoring y financiamiento de cadenas productivas",
           url: "https://www.supersociedades.gov.co",
           cutoffDate: "Octubre 2026",
         },
@@ -809,12 +815,14 @@ En FINTERA revisamos tu perfil antes de presentar la solicitud ante nuestras ent
         {
           number: 2,
           title: "Cuota inicial, avalúo, estudio de títulos y escrituración",
-          summary: "Presupuesto integral para evitar sorpresas en el cierre financiero.",
+          summary:
+            "Presupuesto integral para evitar sorpresas en el cierre financiero.",
         },
         {
           number: 3,
           title: "Checklist documental para empleados e independientes",
-          summary: "Soportes exigidos por las entidades vigiladas por la Superfinanciera.",
+          summary:
+            "Soportes exigidos por las entidades vigiladas por la Superfinanciera.",
         },
       ],
       keyTakeaways: [
@@ -912,7 +920,13 @@ En FINTERA conectamos personas y empresas con soluciones financieras mediante or
     authorRole: "Análisis Empresarial B2B",
     categoryName: "Liquidez Empresarial y Factoring",
     categorySlug: "factoring-b2b",
-    tags: ["Flujo de Caja", "Cuentas por Cobrar", "Factoring", "RADIAN", "Pymes"],
+    tags: [
+      "Flujo de Caja",
+      "Cuentas por Cobrar",
+      "Factoring",
+      "RADIAN",
+      "Pymes",
+    ],
     views: 195,
     publishedAt: "2026-11-02T10:00:00Z",
     scheduledAt: null,
@@ -1147,7 +1161,8 @@ En **FINTERA Soluciones Financieras** conectamos personas y empresas con alterna
     cutoffDate: "Octubre 2026",
     featured: false,
     gated: false,
-    downloadUrl: "/contacto?linea=factoring&utm_source=insights&utm_medium=radian_dian",
+    downloadUrl:
+      "/contacto?linea=factoring&utm_source=insights&utm_medium=radian_dian",
     typeMetadata: {
       linkedinWeek: 2,
       linkedinDay: "Miércoles",
@@ -1314,7 +1329,8 @@ En **FINTERA Soluciones Financieras** te acompañamos a comparar opciones reales
     cutoffDate: "Octubre 2026",
     featured: true,
     gated: false,
-    downloadUrl: "/simulador?utm_source=insights&utm_medium=comparar_mas_alla_tasa",
+    downloadUrl:
+      "/simulador?utm_source=insights&utm_medium=comparar_mas_alla_tasa",
     typeMetadata: {
       linkedinWeek: 2,
       linkedinDay: "Jueves",
@@ -1350,16 +1366,30 @@ En **FINTERA Soluciones Financieras** te acompañamos a comparar opciones reales
 
 function buildDefaultHumanReview(
   item: FinteraContentItem,
-  existingMeta?: Partial<FinteraHumanReviewMetadata>
+  existingMeta?: Partial<FinteraHumanReviewMetadata>,
 ): FinteraHumanReviewMetadata {
+  if (
+    item.typeMetadata?.calendarGenerationStatus &&
+    existingMeta?.humanReviewed === false
+  ) {
+    return {
+      humanReviewed: false,
+      reviewerName: existingMeta.reviewerName || "Pendiente de revisión humana",
+      reviewerRole: existingMeta.reviewerRole || "",
+      reviewerCredentials: existingMeta.reviewerCredentials || "",
+      reviewedAt: null,
+      expertMesaNote: existingMeta.expertMesaNote || "",
+      verificationHash: "",
+    };
+  }
   const defaultExpertNote =
     item.pillar === "VIVIENDA_B2C"
       ? "Observación de Mesa Hipotecaria FINTERA: En los comités de crédito de los 6 principales bancos colombianos durante el último trimestre, el 42% de las devoluciones operativas ocurren por inconsistencias entre los ingresos declarados y los soportes de seguridad social (PILA) o por omitir el cálculo del seguro de vida e incendio dentro de la relación cuota/ingreso (ley 546 de 1999 — tope 30%). Validar el DTI integral antes de radicar reduce los tiempos de aprobación hasta en 11 días hábiles."
       : item.pillar === "FACTORING_B2B"
-      ? "Observación de Mesa B2B & Factoring FINTERA: En operaciones reales sobre el registro RADIAN de la DIAN, el principal cuello de botella para pymes proveedoras no es la solvencia del gran pagador, sino la ausencia de los Eventos 032 (Recibo del bien/servicio) y 033/034 (Aceptación expresa o tácita) dentro de los 3 días hábiles posteriores a la recepción. Verificar la trazabilidad CUFE antes de estructurar el descuento garantiza la exigibilidad ejecutiva del título valor."
-      : item.pillar === "AUTORIDAD_MERCADO"
-      ? "Observación del Comité Macroeconómico FINTERA: La transmisión de los recortes en la tasa de intervención del Banco de la República hacia las tasas hipotecarias y comerciales no es lineal; los bancos ajustan primero los segmentos con menor mora (Leasing Habitacional y Vivienda No VIS en pesos para perfiles prime). Por ello, comparar simultáneamente entre al menos 3 entidades vigiladas por la SFC genera ahorros reales de entre 120 y 210 puntos básicos E.A."
-      : "Observación de Gobierno Corporativo FINTERA: Nuestro protocolo de originación multibanco separa estrictamente la precalificación técnica en mesa de la radicación formal en centrales de riesgo, protegiendo la huella de consulta (scoring) del solicitante y cumpliendo integralmente la Ley 1581 de 2012 (Habeas Data).";
+        ? "Observación de Mesa B2B & Factoring FINTERA: En operaciones reales sobre el registro RADIAN de la DIAN, el principal cuello de botella para pymes proveedoras no es la solvencia del gran pagador, sino la ausencia de los Eventos 032 (Recibo del bien/servicio) y 033/034 (Aceptación expresa o tácita) dentro de los 3 días hábiles posteriores a la recepción. Verificar la trazabilidad CUFE antes de estructurar el descuento garantiza la exigibilidad ejecutiva del título valor."
+        : item.pillar === "AUTORIDAD_MERCADO"
+          ? "Observación del Comité Macroeconómico FINTERA: La transmisión de los recortes en la tasa de intervención del Banco de la República hacia las tasas hipotecarias y comerciales no es lineal; los bancos ajustan primero los segmentos con menor mora (Leasing Habitacional y Vivienda No VIS en pesos para perfiles prime). Por ello, comparar simultáneamente entre al menos 3 entidades vigiladas por la SFC genera ahorros reales de entre 120 y 210 puntos básicos E.A."
+          : "Observación de Gobierno Corporativo FINTERA: Nuestro protocolo de originación multibanco separa estrictamente la precalificación técnica en mesa de la radicación formal en centrales de riesgo, protegiendo la huella de consulta (scoring) del solicitante y cumpliendo integralmente la Ley 1581 de 2012 (Habeas Data).";
 
   const isSeededPublished = item.status === "PUBLISHED" && !item.aiGenerated;
   const humanReviewed =
@@ -1370,8 +1400,7 @@ function buildDefaultHumanReview(
   return {
     humanReviewed,
     reviewerName:
-      existingMeta?.reviewerName ||
-      "Sebastián García · Comité Técnico FINTERA",
+      existingMeta?.reviewerName || "Sebastián García · Comité Técnico FINTERA",
     reviewerRole:
       existingMeta?.reviewerRole ||
       "Dirección de Estructuración Financiera, Crédito Hipotecario (Ley 546) y Liquidez B2B (RADIAN)",
@@ -1392,9 +1421,12 @@ function buildDefaultHumanReview(
 
 function buildDefaultAnalytics(
   item: FinteraContentItem,
-  existingAnalytics?: Partial<FinteraArticleAnalytics>
+  existingAnalytics?: Partial<FinteraArticleAnalytics>,
 ): FinteraArticleAnalytics {
-  const baseViews = Math.max(1, existingAnalytics?.views ?? item.views ?? 180);
+  const baseViews = Math.max(
+    item.typeMetadata?.calendarGenerationStatus ? 0 : 1,
+    existingAnalytics?.views ?? item.views ?? 180,
+  );
   const defaultBreakdown: FinteraShareBreakdown = {
     linkedin:
       existingAnalytics?.shareBreakdown?.linkedin ??
@@ -1426,7 +1458,8 @@ function buildDefaultAnalytics(
   return {
     views: baseViews,
     uniqueViews:
-      existingAnalytics?.uniqueViews ?? Math.max(1, Math.round(baseViews * 0.78)),
+      existingAnalytics?.uniqueViews ??
+      Math.max(1, Math.round(baseViews * 0.78)),
     shares: existingAnalytics?.shares ?? computedShares,
     helpfulVotes:
       existingAnalytics?.helpfulVotes ??
@@ -1813,20 +1846,18 @@ export async function getAllFinteraContentWithDb(options?: {
 }
 
 export function getFinteraContentByIdOrSlug(
-  idOrSlug: string
+  idOrSlug: string,
 ): FinteraContentItem | undefined {
   const items = loadCachedPosts();
   const normalizedTarget = stripCalendarPrefixFromSlug(idOrSlug);
   return items.find(
     (i) =>
-      i.id === idOrSlug ||
-      i.slug === idOrSlug ||
-      i.slug === normalizedTarget
+      i.id === idOrSlug || i.slug === idOrSlug || i.slug === normalizedTarget,
   );
 }
 
 export async function getFinteraContentByIdOrSlugWithDb(
-  idOrSlug: string
+  idOrSlug: string,
 ): Promise<FinteraContentItem | undefined> {
   const normalizedTarget = stripCalendarPrefixFromSlug(idOrSlug);
 
@@ -1834,11 +1865,7 @@ export async function getFinteraContentByIdOrSlugWithDb(
   try {
     const post = await prisma.blogPost.findFirst({
       where: {
-        OR: [
-          { id: idOrSlug },
-          { slug: idOrSlug },
-          { slug: normalizedTarget },
-        ],
+        OR: [{ id: idOrSlug }, { slug: idOrSlug }, { slug: normalizedTarget }],
       },
     });
 
@@ -1846,7 +1873,7 @@ export async function getFinteraContentByIdOrSlugWithDb(
       const item = convertPrismaBlogPostToFinteraContentItem(post);
       const items = loadCachedPosts();
       const existingIdx = items.findIndex(
-        (i) => i.id === item.id || i.slug === item.slug
+        (i) => i.id === item.id || i.slug === item.slug,
       );
       if (existingIdx >= 0) {
         items[existingIdx] = item;
@@ -1865,7 +1892,8 @@ export async function getFinteraContentByIdOrSlugWithDb(
 }
 
 export async function upsertFinteraContent(
-  input: Partial<FinteraContentItem> & { title: string; content: string }
+  input: Partial<FinteraContentItem> & { title: string; content: string },
+  options: { calendarClaim?: { id: string; token: string } } = {},
 ): Promise<FinteraContentItem> {
   const items = loadCachedPosts();
   const cleanTitle = stripCalendarPrefixFromText(input.title);
@@ -1882,7 +1910,7 @@ export async function upsertFinteraContent(
       (input.id && i.id === input.id) ||
       (input.slug &&
         (i.slug === input.slug ||
-          i.slug === stripCalendarPrefixFromSlug(input.slug)))
+          i.slug === stripCalendarPrefixFromSlug(input.slug))),
   );
   let existing = existingIndex >= 0 ? items[existingIndex] : undefined;
 
@@ -1925,7 +1953,10 @@ export async function upsertFinteraContent(
   const excerpt =
     input.excerpt ??
     existing?.excerpt ??
-    cleanContent.replace(/[#>*_`-]/g, "").slice(0, 220).trim();
+    cleanContent
+      .replace(/[#>*_`-]/g, "")
+      .slice(0, 220)
+      .trim();
   const cutoffDate = input.cutoffDate || existing?.cutoffDate || "Octubre 2026";
   const pillar: FinteraContentPillarKey =
     input.pillar || existing?.pillar || "VIVIENDA_B2C";
@@ -1953,7 +1984,7 @@ export async function upsertFinteraContent(
   const coverImage = resolveArticleCoverImage(
     id,
     slug,
-    input.coverImage ?? existing?.coverImage
+    input.coverImage ?? existing?.coverImage,
   );
   const imagePrompt =
     input.imagePrompt ??
@@ -1963,8 +1994,7 @@ export async function upsertFinteraContent(
       pillar,
       contentType,
     });
-  const creativeAssets =
-    input.creativeAssets ?? existing?.creativeAssets ?? [];
+  const creativeAssets = input.creativeAssets ?? existing?.creativeAssets ?? [];
   const baseViews = input.views ?? existing?.views ?? 145;
   const preliminaryItem = {
     ...(existing || {}),
@@ -1981,19 +2011,51 @@ export async function upsertFinteraContent(
     publishedAt:
       input.status === "PUBLISHED"
         ? existing?.publishedAt || new Date().toISOString()
-        : input.publishedAt ?? existing?.publishedAt ?? null,
+        : (input.publishedAt ?? existing?.publishedAt ?? null),
     updatedAt: new Date().toISOString(),
   } as FinteraContentItem;
 
-  const humanReview = buildDefaultHumanReview(preliminaryItem, {
-    ...(existing?.humanReview || {}),
-    ...(input.humanReview || {}),
-  });
-  const analytics = buildDefaultAnalytics(preliminaryItem, {
-    ...(existing?.analytics || {}),
-    ...(input.analytics || {}),
-    views: input.analytics?.views ?? input.views ?? existing?.analytics?.views ?? baseViews,
-  });
+  const humanReview = options.calendarClaim
+    ? {
+        humanReviewed: false,
+        reviewerName: "Pendiente de revisión humana",
+        reviewerRole: "",
+        reviewerCredentials: "",
+        reviewedAt: null,
+        expertMesaNote: "",
+        verificationHash: "",
+      }
+    : buildDefaultHumanReview(preliminaryItem, {
+        ...(existing?.humanReview || {}),
+        ...(input.humanReview || {}),
+      });
+  const analytics = options.calendarClaim
+    ? {
+        views: 0,
+        uniqueViews: 0,
+        shares: 0,
+        helpfulVotes: 0,
+        ctaClicks: 0,
+        newsletterSignups: 0,
+        avgReadSeconds: 0,
+        shareBreakdown: {
+          linkedin: 0,
+          whatsapp: 0,
+          x: 0,
+          facebook: 0,
+          email: 0,
+          copy: 0,
+        },
+      }
+    : buildDefaultAnalytics(preliminaryItem, {
+        ...(existing?.analytics || {}),
+        ...(input.analytics || {}),
+        views:
+          input.analytics?.views ??
+          input.views ??
+          existing?.analytics?.views ??
+          baseViews,
+      });
 
   const mergedTypeMetadata: Record<string, unknown> = {
     ...(existing?.typeMetadata || {}),
@@ -2013,11 +2075,16 @@ export async function upsertFinteraContent(
       cleanSubtitle !== undefined
         ? cleanSubtitle
         : existing?.subtitle
-        ? stripCalendarPrefixFromText(existing.subtitle)
-        : null,
+          ? stripCalendarPrefixFromText(existing.subtitle)
+          : null,
     excerpt,
     content: cleanContent,
-    status: input.status || existing?.status || "DRAFT",
+    status:
+      options.calendarClaim &&
+      input.status === "PUBLISHED" &&
+      qa.decision !== "PASSED"
+        ? "IN_REVIEW"
+        : input.status || existing?.status || "DRAFT",
     contentType,
     pillar,
     audience:
@@ -2040,7 +2107,8 @@ export async function upsertFinteraContent(
     typeMetadata: mergedTypeMetadata,
     aiGenerated: input.aiGenerated ?? existing?.aiGenerated ?? false,
     aiModel: input.aiModel ?? existing?.aiModel ?? null,
-    seoTitle: input.seoTitle ?? existing?.seoTitle ?? `${input.title} | FINTERA`,
+    seoTitle:
+      input.seoTitle ?? existing?.seoTitle ?? `${input.title} | FINTERA`,
     seoDescription: input.seoDescription ?? existing?.seoDescription ?? excerpt,
     seoKeywords:
       input.seoKeywords ??
@@ -2049,8 +2117,7 @@ export async function upsertFinteraContent(
     readingTime,
     wordCount,
     qaStatus:
-      input.qaStatus ||
-      (qa.decision === "PASSED" ? "PASSED" : "FAILED"),
+      input.qaStatus || (qa.decision === "PASSED" ? "PASSED" : "FAILED"),
     qaScore: qa.overallScore,
     qaApprovalHash: qa.contentHash,
     qaReport: qa,
@@ -2058,8 +2125,7 @@ export async function upsertFinteraContent(
       input.authorName ||
       existing?.authorName ||
       "Comité de Criterio Financiero FINTERA",
-    authorRole:
-      input.authorRole || existing?.authorRole || "FINTERA Insights",
+    authorRole: input.authorRole || existing?.authorRole || "FINTERA Insights",
     categoryName:
       input.categoryName ||
       existing?.categoryName ||
@@ -2077,104 +2143,106 @@ export async function upsertFinteraContent(
     tags: input.tags || existing?.tags || ["FINTERA", "Colombia"],
     views: analytics.views,
     publishedAt:
-      input.status === "PUBLISHED"
+      input.status === "PUBLISHED" &&
+      (!options.calendarClaim || qa.decision === "PASSED")
         ? existing?.publishedAt || new Date().toISOString()
-        : input.publishedAt ?? existing?.publishedAt ?? null,
+        : (input.publishedAt ?? existing?.publishedAt ?? null),
     scheduledAt:
       input.status === "SCHEDULED"
         ? input.scheduledAt ||
           existing?.scheduledAt ||
           new Date(Date.now() + 24 * 3600 * 1000).toISOString()
-        : input.scheduledAt ?? existing?.scheduledAt ?? null,
+        : (input.scheduledAt ?? existing?.scheduledAt ?? null),
     createdAt: existing?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  if (existingIndex >= 0) {
-    items[existingIndex] = updatedItem;
-  } else {
-    items.unshift(updatedItem);
-  }
-  saveCachedPosts(items);
+  const cacheUpdatedItem = () => {
+    if (existingIndex >= 0) items[existingIndex] = updatedItem;
+    else items.unshift(updatedItem);
+    saveCachedPosts(items);
+  };
+  if (!options.calendarClaim) cacheUpdatedItem();
 
   // Best-effort sync to Prisma BlogPost table when DB has the table migrated
   try {
     const publishedAtDate = updatedItem.publishedAt
       ? new Date(updatedItem.publishedAt)
       : updatedItem.status === "PUBLISHED"
-      ? new Date()
-      : null;
+        ? new Date()
+        : null;
     const scheduledAtDate = updatedItem.scheduledAt
       ? new Date(updatedItem.scheduledAt)
       : null;
 
-    await prisma.blogPost.upsert({
-      where: { slug: updatedItem.slug },
-      update: {
-        title: updatedItem.title,
-        subtitle: updatedItem.subtitle,
-        excerpt: updatedItem.excerpt,
-        content: updatedItem.content,
-        status: updatedItem.status,
-        contentType: updatedItem.contentType,
-        pillar: updatedItem.pillar,
-        audience: updatedItem.audience,
-        cutoffDate: updatedItem.cutoffDate,
-        featured: updatedItem.featured,
-        gated: updatedItem.gated,
-        downloadUrl: updatedItem.downloadUrl,
-        typeMetadata: updatedItem.typeMetadata as object,
-        aiGenerated: updatedItem.aiGenerated,
-        aiModel: updatedItem.aiModel,
-        seoTitle: updatedItem.seoTitle,
-        seoDescription: updatedItem.seoDescription,
-        seoKeywords: updatedItem.seoKeywords,
-        readingTime: updatedItem.readingTime,
-        wordCount: updatedItem.wordCount,
-        qaStatus: updatedItem.qaStatus,
-        qaScore: updatedItem.qaScore,
-        qaApprovalHash: updatedItem.qaApprovalHash,
-        qaReport: (updatedItem.qaReport || {}) as object,
-        views: updatedItem.analytics?.views ?? updatedItem.views,
-        likes: updatedItem.analytics?.helpfulVotes ?? 0,
-        publishedAt: publishedAtDate,
-        scheduledAt: scheduledAtDate,
-      },
-      create: {
-        id: updatedItem.id,
-        title: updatedItem.title,
-        slug: updatedItem.slug,
-        subtitle: updatedItem.subtitle,
-        excerpt: updatedItem.excerpt,
-        content: updatedItem.content,
-        status: updatedItem.status,
-        contentType: updatedItem.contentType,
-        pillar: updatedItem.pillar,
-        audience: updatedItem.audience,
-        cutoffDate: updatedItem.cutoffDate,
-        featured: updatedItem.featured,
-        gated: updatedItem.gated,
-        downloadUrl: updatedItem.downloadUrl,
-        typeMetadata: updatedItem.typeMetadata as object,
-        aiGenerated: updatedItem.aiGenerated,
-        aiModel: updatedItem.aiModel,
-        seoTitle: updatedItem.seoTitle,
-        seoDescription: updatedItem.seoDescription,
-        seoKeywords: updatedItem.seoKeywords,
-        readingTime: updatedItem.readingTime,
-        wordCount: updatedItem.wordCount,
-        qaStatus: updatedItem.qaStatus,
-        qaScore: updatedItem.qaScore,
-        qaApprovalHash: updatedItem.qaApprovalHash,
-        qaReport: (updatedItem.qaReport || {}) as object,
-        views: updatedItem.analytics?.views ?? updatedItem.views,
-        likes: updatedItem.analytics?.helpfulVotes ?? 0,
-        publishedAt: publishedAtDate,
-        scheduledAt: scheduledAtDate,
-      },
-    });
-  } catch {
-    // Graceful fallback to JSON cache
+    const writeData = {
+      title: updatedItem.title,
+      subtitle: updatedItem.subtitle,
+      excerpt: updatedItem.excerpt,
+      content: updatedItem.content,
+      status: updatedItem.status,
+      contentType: updatedItem.contentType,
+      pillar: updatedItem.pillar,
+      audience: updatedItem.audience,
+      cutoffDate: updatedItem.cutoffDate,
+      featured: updatedItem.featured,
+      gated: updatedItem.gated,
+      downloadUrl: updatedItem.downloadUrl,
+      typeMetadata: updatedItem.typeMetadata as object,
+      aiGenerated: updatedItem.aiGenerated,
+      aiModel: updatedItem.aiModel,
+      seoTitle: updatedItem.seoTitle,
+      seoDescription: updatedItem.seoDescription,
+      seoKeywords: updatedItem.seoKeywords,
+      readingTime: updatedItem.readingTime,
+      wordCount: updatedItem.wordCount,
+      qaStatus: updatedItem.qaStatus,
+      qaScore: updatedItem.qaScore,
+      qaApprovalHash: updatedItem.qaApprovalHash,
+      qaReport: (updatedItem.qaReport || {}) as object,
+      views: updatedItem.analytics?.views ?? updatedItem.views,
+      likes: updatedItem.analytics?.helpfulVotes ?? 0,
+      publishedAt: publishedAtDate,
+      scheduledAt: scheduledAtDate,
+    };
+    if (options.calendarClaim) {
+      if (updatedItem.id !== options.calendarClaim.id)
+        throw new Error("CALENDAR_CLAIM_ID_MISMATCH");
+      const saved = await prisma.blogPost.updateMany({
+        where: {
+          id: options.calendarClaim.id,
+          slug: updatedItem.slug,
+          status: "DRAFT",
+          content: "",
+          AND: [
+            {
+              typeMetadata: {
+                path: ["calendarGenerationClaim"],
+                equals: options.calendarClaim.token,
+              },
+            },
+            {
+              typeMetadata: {
+                path: ["calendarGenerationStatus"],
+                equals: "PENDING",
+              },
+            },
+          ],
+        },
+        data: writeData,
+      });
+      if (saved.count !== 1) throw new Error("CALENDAR_CLAIM_CHANGED");
+      cacheUpdatedItem();
+    } else {
+      await prisma.blogPost.upsert({
+        where: { slug: updatedItem.slug },
+        update: writeData,
+        create: { id: updatedItem.id, slug: updatedItem.slug, ...writeData },
+      });
+    }
+  } catch (error) {
+    if (options.calendarClaim) throw error;
+    // Existing non-calendar callers retain their cache fallback.
   }
 
   return updatedItem;
@@ -2199,15 +2267,20 @@ export async function recordFinteraArticleTelemetry(params: {
     });
     if (dbRow) {
       const dbMeta = (dbRow.typeMetadata || {}) as Record<string, unknown>;
-      const dbAnalytics = (dbMeta.analytics || {}) as Partial<FinteraArticleAnalytics>;
+      const dbAnalytics = (dbMeta.analytics ||
+        {}) as Partial<FinteraArticleAnalytics>;
       currentAnalytics = buildDefaultAnalytics(item, {
         ...currentAnalytics,
         ...dbAnalytics,
-        views: Math.max(currentAnalytics.views, dbRow.views || 0, dbAnalytics.views || 0),
+        views: Math.max(
+          currentAnalytics.views,
+          dbRow.views || 0,
+          dbAnalytics.views || 0,
+        ),
         helpfulVotes: Math.max(
           currentAnalytics.helpfulVotes,
           dbRow.likes || 0,
-          dbAnalytics.helpfulVotes || 0
+          dbAnalytics.helpfulVotes || 0,
         ),
       });
     }
@@ -2243,7 +2316,7 @@ export async function recordFinteraArticleTelemetry(params: {
 
   if (params.readSeconds && params.readSeconds > 5) {
     currentAnalytics.avgReadSeconds = Math.round(
-      currentAnalytics.avgReadSeconds * 0.85 + params.readSeconds * 0.15
+      currentAnalytics.avgReadSeconds * 0.85 + params.readSeconds * 0.15,
     );
   }
 
@@ -2386,5 +2459,3 @@ export async function deleteFinteraContent(
 
   return { deleted: true, slug: target.slug };
 }
-
-
